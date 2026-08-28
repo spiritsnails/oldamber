@@ -22,10 +22,16 @@ def _take_dest_flag():
             return a[len("--dest="):]
     return None
 
+def _default_dest():
+    if not getattr(sys, "frozen", False):
+        return os.getcwd()
+    here = os.path.dirname(sys.executable)
+    if os.path.basename(here).lower() == "internal":
+        return os.path.dirname(here)
+    return here
+
 _DEST_OVERRIDE = _take_dest_flag()
-DEST = _DEST_OVERRIDE or (
-    os.path.dirname(sys.executable) if getattr(sys, "frozen", False)
-    else os.getcwd())
+DEST = _DEST_OVERRIDE or _default_dest()
 if _DEST_OVERRIDE:
     os.makedirs(DEST, exist_ok=True)
 

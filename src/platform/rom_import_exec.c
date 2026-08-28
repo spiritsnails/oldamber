@@ -39,14 +39,24 @@ int RomImport_LooksLikeGBRom(const char *path) {
 #define EXEC_PCLOSE pclose
 #endif
 
+static size_t trailing_backslashes(const char *s) {
+    size_t n = 0, len = strlen(s);
+    while (n < len && s[len - 1 - n] == '\\') n++;
+    return n;
+}
+
 static void sh_quote(const char *in, char *out, size_t out_sz) {
     size_t o = 0;
     if (!out_sz) return;
 #ifdef _WIN32
-    if (o + 1 < out_sz) out[o++] = '"';
-    for (const char *p = in; *p && o + 2 < out_sz; p++) {
-        if (*p == '"') out[o++] = '\\';
-        out[o++] = *p;
+    {
+        size_t extra = trailing_backslashes(in);
+        if (o + 1 < out_sz) out[o++] = '"';
+        for (const char *p = in; *p && o + 2 < out_sz; p++) {
+            if (*p == '"') out[o++] = '\\';
+            out[o++] = *p;
+        }
+        while (extra-- && o + 2 < out_sz) out[o++] = '\\';
     }
     if (o + 1 < out_sz) out[o++] = '"';
 #else

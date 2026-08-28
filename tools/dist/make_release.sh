@@ -124,7 +124,11 @@ find "$OUT" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
 mkdir -p "$OUT/mod_runtime"
 cp "$GAME_DIR/$GAME_EXE" "$OUT/OldAmber.exe"
 cp "$GAME_DIR/SDL2.dll"    "$OUT/"
-cp "$REPO/build/dist_tmp/setup.exe" "$OUT/"
+# internal/, not the top level. Next to the game, setup.exe reads as the
+# installer a player is meant to run first, and it is not one: the launcher runs
+# it. One executable in the folder a player opens.
+mkdir -p "$OUT/internal"
+cp "$REPO/build/dist_tmp/setup.exe" "$OUT/internal/"
 cp "$REPO/tools/dist/README.txt" "$OUT/"
 
 # The project's own licence, by the same rule the block below states for
@@ -212,7 +216,7 @@ echo "(nothing listed above = good)"
 # at runtime, a printf on a stdout no player reads, so it has to be caught here
 # or not at all.
 missing=0
-for f in "OldAmber.exe" "SDL2.dll" "setup.exe" "README.txt" "THIRD_PARTY.md" "LICENSE" \
+for f in "OldAmber.exe" "SDL2.dll" "internal/setup.exe" "README.txt" "THIRD_PARTY.md" "LICENSE" \
          "shaders/MasterShader.fsh" "shaders/crt/tube.frag" "shaders/crt/tube.vert" \
          "shaders/crt/blur.frag" "shaders/crt/blur.vert" "shaders/crt/final.frag"; do
     if [ ! -e "$OUT/$f" ]; then
@@ -276,11 +280,16 @@ echo
 echo "==> archiving"
 rm -f "$ARCHIVE" "$ARCHIVE.sha256"
 if [ -x "$WIN_TAR" ]; then
-    "$WIN_TAR" -a -c -f "$(cygpath -w "$ARCHIVE")" -C "$(cygpath -w "$OUT")" . \
+    # Archive the FOLDER, not its contents. `-C "$OUT" .` stamped ./ on every
+    # entry and unpacked flat, so a player got nine loose items wherever they
+    # extracted it. This matches the Linux tarball, which has always had a
+    # OldAmber-linux/ root.
+    "$WIN_TAR" -a -c -f "$(cygpath -w "$ARCHIVE")" \
+        -C "$(cygpath -w "$(dirname "$OUT")")" "$(basename "$OUT")" \
         >/dev/null 2>&1 || true
 elif [ -x "$WIN_PS" ]; then
     "$WIN_PS" -NoProfile -NonInteractive -Command \
-      "Compress-Archive -Path '$(cygpath -w "$OUT")\\*' -DestinationPath '$(cygpath -w "$ARCHIVE")' -Force" \
+      "Compress-Archive -Path '$(cygpath -w "$OUT")' -DestinationPath '$(cygpath -w "$ARCHIVE")' -Force" \
       >/dev/null 2>&1 || true
 fi
 if [ -f "$ARCHIVE" ]; then

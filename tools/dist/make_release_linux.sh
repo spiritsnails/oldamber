@@ -158,8 +158,12 @@ python3 -m PyInstaller --noconfirm --clean --onefile \
     --hidden-import extract_audio \
     "${ADD_DATA[@]}" \
     "$REPO/tools/dist/setup_assets.py" >/dev/null
-cp "$REPO/build/dist_tmp_linux/setup" "$OUT/setup"
-chmod +x "$OUT/setup"
+# internal/, not the top level. Next to the game, setup reads as the installer
+# a player is meant to run first, and it is not one: the launcher runs it. One
+# executable in the folder a player opens.
+mkdir -p "$OUT/internal"
+cp "$REPO/build/dist_tmp_linux/setup" "$OUT/internal/setup"
+chmod +x "$OUT/internal/setup"
 
 # The repo files the extractors open by path are --add-data'd into setup above,
 # not copied loose. The same list make_release.sh freezes into setup.exe.
@@ -186,7 +190,7 @@ strays="$(find "$OUT" \( -name '*.pak' -o -name custom_art -o -name generatedmap
 [ -z "$strays" ] || { printf '%s\n' "$strays" >&2; die "content that must never ship is in the bundle"; }
 
 missing=0
-for f in OldAmber OldAmber.sh setup LICENSE THIRD_PARTY.md README.txt \
+for f in OldAmber OldAmber.sh internal/setup LICENSE THIRD_PARTY.md README.txt \
          LICENSE-Python.txt icon.png shaders/MasterShader.fsh; do
     [ -e "$OUT/$f" ] || { echo "MISSING FROM BUNDLE: $f" >&2; missing=1; }
 done

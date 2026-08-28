@@ -576,9 +576,27 @@ if(WIN32 AND MINGW)
   endif()
 endif()
 
-# Link MinGW builds as a console app so the entry point is main(), not WinMain.
+# Console for development, no console for a release.
+#
+# -mconsole gives a terminal window alongside the game. That is what you want
+# while working, and wrong in front of a player: a released game opening a black
+# console next to itself looks broken before it has drawn a frame. Release links
+# -mwindows instead, which creates no console.
+#
+# main() is the entry point either way. The concern in the note at the top of
+# this file is SDL2main, which redirects the entry to WinMain; we do not link
+# it, and MinGW's own runtime provides the WinMain wrapper that calls main()
+# under -mwindows. Nothing about main() changes here.
+#
+# The log is unaffected: main() redirects stdout to pokered_log.txt at startup,
+# so a release build still records everything it always did, with no console for
+# it to have gone to.
 if(WIN32 AND MINGW)
-  target_link_options(pokered PRIVATE -mconsole)
+  if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_link_options(pokered PRIVATE -mwindows)
+  else()
+    target_link_options(pokered PRIVATE -mconsole)
+  endif()
 endif()
 
 # Warnings

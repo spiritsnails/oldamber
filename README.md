@@ -268,6 +268,11 @@ but my current focus has still been on getting this feeling exactly like you
 remember. If you're a developer, take a look at the scene / block architecture
 to see what I mean.
 
+## Community
+
+[Discord](https://discord.gg/2pZNRp6t8) for questions, bug reports, and anything
+you build with the scene and block system.
+
 ## Thanks
 
 To [pret](https://github.com/pret), whose preservation work on the Game Boy Poke
