@@ -1,0 +1,6 @@
+
+if dex_owned < 2
+    say rom:SaveOptionText
+else
+    say rom:StrengthsAndWeaknessesText
+end

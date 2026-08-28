@@ -1,0 +1,46 @@
+
+if not has_item(COIN_CASE)
+    say rom:GameCornerCoinCaseText
+    wait_text
+    stop
+end
+say rom:ExchangeCoinsForPrizesText
+wait_text
+prize_list item TM_DRAGON_RAGE 3300 TM_HYPER_BEAM 5500 TM_SUBSTITUTE 7700
+if prize_choice == 0
+    stop
+end
+if prize_choice == 1
+    let prize_price = 3300
+    ask rom:SoYouWantPrizeText badge=TM23
+elif prize_choice == 2
+    let prize_price = 5500
+    ask rom:SoYouWantPrizeText badge=TM15
+else
+    let prize_price = 7700
+    ask rom:SoYouWantPrizeText badge=TM50
+end
+if answer is no
+    say rom:OhFineThenText
+    wait_text
+    stop
+end
+if not has_coins(prize_price)
+    say rom:SorryNeedMoreCoinsText
+    wait_text
+    stop
+end
+if prize_choice == 1
+    give_item TM_DRAGON_RAGE
+elif prize_choice == 2
+    give_item TM_HYPER_BEAM
+else
+    give_item TM_SUBSTITUTE
+end
+if bag_full
+    say rom:PrizeRoomBagIsFullText
+    wait_text
+    stop
+end
+take_coins prize_price
+end

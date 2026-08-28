@@ -1,0 +1,85 @@
+
+block kanto_qba94d4eb
+    surfable yes
+    pair_block elev_low
+end
+block kanto_qa2398897
+    surfable yes
+    pair_block elev_low
+end
+block kanto_qb734a721
+    surfable yes
+    pair_block elev_low
+end
+block kanto_qd1b06384
+    surfable yes
+    pair_block elev_low
+end
+block kanto_qd0f17295
+    surfable yes
+    pair_block elev_low
+end
+block kanto_qe0262a7b
+    surfable yes
+    pair_block elev_low
+end
+block kanto_q0f8e6dd8
+    surfable yes
+    pair_block elev_low
+end
+block kanto_q84b319aa
+    surfable yes
+    pair_block elev_low
+end
+
+block kanto_q0b0016c6
+    pair_block elev_high
+end
+block kanto_q482e198d
+    pair_block elev_high
+end
+block kanto_q9fbea3f9
+    pair_block elev_low
+end
+block kanto_qbad5fc25
+    pair_block elev_low
+end
+block kanto_q70830619
+    pair_block elev_low
+end
+block kanto_qad8a7ca9
+    pair_block elev_low
+end
+block kanto_q5e5536a8
+    pair_block elev_low
+end
+block kanto_qcc2fca1d
+    pair_block elev_low
+end
+block kanto_q578d5d1b
+    pair_block elev_low
+end
+block kanto_q6da7d277
+    pair_block elev_low
+end
+block kanto_qc7d99094
+    pair_block elev_low
+end
+block kanto_q3feadde3
+    pair_block elev_low
+end
+block kanto_qd2555a21
+    pair_block elev_low
+end
+block kanto_w5c07deb5
+    pair_block elev_low
+end
+block kanto_w7aa525f9
+    pair_block elev_low
+end
+block kanto_w8a52e518
+    pair_block elev_low
+end
+block kanto_wf8ff0a6e
+    pair_block elev_low
+end

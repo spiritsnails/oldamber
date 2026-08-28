@@ -1,0 +1,22 @@
+include defs_battle
+
+spawn rival LANCE player+1 player+0
+face rival player
+
+use battle_intro_custom
+    music ELITE_4
+    "I am LANCE of the ELITE FOUR!@"
+    "LANCE"
+    "Gyarados,56,Hydro Pump,Dragon Rage,Leer,Hyper Beam"
+    "Dragonair,54,Thunder Wave,Slam,Dragon Rage,Agility"
+    "Dragonair,54,Thunder Wave,Slam,Dragon Rage,Agility"
+    "Aerodactyl,58,Hyper Beam,Take Down,Supersonic,Bite"
+    "Dragonite,60,Hyper Beam,Thunder,Blizzard,Fire Blast"
+    "empty"
+    "That’s it! I hate to admit it, but you are a Monster master!@"
+    "Incredible. Until next time.@"
+
+face rival up
+move rival up 8
+despawn rival
+end

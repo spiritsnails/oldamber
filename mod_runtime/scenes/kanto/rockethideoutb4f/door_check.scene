@@ -1,0 +1,9 @@
+
+if EVENT_BEAT_ROCKET_HIDEOUT_4_TRAINER_0 and EVENT_BEAT_ROCKET_HIDEOUT_4_TRAINER_1
+    if not EVENT_ROCKET_HIDEOUT_4_DOOR_UNLOCKED
+        set_event EVENT_ROCKET_HIDEOUT_4_DOOR_UNLOCKED
+        refresh_tiles
+    end
+    sfx go_inside
+end
+end

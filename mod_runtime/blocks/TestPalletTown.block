@@ -1,0 +1,238 @@
+
+gbc_tileset TestPalletTown overworld
+subtile kanto_t003 mod_runtime/custom_art/kanto/kanto_t003.png
+subtile kanto_t005 mod_runtime/custom_art/kanto/kanto_t005.png
+subtile kanto_t006 mod_runtime/custom_art/kanto/kanto_t006.png
+subtile kanto_t007 mod_runtime/custom_art/kanto/kanto_t007.png
+subtile kanto_t008 mod_runtime/custom_art/kanto/kanto_t008.png
+subtile kanto_t009 mod_runtime/custom_art/kanto/kanto_t009.png
+subtile kanto_t010 mod_runtime/custom_art/kanto/kanto_t010.png
+subtile kanto_t011 mod_runtime/custom_art/kanto/kanto_t011.png
+subtile kanto_t012 mod_runtime/custom_art/kanto/kanto_t012.png
+subtile kanto_t014 mod_runtime/custom_art/kanto/kanto_t014.png
+subtile kanto_t015 mod_runtime/custom_art/kanto/kanto_t015.png
+subtile kanto_t018 mod_runtime/custom_art/kanto/kanto_t018.png
+subtile kanto_t020 mod_runtime/custom_art/kanto/kanto_t020.png
+subtile kanto_t021 mod_runtime/custom_art/kanto/kanto_t021.png
+subtile kanto_t022 mod_runtime/custom_art/kanto/kanto_t022.png
+subtile kanto_t023 mod_runtime/custom_art/kanto/kanto_t023.png
+subtile kanto_t024 mod_runtime/custom_art/kanto/kanto_t024.png
+subtile kanto_t025 mod_runtime/custom_art/kanto/kanto_t025.png
+subtile kanto_t026 mod_runtime/custom_art/kanto/kanto_t026.png
+subtile kanto_t027 mod_runtime/custom_art/kanto/kanto_t027.png
+subtile kanto_t028 mod_runtime/custom_art/kanto/kanto_t028.png
+subtile kanto_t031 mod_runtime/custom_art/kanto/kanto_t031.png
+subtile kanto_t034 mod_runtime/custom_art/kanto/kanto_t034.png
+subtile kanto_t035 mod_runtime/custom_art/kanto/kanto_t035.png
+subtile kanto_t037 mod_runtime/custom_art/kanto/kanto_t037.png
+subtile kanto_t038 mod_runtime/custom_art/kanto/kanto_t038.png
+subtile kanto_t040 mod_runtime/custom_art/kanto/kanto_t040.png
+subtile kanto_t041 mod_runtime/custom_art/kanto/kanto_t041.png
+subtile kanto_t042 mod_runtime/custom_art/kanto/kanto_t042.png
+subtile kanto_t043 mod_runtime/custom_art/kanto/kanto_t043.png
+subtile kanto_t044 mod_runtime/custom_art/kanto/kanto_t044.png
+subtile kanto_t050 mod_runtime/custom_art/kanto/kanto_t050.png
+subtile kanto_t051 mod_runtime/custom_art/kanto/kanto_t051.png
+subtile kanto_t056 mod_runtime/custom_art/kanto/kanto_t056.png
+subtile kanto_t057 mod_runtime/custom_art/kanto/kanto_t057.png
+subtile kanto_t058 mod_runtime/custom_art/kanto/kanto_t058.png
+subtile kanto_t059 mod_runtime/custom_art/kanto/kanto_t059.png
+subtile kanto_t070 mod_runtime/custom_art/kanto/kanto_t070.png
+subtile kanto_t071 mod_runtime/custom_art/kanto/kanto_t071.png
+subtile kanto_t075 mod_runtime/custom_art/kanto/kanto_t075.png
+subtile kanto_t078 mod_runtime/custom_art/kanto/kanto_t078.png
+subtile kanto_t079 mod_runtime/custom_art/kanto/kanto_t079.png
+subtile kanto_t082 mod_runtime/custom_art/kanto/kanto_t082.png
+subtile kanto_t083 mod_runtime/custom_art/kanto/kanto_t083.png
+subtile kanto_t084 mod_runtime/custom_art/kanto/kanto_t084.png
+subtile kanto_t085 mod_runtime/custom_art/kanto/kanto_t085.png
+subtile kanto_t086 mod_runtime/custom_art/kanto/kanto_t086.png
+subtile kanto_t087 mod_runtime/custom_art/kanto/kanto_t087.png
+subtile kanto_t092 mod_runtime/custom_art/kanto/kanto_t092.png
+subtile kanto_t093 mod_runtime/custom_art/kanto/kanto_t093.png
+block tst_kanto_q0000
+    source quad kanto_t044 kanto_t044 kanto_t044 kanto_t044
+    passable yes
+end
+block tst_kanto_q0001
+    source quad kanto_t042 kanto_t043 kanto_t058 kanto_t059
+    passable no
+end
+block tst_kanto_q0002
+    source quad kanto_t082 kanto_t082 kanto_t082 kanto_t082
+    passable yes
+grass TestPalletTown
+end
+block tst_kanto_q0003
+    source quad kanto_t035 kanto_t035 kanto_t057 kanto_t035
+    passable yes
+end
+block tst_kanto_q0004
+    source quad kanto_t035 kanto_t035 kanto_t035 kanto_t035
+    passable yes
+end
+block tst_kanto_q0005
+    source quad kanto_t005 kanto_t006 kanto_t021 kanto_t022
+    passable no
+end
+block tst_kanto_q0006
+    source quad kanto_t007 kanto_t007 kanto_t023 kanto_t023
+    passable no
+end
+block tst_kanto_q0007
+    source quad kanto_t008 kanto_t009 kanto_t024 kanto_t025
+    passable no
+end
+block tst_kanto_q0008
+    source quad kanto_t057 kanto_t057 kanto_t057 kanto_t057
+    passable yes
+end
+block tst_kanto_q0009
+    source quad kanto_t037 kanto_t038 kanto_t092 kanto_t023
+    passable no
+end
+block tst_kanto_q0010
+    source quad kanto_t010 kanto_t034 kanto_t023 kanto_t023
+    passable no
+end
+block tst_kanto_q0011
+    source quad kanto_t010 kanto_t010 kanto_t023 kanto_t023
+    passable no
+end
+block tst_kanto_q0012
+    source quad kanto_t040 kanto_t041 kanto_t023 kanto_t093
+    passable no
+end
+block tst_kanto_q0013
+    source quad kanto_t070 kanto_t071 kanto_t086 kanto_t087
+    passable no
+end
+block tst_kanto_q0014
+    source quad kanto_t015 kanto_t034 kanto_t078 kanto_t026
+    passable no
+end
+block tst_kanto_q0015
+    source quad kanto_t011 kanto_t012 kanto_t027 kanto_t028
+    passable no
+end
+block tst_kanto_q0016
+    source quad kanto_t010 kanto_t010 kanto_t026 kanto_t026
+    passable no
+end
+block tst_kanto_q0017
+    source quad kanto_t034 kanto_t031 kanto_t026 kanto_t079
+    passable no
+end
+block tst_kanto_q0018
+    source quad kanto_t005 kanto_t006 kanto_t021 kanto_t056
+    passable no
+end
+block tst_kanto_q0019
+    source quad kanto_t083 kanto_t083 kanto_t018 kanto_t018
+    passable no
+end
+block tst_kanto_q0020
+    source quad kanto_t008 kanto_t009 kanto_t056 kanto_t025
+    passable no
+end
+block tst_kanto_q0021
+    source quad kanto_t014 kanto_t014 kanto_t085 kanto_t085
+    passable no
+end
+block tst_kanto_q0022
+    source quad kanto_t021 kanto_t056 kanto_t021 kanto_t022
+    passable no
+end
+block tst_kanto_q0023
+    source quad kanto_t018 kanto_t018 kanto_t023 kanto_t023
+    passable no
+end
+block tst_kanto_q0024
+    source quad kanto_t056 kanto_t025 kanto_t024 kanto_t025
+    passable no
+end
+block tst_kanto_q0025
+    source quad kanto_t044 kanto_t044 kanto_t044 kanto_t003
+    passable yes
+end
+block tst_kanto_q0026
+    source quad kanto_t037 kanto_t038 kanto_t015 kanto_t034
+    passable no
+end
+block tst_kanto_q0027
+    source quad kanto_t010 kanto_t010 kanto_t034 kanto_t034
+    passable no
+end
+block tst_kanto_q0028
+    source quad kanto_t010 kanto_t075 kanto_t075 kanto_t075
+    passable no
+end
+block tst_kanto_q0029
+    source quad kanto_t075 kanto_t010 kanto_t075 kanto_t075
+    passable no
+end
+block tst_kanto_q0030
+    source quad kanto_t010 kanto_t010 kanto_t075 kanto_t075
+    passable no
+end
+block tst_kanto_q0031
+    source quad kanto_t040 kanto_t041 kanto_t075 kanto_t031
+    passable no
+end
+block tst_kanto_q0032
+    source quad kanto_t003 kanto_t044 kanto_t044 kanto_t044
+    passable yes
+end
+block tst_kanto_q0033
+    source quad kanto_t015 kanto_t010 kanto_t078 kanto_t026
+    passable no
+end
+block tst_kanto_q0034
+    source quad kanto_t010 kanto_t031 kanto_t026 kanto_t079
+    passable no
+end
+block tst_kanto_q0035
+    source quad kanto_t051 kanto_t051 kanto_t050 kanto_t020
+    passable no
+end
+block tst_kanto_q0036
+    source quad kanto_t051 kanto_t051 kanto_t020 kanto_t020
+    passable no
+end
+block tst_kanto_q0037
+    source quad kanto_t051 kanto_t051 kanto_t020 kanto_t084
+    passable no
+end
+block tst_kanto_q0038
+    source quad kanto_t050 kanto_t020 kanto_t050 kanto_t020
+    passable no
+end
+block tst_kanto_q0039
+    source quad kanto_t020 kanto_t020 kanto_t020 kanto_t020
+    passable no
+end
+block tst_kanto_q0040
+    source quad kanto_t020 kanto_t084 kanto_t020 kanto_t084
+    passable no
+end
+block tst_kanto_warp_redshouse
+    source quad kanto_t011 kanto_t012 kanto_t027 kanto_t028
+    passable yes
+    warp TestRedsHouse1F 0
+end
+block tst_kanto_warp_blueshouse
+    source quad kanto_t011 kanto_t012 kanto_t027 kanto_t028
+    passable yes
+    warp TestBluesHouse 0
+end
+block tst_kanto_warp_oakslab
+    source quad kanto_t011 kanto_t012 kanto_t027 kanto_t028
+    passable yes
+    warp TestOaksLab 0
+end
+mapsize TestPalletTown 10 9
+border TestPalletTown tst_kanto_q0002 tst_kanto_q0002 tst_kanto_q0002 tst_kanto_q0002
+warpspot TestPalletTown 2 12 11
+warpspot TestPalletTown 0 5 5
+warpspot TestPalletTown 1 13 5
+music TestPalletTown pallet_town

@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER113
+say rom:CopycatsHouse1FChanseyText
+wait_text
+end

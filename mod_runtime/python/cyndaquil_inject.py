@@ -1,0 +1,12 @@
+
+print("species_define CYNDAQUIL 0xF0")
+print("species_name_set CYNDAQUIL CYNDAQUIL")
+print("species_stats_set CYNDAQUIL 39 52 43 65 50 FIRE FIRE 45 65 4")
+print("species_moves_set CYNDAQUIL TACKLE LEER EMBER SMOKESCREEN")
+print("species_learn_add CYNDAQUIL 6 SMOKESCREEN")
+print("species_learn_add CYNDAQUIL 12 EMBER")
+print("species_learn_add CYNDAQUIL 19 QUICK_ATTACK")
+print("species_learn_add CYNDAQUIL 27 FLAME_WHEEL")
+print("species_bank on")
+print("species_bank save")
+print("species_bank status")

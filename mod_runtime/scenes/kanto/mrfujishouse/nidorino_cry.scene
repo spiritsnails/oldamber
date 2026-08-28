@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER033
+say rom:MrFujisHouseNidorinoText
+wait_text
+end

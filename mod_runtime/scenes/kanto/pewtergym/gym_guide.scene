@@ -1,0 +1,16 @@
+
+if BEAT_BROCK
+    say rom:PewterGymGuidePostBattleText
+    wait_text
+    end
+end
+ask rom:PewterGymGuidePreAdviceText
+if answer is no
+    say rom:PewterGymGuideFreeServiceText
+else
+    say rom:PewterGymGuideBeginAdviceText
+end
+wait_text
+say rom:PewterGymGuideAdviceText
+wait_text
+end

@@ -1,0 +1,5 @@
+
+cry MONSTER086
+say rom:PokemonFanClubSeelText.Text
+wait_text
+end

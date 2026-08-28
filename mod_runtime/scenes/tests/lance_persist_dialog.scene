@@ -1,0 +1,7 @@
+
+face lance_persist player
+say "CLEARED IN THE LITERAL DIALOGUE CLEANUP 8/2026@"
+wait_text
+say "This debug NPC is persistent while dsl_bank is on.@"
+wait_text
+end

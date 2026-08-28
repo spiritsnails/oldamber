@@ -1,0 +1,40 @@
+
+if not has_item(COIN_CASE)
+    say rom:GameCornerCoinCaseText
+    wait_text
+    stop
+end
+say rom:ExchangeCoinsForPrizesText
+wait_text
+prize_list mon rom 2
+if prize_choice == 0
+    stop
+end
+ask rom:SoYouWantPrizeText badge=$prize
+if answer is no
+    say rom:OhFineThenText
+    wait_text
+    stop
+end
+if not has_coins(prize_price)
+    say rom:SorryNeedMoreCoinsText
+    wait_text
+    stop
+end
+give_monster prize_species prize_level
+wait_text
+if party_full
+    stop
+end
+take_coins prize_price
+say rom:GotMonText badge=$prize
+wait_text
+ask rom:DoYouWantToNicknameText badge=$prize
+if answer is yes
+    name prize_species
+end
+if sent_to_box
+    say rom:SentToBoxText
+    wait_text
+end
+end

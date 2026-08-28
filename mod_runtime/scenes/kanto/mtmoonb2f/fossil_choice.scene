@@ -1,0 +1,57 @@
+
+if not trainer_beaten(1208)
+    stop
+end
+
+set_event EVENT_BEAT_MT_MOON_EXIT_SUPER_NERD
+if EVENT_GOT_DOME_FOSSIL or EVENT_GOT_HELIX_FOSSIL
+    stop
+end
+if self.x == 12
+    ask rom:MtMoonB2FDomeFossilText.YouWantText
+elif self.x == 13
+    ask rom:MtMoonB2FHelixFossilText.YouWantText
+end
+if answer is yes
+    lock_input on
+    if self.x == 12
+        give_item DOME_FOSSIL
+        if bag_full
+            say rom:MtMoonB2FYouHaveNoRoomText.Text
+            wait_text
+            lock_input off
+            stop
+        end
+        set_event EVENT_GOT_DOME_FOSSIL
+        sfx_on_print get_key_item
+        say rom:MtMoonB2FReceivedFossilText.Text
+        wait_text
+        hide 12 6
+        move @12,8 right 1
+        move @12,8 up 1
+    else
+        give_item HELIX_FOSSIL
+        if bag_full
+            say rom:MtMoonB2FYouHaveNoRoomText.Text
+            wait_text
+            lock_input off
+            stop
+        end
+        set_event EVENT_GOT_HELIX_FOSSIL
+        sfx_on_print get_key_item
+        say rom:MtMoonB2FReceivedFossilText.Text
+        wait_text
+        hide 13 6
+        move @12,8 up 1
+    end
+    sfx_on_print get_key_item
+    say_auto rom:MtMoonB2FSuperNerdThenThisIsMineText
+    wait_text
+    if EVENT_GOT_DOME_FOSSIL
+        hide 13 6
+    else
+        hide 12 6
+    end
+    lock_input off
+end
+end

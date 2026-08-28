@@ -1,0 +1,2 @@
+py_inject mod_runtime/python/cyndaquil_sprite_inject.py
+end

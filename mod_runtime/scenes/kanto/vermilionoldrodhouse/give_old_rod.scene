@@ -1,0 +1,26 @@
+
+if has_item(OLD_ROD)
+    say rom:VermilionOldRodHouseFishingGuruText.HowAreTheFishBitingText
+    wait_text
+    stop
+end
+ask rom:VermilionOldRodHouseFishingGuruText.DoYouLikeToFishText
+if answer is no
+    say rom:VermilionOldRodHouseFishingGuruText.ThatsSoDisappointingText
+    wait_text
+    stop
+end
+give_item OLD_ROD
+if bag_full
+    say rom:VermilionOldRodHouseFishingGuruText.NoRoomText
+    wait_text
+    stop
+end
+say rom:VermilionOldRodHouseFishingGuruText.TakeThisText page=0-1
+wait_text
+sfx_on_print get_item
+say rom:VermilionOldRodHouseFishingGuruText.TakeThisText page=2
+wait_text
+say rom:VermilionOldRodHouseFishingGuruText.TakeThisText page=3-4
+wait_text
+end

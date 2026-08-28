@@ -1,0 +1,27 @@
+
+if EVENT_GAVE_SAFFRON_GUARDS_DRINK
+    say rom:SaffronGateGuardThanksForTheDrinkText
+    stop
+end
+lock_input on
+sim_walk right 1
+face player right
+if has_item(FRESH_WATER)
+    take_item FRESH_WATER
+elif has_item(SODA_POP)
+    take_item SODA_POP
+elif has_item(LEMONADE)
+    take_item LEMONADE
+else
+    say rom:SaffronGateGuardGeeImThirstyText
+    sim_walk down 1
+    lock_input off
+    stop
+end
+set_event EVENT_GAVE_SAFFRON_GUARDS_DRINK
+
+say rom:SaffronGateGuardGiveDrinkText page=0
+wait_text
+sfx_on_print get_key_item
+say rom:SaffronGateGuardGiveDrinkText page=1
+lock_input off

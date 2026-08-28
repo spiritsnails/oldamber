@@ -1,0 +1,117 @@
+
+if not OAK_ASKED_TO_CHOOSE_MON
+    say rom:OaksLabThoseArePokeBallsText
+    stop
+end
+if GOT_STARTER
+    say rom:OaksLabLastMonText
+    stop
+end
+
+if ball.x == 6
+    let mine = MONSTER004
+elif ball.x == 7
+    let mine = MONSTER007
+else
+    let mine = MONSTER001
+end
+
+show_dex mine
+if mine == MONSTER004
+    ask rom:OaksLabYouWantCharmanderText
+elif mine == MONSTER007
+    ask rom:OaksLabYouWantSquirtleText.Text
+else
+    ask rom:OaksLabYouWantBulbasaurText.Text
+end
+
+if answer is no
+    stop
+end
+give player mine
+hide ball
+
+if mine == MONSTER004
+    set_event EVENT_HIDE_STARTER_BALL_1
+elif mine == MONSTER007
+    set_event EVENT_HIDE_STARTER_BALL_2
+else
+    set_event EVENT_HIDE_STARTER_BALL_3
+end
+set_event GOT_STARTER
+say rom:OaksLabMonEnergeticText
+
+sfx_on_print get_key_item
+if mine == MONSTER004
+    say rom:OaksLabReceivedMonText badge=CHARMANDER
+elif mine == MONSTER007
+    say rom:OaksLabReceivedMonText badge=SQUIRTLE
+else
+    say rom:OaksLabReceivedMonText badge=BULBASAUR
+end
+
+if mine == MONSTER004
+    ask rom:DoYouWantToNicknameText badge=CHARMANDER
+elif mine == MONSTER007
+    ask rom:DoYouWantToNicknameText badge=SQUIRTLE
+else
+    ask rom:DoYouWantToNicknameText badge=BULBASAUR
+end
+if answer is yes
+    name mine
+elif answer is no
+end
+
+let his = beats(mine)
+
+give rival his
+spawn rival BLUE 4 3
+if mine == MONSTER004
+
+    if player.y == 4
+        queue rival down 2
+        queue rival right 3
+        queue rival up 1
+    else
+        queue rival down 1
+        queue rival right 3
+    end
+elif mine == MONSTER007
+
+    if player.y == 4
+        queue rival down 2
+        queue rival right 4
+        queue rival up 1
+    else
+        queue rival down 1
+        queue rival right 4
+    end
+else
+
+    queue rival down 1
+    queue rival right 2
+end
+march
+face rival up
+say rom:OaksLabRivalIllTakeThisOneText.Text
+
+if his == MONSTER004
+    hide 6 3
+    set_event EVENT_HIDE_STARTER_BALL_1
+elif his == MONSTER007
+    hide 7 3
+    set_event EVENT_HIDE_STARTER_BALL_2
+else
+    hide 8 3
+    set_event EVENT_HIDE_STARTER_BALL_3
+end
+sfx_on_print get_key_item
+if his == MONSTER004
+    say rom:OaksLabRivalReceivedMonText.Text badge=CHARMANDER
+elif his == MONSTER007
+    say rom:OaksLabRivalReceivedMonText.Text badge=SQUIRTLE
+else
+    say rom:OaksLabRivalReceivedMonText.Text badge=BULBASAUR
+end
+
+end

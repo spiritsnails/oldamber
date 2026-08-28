@@ -1,0 +1,11 @@
+
+if EVENT_GOT_DOME_FOSSIL
+    say rom:FuchsiaCityFossilSignText.OmanyteText
+    wait_text
+    show_dex MONSTER138
+else
+    say rom:FuchsiaCityFossilSignText.KabutoText
+    wait_text
+    show_dex MONSTER140
+end
+end

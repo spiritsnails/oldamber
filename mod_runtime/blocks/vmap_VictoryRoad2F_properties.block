@@ -1,0 +1,46 @@
+
+block kanto_qe8e33c0c
+    pair_block elev_high
+end
+block kanto_q0d3168d5
+    pair_block elev_high
+end
+block victoryroad2f_sw1_off_tl
+    pair_block elev_high
+end
+block victoryroad2f_sw1_off_bl
+    pair_block elev_high
+end
+block victoryroad2f_sw1_on_tl
+    pair_block elev_high
+end
+block victoryroad2f_sw1_on_tr
+    pair_block elev_high
+end
+block victoryroad2f_sw1_on_bl
+    pair_block elev_high
+end
+block victoryroad2f_sw1_on_br
+    pair_block elev_high
+end
+block victoryroad2f_sw2_off_tl
+    pair_block elev_high
+end
+block victoryroad2f_sw2_on_tl
+    pair_block elev_high
+end
+block victoryroad2f_sw2_on_tr
+    pair_block elev_high
+end
+block kanto_qf86e100c
+    pair_block elev_low
+end
+block kanto_q27ae75a7
+    pair_block elev_low
+end
+block kanto_qe61d3056
+    pair_block elev_low
+end
+block kanto_wbca5c57a
+    pair_block elev_low
+end

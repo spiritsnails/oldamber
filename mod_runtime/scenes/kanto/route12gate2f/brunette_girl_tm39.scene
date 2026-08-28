@@ -1,0 +1,19 @@
+
+if EVENT_GOT_TM39
+    say rom:Route12Gate2FBrunetteGirlText.TM39ExplanationText
+    wait_text
+    stop
+end
+say rom:Route12Gate2FBrunetteGirlText.YouCanHaveThisText
+wait_text
+give_item TM_SWIFT
+if bag_full
+    say rom:Route12Gate2FBrunetteGirlText.TM39NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_TM39
+sfx_on_print get_item
+say rom:Route12Gate2FBrunetteGirlText.ReceivedTM39Text
+wait_text
+end

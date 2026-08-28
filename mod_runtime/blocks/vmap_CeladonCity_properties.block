@@ -1,0 +1,29 @@
+
+tile_ledge 2 30 down
+tile_ledge 3 30 down
+tile_ledge 4 30 down
+tile_ledge 6 30 down
+tile_ledge 7 30 down
+tile_ledge 8 30 down
+tile_ledge 9 30 down
+tile_ledge 10 30 down
+tile_ledge 11 30 down
+tile_ledge 12 30 down
+tile_ledge 13 30 down
+tile_ledge 14 30 down
+tile_ledge 15 30 down
+tile_ledge 16 30 down
+tile_ledge 17 30 down
+
+block kanto_q153d9921
+    surfable yes
+end
+block kanto_qe201684d
+    surfable yes
+end
+block kanto_qe4298cf3
+    surfable yes
+end
+block kanto_qeeec85ea
+    surfable yes
+end

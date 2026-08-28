@@ -1,0 +1,5 @@
+
+service ghost_marowak
+
+lock_input off
+end

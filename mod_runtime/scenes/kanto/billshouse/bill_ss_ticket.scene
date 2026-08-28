@@ -1,0 +1,24 @@
+
+if EVENT_GOT_SS_TICKET
+    say rom:BillsHouseBillSSTicketText.WhyDontYouGoInsteadOfMeText
+    stop
+end
+
+lock_input on
+say rom:BillsHouseBillSSTicketText.ThankYouText
+wait_text
+give_item S_S_TICKET
+if bag_full
+    say rom:BillsHouseBillSSTicketText.SSTicketNoRoomText
+    wait_text
+    lock_input off
+    stop
+end
+set_event EVENT_GOT_SS_TICKET
+sfx_on_print get_key_item
+say rom:BillsHouseBillSSTicketText.SSTicketReceivedText name=S.S.TICKET
+wait_text
+say rom:BillsHouseBillSSTicketText.WhyDontYouGoInsteadOfMeText
+wait_text
+lock_input off
+end

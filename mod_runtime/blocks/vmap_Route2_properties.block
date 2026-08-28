@@ -1,0 +1,72 @@
+
+tile_ledge 0 18 down
+tile_ledge 1 18 down
+tile_ledge 2 18 down
+tile_ledge 3 18 down
+tile_ledge 4 18 down
+tile_ledge 5 18 down
+tile_ledge 6 18 down
+tile_ledge 7 18 down
+tile_ledge 14 26 down
+tile_ledge 15 26 down
+tile_ledge 16 26 down
+tile_ledge 18 26 down
+tile_ledge 19 26 down
+tile_ledge 14 30 down
+tile_ledge 15 30 down
+tile_ledge 16 30 down
+tile_ledge 18 30 down
+tile_ledge 19 30 down
+tile_ledge 14 42 down
+tile_ledge 16 42 down
+tile_ledge 17 42 down
+tile_ledge 18 42 down
+tile_ledge 19 42 down
+tile_ledge 0 46 down
+tile_ledge 1 46 down
+tile_ledge 2 46 down
+tile_ledge 3 46 down
+tile_ledge 4 46 down
+tile_ledge 5 46 down
+tile_ledge 6 46 down
+tile_ledge 7 46 down
+tile_ledge 12 48 down
+tile_ledge 13 48 down
+tile_ledge 14 48 down
+tile_ledge 16 48 down
+tile_ledge 17 48 down
+tile_ledge 18 48 down
+tile_ledge 19 48 down
+tile_ledge 2 60 down
+tile_ledge 3 60 down
+tile_ledge 4 60 down
+tile_ledge 5 60 down
+tile_ledge 6 60 down
+tile_ledge 8 60 down
+tile_ledge 9 60 down
+tile_ledge 10 60 down
+tile_ledge 11 60 down
+tile_ledge 14 60 down
+tile_ledge 16 60 down
+tile_ledge 17 60 down
+tile_ledge 18 60 down
+tile_ledge 19 60 down
+
+block kanto_q153d9921
+    surfable yes
+end
+block kanto_q27674a7a
+    surfable yes
+end
+block kanto_qe201684d
+    surfable yes
+end
+block kanto_qe4298cf3
+    surfable yes
+end
+block kanto_q8c9dc44b
+    surfable yes
+end
+block kanto_qeeec85ea
+    surfable yes
+end

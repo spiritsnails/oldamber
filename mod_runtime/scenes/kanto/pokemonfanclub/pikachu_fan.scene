@@ -1,0 +1,11 @@
+
+if EVENT_PIKACHU_FAN_BOAST
+    say rom:PokemonFanClubPikachuFanText.BetterText
+    wait_text
+    clear_event EVENT_PIKACHU_FAN_BOAST
+    stop
+end
+say rom:PokemonFanClubPikachuFanText.NormalText
+wait_text
+set_event EVENT_SEEL_FAN_BOAST
+end

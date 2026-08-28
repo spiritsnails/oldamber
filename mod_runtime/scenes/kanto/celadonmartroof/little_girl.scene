@@ -1,0 +1,96 @@
+
+if has_item(FRESH_WATER)
+    let has_drink = 1
+elif has_item(SODA_POP)
+    let has_drink = 1
+elif has_item(LEMONADE)
+    let has_drink = 1
+else
+    let has_drink = 0
+end
+if has_drink == 0
+    say rom:CeladonMartRoofLittleGirlText.ImThirstyText
+    wait_text
+    stop
+end
+ask rom:CeladonMartRoofLittleGirlText.GiveHerADrinkText
+if answer is no
+    stop
+end
+
+say_hold rom:CeladonMartRoofLittleGirlGiveHerWhichDrinkText
+list_choice FRESH_WATER SODA_POP LEMONADE
+close_text
+if chosen_item == 0
+    stop
+end
+if chosen_item == FRESH_WATER
+    if EVENT_GOT_TM13
+        say rom:CeladonMartRoofLittleGirlImNotThirstyText
+        wait_text
+        stop
+    end
+    say rom:CeladonMartRoofLittleGirlYayFreshWaterText
+    wait_text
+    take_item FRESH_WATER
+    give_item TM_ICE_BEAM
+    if bag_full
+        say rom:CeladonMartRoofLittleGirlNoRoomText
+        wait_text
+        stop
+    end
+    sfx_on_print get_item
+    say rom:CeladonMartRoofLittleGirlReceivedTM13Text page=0
+    wait_text
+    say rom:CeladonMartRoofLittleGirlReceivedTM13Text page=1-2
+    wait_text
+    set_event EVENT_GOT_TM13
+    stop
+end
+if chosen_item == SODA_POP
+    if EVENT_GOT_TM48
+        say rom:CeladonMartRoofLittleGirlImNotThirstyText
+        wait_text
+        stop
+    end
+    say rom:CeladonMartRoofLittleGirlYaySodaPopText
+    wait_text
+    take_item SODA_POP
+    give_item TM_ROCK_SLIDE
+    if bag_full
+        say rom:CeladonMartRoofLittleGirlNoRoomText
+        wait_text
+        stop
+    end
+    sfx_on_print get_item
+    say rom:CeladonMartRoofLittleGirlReceivedTM48Text page=0
+    wait_text
+    say rom:CeladonMartRoofLittleGirlReceivedTM48Text page=1-2
+    wait_text
+    set_event EVENT_GOT_TM48
+    stop
+end
+if chosen_item == LEMONADE
+    if EVENT_GOT_TM49
+        say rom:CeladonMartRoofLittleGirlImNotThirstyText
+        wait_text
+        stop
+    end
+    say rom:CeladonMartRoofLittleGirlYayLemonadeText
+    wait_text
+    take_item LEMONADE
+    give_item TM_TRI_ATTACK
+    if bag_full
+        say rom:CeladonMartRoofLittleGirlNoRoomText
+        wait_text
+        stop
+    end
+    sfx_on_print get_item
+    say rom:CeladonMartRoofLittleGirlReceivedTM49Text page=0
+    wait_text
+    say rom:CeladonMartRoofLittleGirlReceivedTM49Text page=1
+    wait_text
+    set_event EVENT_GOT_TM49
+    stop
+end
+end

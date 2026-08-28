@@ -1,0 +1,6 @@
+
+if EVENT_BEAT_ROCKET_HIDEOUT_1_TRAINER_4
+    sfx go_inside
+    refresh_tiles
+end
+end

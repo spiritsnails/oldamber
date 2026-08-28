@@ -1,0 +1,104 @@
+
+gbc_tileset TestOaksLab dojo
+subtile oakslab_t005 mod_runtime/custom_art/kanto/oakslab_t005.png
+subtile oakslab_t006 mod_runtime/custom_art/kanto/oakslab_t006.png
+subtile oakslab_t013 mod_runtime/custom_art/kanto/oakslab_t013.png
+subtile oakslab_t014 mod_runtime/custom_art/kanto/oakslab_t014.png
+subtile oakslab_t015 mod_runtime/custom_art/kanto/oakslab_t015.png
+subtile oakslab_t016 mod_runtime/custom_art/kanto/oakslab_t016.png
+subtile oakslab_t017 mod_runtime/custom_art/kanto/oakslab_t017.png
+subtile oakslab_t022 mod_runtime/custom_art/kanto/oakslab_t022.png
+subtile oakslab_t029 mod_runtime/custom_art/kanto/oakslab_t029.png
+subtile oakslab_t030 mod_runtime/custom_art/kanto/oakslab_t030.png
+subtile oakslab_t041 mod_runtime/custom_art/kanto/oakslab_t041.png
+subtile oakslab_t042 mod_runtime/custom_art/kanto/oakslab_t042.png
+subtile oakslab_t052 mod_runtime/custom_art/kanto/oakslab_t052.png
+subtile oakslab_t054 mod_runtime/custom_art/kanto/oakslab_t054.png
+subtile oakslab_t055 mod_runtime/custom_art/kanto/oakslab_t055.png
+subtile oakslab_t057 mod_runtime/custom_art/kanto/oakslab_t057.png
+subtile oakslab_t059 mod_runtime/custom_art/kanto/oakslab_t059.png
+subtile oakslab_t067 mod_runtime/custom_art/kanto/oakslab_t067.png
+subtile oakslab_t078 mod_runtime/custom_art/kanto/oakslab_t078.png
+subtile oakslab_t079 mod_runtime/custom_art/kanto/oakslab_t079.png
+subtile oakslab_t082 mod_runtime/custom_art/kanto/oakslab_t082.png
+subtile oakslab_t083 mod_runtime/custom_art/kanto/oakslab_t083.png
+subtile oakslab_t085 mod_runtime/custom_art/kanto/oakslab_t085.png
+subtile oakslab_t088 mod_runtime/custom_art/kanto/oakslab_t088.png
+subtile oakslab_t089 mod_runtime/custom_art/kanto/oakslab_t089.png
+subtile oakslab_t090 mod_runtime/custom_art/kanto/oakslab_t090.png
+subtile oakslab_t091 mod_runtime/custom_art/kanto/oakslab_t091.png
+subtile oakslab_t092 mod_runtime/custom_art/kanto/oakslab_t092.png
+subtile oakslab_t093 mod_runtime/custom_art/kanto/oakslab_t093.png
+subtile oakslab_t094 mod_runtime/custom_art/kanto/oakslab_t094.png
+subtile oakslab_t095 mod_runtime/custom_art/kanto/oakslab_t095.png
+block tst_oakslab_q0000
+    source quad oakslab_t005 oakslab_t005 oakslab_t016 oakslab_t016
+    passable no
+end
+block tst_oakslab_q0001
+    source quad oakslab_t052 oakslab_t067 oakslab_t082 oakslab_t083
+    passable no
+end
+block tst_oakslab_q0002
+    source quad oakslab_t041 oakslab_t042 oakslab_t013 oakslab_t014
+    passable no
+end
+block tst_oakslab_q0003
+    source quad oakslab_t091 oakslab_t092 oakslab_t054 oakslab_t055
+    passable no
+end
+block tst_oakslab_q0004
+    source quad oakslab_t093 oakslab_t094 oakslab_t085 oakslab_t095
+    passable no
+end
+block tst_oakslab_q0005
+    source quad oakslab_t041 oakslab_t059 oakslab_t078 oakslab_t057
+    passable no
+end
+block tst_oakslab_q0006
+    source quad oakslab_t059 oakslab_t042 oakslab_t057 oakslab_t079
+    passable no
+end
+block tst_oakslab_q0007
+    source quad oakslab_t017 oakslab_t017 oakslab_t017 oakslab_t017
+    passable yes
+end
+block tst_oakslab_q0008
+    source quad oakslab_t013 oakslab_t014 oakslab_t029 oakslab_t030
+    passable no
+end
+block tst_oakslab_q0009
+    source quad oakslab_t088 oakslab_t089 oakslab_t017 oakslab_t017
+    passable yes
+end
+block tst_oakslab_q0010
+    source quad oakslab_t089 oakslab_t090 oakslab_t017 oakslab_t017
+    passable yes
+end
+block tst_oakslab_q0011
+    source quad oakslab_t059 oakslab_t059 oakslab_t057 oakslab_t057
+    passable no
+end
+block tst_oakslab_q0012
+    source quad oakslab_t089 oakslab_t089 oakslab_t017 oakslab_t017
+    passable yes
+end
+block tst_oakslab_q0013
+    source quad oakslab_t006 oakslab_t006 oakslab_t022 oakslab_t022
+    passable yes
+end
+block tst_oakslab_q0014
+    source quad oakslab_t015 oakslab_t015 oakslab_t015 oakslab_t015
+    passable no
+end
+block tst_oakslab_warp_pallet
+    source quad oakslab_t006 oakslab_t006 oakslab_t022 oakslab_t022
+    passable yes
+    warp last 2
+end
+mapsize TestOaksLab 5 6
+border TestOaksLab tst_oakslab_q0014 tst_oakslab_q0014 tst_oakslab_q0014 tst_oakslab_q0014
+indoor TestOaksLab
+warpspot TestOaksLab 0 5 11
+music TestOaksLab oaks_lab
+warp_walk_into TestOaksLab 5 11 down

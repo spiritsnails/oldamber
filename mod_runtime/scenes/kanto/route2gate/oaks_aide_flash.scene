@@ -1,0 +1,33 @@
+
+if EVENT_GOT_HM05
+    say rom:Route2GateOaksAideText.FlashExplanationText
+    wait_text
+    stop
+end
+ask rom:OaksAideHiText req=10 item=HM05
+if answer is no
+    say rom:OaksAideComeBackText req=10 item=HM05
+    wait_text
+    stop
+end
+let owned = dex_owned
+if owned < 10
+    say rom:OaksAideUhOhText req=10 item=HM05
+    wait_text
+    stop
+end
+say rom:OaksAideHereYouGoText
+wait_text
+give_item HM_FLASH
+if bag_full
+    say rom:OaksAideNoRoomText item=HM05
+    wait_text
+    stop
+end
+set_event EVENT_GOT_HM05
+sfx_on_print get_item
+say rom:OaksAideGotItemText item=HM05
+wait_text
+say rom:Route2GateOaksAideText.FlashExplanationText
+wait_text
+end

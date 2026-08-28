@@ -1,0 +1,19 @@
+
+if EVENT_GOT_TM35
+    say rom:CinnabarLabMetronomeRoomScientist1Text.TM35ExplanationText
+    wait_text
+    stop
+end
+say rom:CinnabarLabMetronomeRoomScientist1Text.Text
+wait_text
+give_item TM_METRONOME
+if bag_full
+    say rom:CinnabarLabMetronomeRoomScientist1Text.TM35NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_TM35
+sfx_on_print get_item
+say rom:CinnabarLabMetronomeRoomScientist1Text.ReceivedTM35Text
+wait_text
+end

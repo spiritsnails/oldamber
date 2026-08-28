@@ -1,0 +1,44 @@
+
+if EVENT_BEAT_BLAINE
+    if EVENT_GOT_TM38
+        say rom:CinnabarGymBlaineText.PostBattleAdviceText
+        wait_text
+        stop
+    end
+else
+    say rom:CinnabarGymBlaineText.PreBattleText
+    wait_text
+
+    gym_leader 7
+    engage_trainer 3 3
+
+    gym_leader 0
+end
+
+say rom:CinnabarGymBlaineVolcanoBadgeInfoText
+wait_text
+set_event EVENT_BEAT_BLAINE
+give_item TM38
+if bag_full
+    say rom:CinnabarGymBlaineTM38NoRoomText
+    wait_text
+else
+
+    sfx_on_print get_item
+    say rom:CinnabarGymBlaineReceivedTM38Text page=0-0
+    wait_text
+    say rom:CinnabarGymBlaineReceivedTM38Text page=1-3
+    wait_text
+    set_event EVENT_GOT_TM38
+end
+
+give_badge VOLCANO
+
+set_event EVENT_BEAT_CINNABAR_GYM_TRAINER_0
+set_event EVENT_BEAT_CINNABAR_GYM_TRAINER_1
+set_event EVENT_BEAT_CINNABAR_GYM_TRAINER_2
+set_event EVENT_BEAT_CINNABAR_GYM_TRAINER_3
+set_event EVENT_BEAT_CINNABAR_GYM_TRAINER_4
+set_event EVENT_BEAT_CINNABAR_GYM_TRAINER_5
+set_event EVENT_BEAT_CINNABAR_GYM_TRAINER_6
+end

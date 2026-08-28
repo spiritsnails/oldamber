@@ -1,0 +1,63 @@
+app-id: com.spiritsnails.OldAmber
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: oldamber
+
+# The runtime supplies SDL2 and glibc, which is the whole point of packaging
+# this way. The plain tarball links against the host's SDL2 and needs glibc
+# 2.38 or newer, so it only runs on distributions close to the one that built
+# it. Inside a Flatpak the same binary runs anywhere the runtime does.
+
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc                 # X11 needs it, and it is inert under Wayland
+  - --socket=pulseaudio
+  - --device=dri                # GL for the optional shader path
+  - --device=all                # game controllers, including the Deck's own
+  # The launcher's ROM picker is its own directory browser rather than a
+  # portal, so it can only offer what the sandbox exposes. Without this the
+  # player would open the picker and see nothing to select.
+  - --filesystem=home:ro
+  # Generated data goes to the per-user data directory, which the runtime maps
+  # into the sandbox. /app is read only, which is why DataDir_Get relocates.
+  - --persist=.local/share/spiritsnails
+
+modules:
+  - name: oldamber
+    buildsystem: simple
+    build-commands:
+      # The payload is the release tarball this repo already produces and
+      # tests, so the flatpak ships the exact bits that were verified rather
+      # than a second build from source.
+      - install -d /app/oldamber
+      - cp -r OldAmber-linux/. /app/oldamber/
+      - chmod +x /app/oldamber/OldAmber /app/oldamber/setup
+
+      # A launcher on PATH. The real binary stays where its own data sits
+      # beside it, because it locates setup relative to itself.
+      - install -Dm755 oldamber.sh /app/bin/oldamber
+
+      - install -Dm644 com.spiritsnails.OldAmber.desktop
+          /app/share/applications/com.spiritsnails.OldAmber.desktop
+      - install -Dm644 com.spiritsnails.OldAmber.metainfo.xml
+          /app/share/metainfo/com.spiritsnails.OldAmber.metainfo.xml
+      - install -Dm644 icon_128.png
+          /app/share/icons/hicolor/128x128/apps/com.spiritsnails.OldAmber.png
+      - install -Dm644 icon_256.png
+          /app/share/icons/hicolor/256x256/apps/com.spiritsnails.OldAmber.png
+    sources:
+      - type: archive
+        path: ../../../build/OldAmber-0.0.1-linux-x64.tar.gz
+        strip-components: 0
+      - type: file
+        path: oldamber.sh
+      - type: file
+        path: com.spiritsnails.OldAmber.desktop
+      - type: file
+        path: com.spiritsnails.OldAmber.metainfo.xml
+      - type: file
+        path: icon_128.png
+      - type: file
+        path: icon_256.png

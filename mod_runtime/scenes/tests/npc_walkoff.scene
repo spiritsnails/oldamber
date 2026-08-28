@@ -1,0 +1,11 @@
+
+spawn testnpc YOUNGSTER player+1 player+0
+face testnpc player
+lock_input on
+wait 24
+say "Hello! I am a\ndebug_cli NPC\ntest!\fHope this works!@"
+wait_text
+lock_input off
+move testnpc up 12
+despawn testnpc
+end

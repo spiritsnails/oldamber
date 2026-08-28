@@ -1,0 +1,47 @@
+
+if EVENT_LEFT_BILLS_HOUSE_AFTER_HELPING
+    bills_monster_list
+    stop
+end
+if EVENT_USED_CELL_SEPARATOR_ON_BILL
+    say rom:BillsHouseMonitorText
+    stop
+end
+if not EVENT_BILL_SAID_USE_CELL_SEPARATOR
+    say rom:BillsHouseMonitorText
+    stop
+end
+
+lock_input on
+say_auto rom:BillsHouseInitiatedText
+wait_text
+fullrate on
+music stop
+wait 16
+sfx switch
+wait 32
+sfx tink
+wait_sfx
+wait 80
+sfx shrink
+wait_sfx
+wait 48
+sfx tink
+wait_sfx
+wait 32
+sfx get_item
+wait_sfx
+music cities2
+fullrate off
+
+spawn bill SUPER_NERD 1 2 keep
+wait 8
+queue bill down 1
+queue bill right 3
+queue bill down 1
+march
+set_event EVENT_USED_CELL_SEPARATOR_ON_BILL
+set_event EVENT_MET_BILL_2
+set_event EVENT_MET_BILL
+lock_input off
+end

@@ -1,0 +1,40 @@
+
+if EVENT_BEAT_BROCK
+    if EVENT_GOT_TM34
+        say rom:PewterGymBrockText.PostBattleAdviceText
+        wait_text
+        stop
+    end
+else
+    say rom:PewterGymBrockText.PreBattleText
+    wait_text
+
+    gym_leader 1
+    engage_trainer 4 1
+
+    gym_leader 0
+end
+
+say rom:PewterGymBrockWaitTakeThisText
+wait_text
+set_event EVENT_BEAT_BROCK
+give_item TM34
+if bag_full
+    say rom:PewterGymTM34NoRoomText
+    wait_text
+else
+
+    sfx_on_print get_item
+    say rom:PewterGymReceivedTM34Text page=0-0
+    wait_text
+    say rom:PewterGymReceivedTM34Text page=1-4
+    wait_text
+    set_event EVENT_GOT_TM34
+end
+
+give_badge BOULDER
+
+clear_event EVENT_1ST_ROUTE22_RIVAL_BATTLE
+clear_event EVENT_ROUTE22_RIVAL_WANTS_BATTLE
+set_event EVENT_BEAT_PEWTER_GYM_TRAINER_0
+end

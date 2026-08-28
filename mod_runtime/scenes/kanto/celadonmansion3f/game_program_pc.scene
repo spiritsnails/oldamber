@@ -1,0 +1,4 @@
+
+say rom:CeladonMansion3FGameProgramPCText
+wait_text
+end

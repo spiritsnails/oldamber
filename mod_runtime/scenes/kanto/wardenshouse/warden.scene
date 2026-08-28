@@ -1,0 +1,40 @@
+
+if EVENT_GOT_HM04
+    say rom:WardensHouseWardenText.HM04ExplanationText
+    wait_text
+    stop
+end
+if has_item(GOLD_TEETH)
+    sfx_on_print get_item
+    say rom:WardensHouseWardenText.GaveTheGoldTeethText
+    wait_text
+    take_item GOLD_TEETH
+    set_event EVENT_GAVE_GOLD_TEETH
+else
+    if not EVENT_GAVE_GOLD_TEETH
+        ask rom:WardensHouseWardenText.Gibberish1Text
+        if answer is no
+            say rom:WardensHouseWardenText.Gibberish3Text
+            wait_text
+        else
+            say rom:WardensHouseWardenText.Gibberish2Text
+            wait_text
+        end
+        stop
+    end
+end
+say rom:WardensHouseWardenText.ThanksText
+wait_text
+give_item HM_STRENGTH
+if bag_full
+    say rom:WardensHouseWardenText.HM04NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_HM04
+sfx_on_print get_item
+say rom:WardensHouseWardenText.ReceivedHM04Text
+wait_text
+say rom:WardensHouseWardenText.HM04ExplanationText
+wait_text
+end

@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER104
+say rom:LavenderCuboneHouseCuboneText
+wait_text
+end

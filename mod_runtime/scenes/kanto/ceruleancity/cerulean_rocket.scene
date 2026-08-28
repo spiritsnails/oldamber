@@ -1,0 +1,31 @@
+
+if EVENT_BEAT_CERULEAN_ROCKET_THIEF
+    stop
+end
+lock_input on
+engage_trainer 30 8
+
+wait 17
+say rom:CeruleanCityRocketText.IllReturnTheTMText
+wait_text
+give_item TM_DIG
+if bag_full
+    say rom:CeruleanCityRocketText.TM28NoRoomText
+    wait_text
+    lock_input off
+    stop
+end
+
+sfx_on_print get_item
+say rom:CeruleanCityRocketText.ReceivedTM28Text page=0
+wait_text
+say rom:CeruleanCityRocketText.ReceivedTM28Text page=1
+wait_text
+
+fullrate on
+fade out black
+hide 30 8
+fade in black
+fullrate off
+lock_input off
+end

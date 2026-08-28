@@ -1,0 +1,10 @@
+
+ask rom:PewterCitySuperNerd2Text.DoYouKnowWhatImDoingText
+if answer is no
+    say rom:PewterCitySuperNerd2Text.ImSprayingRepelText
+    wait_text
+else
+    say rom:PewterCitySuperNerd2Text.ThatsRightText
+    wait_text
+end
+end

@@ -1,0 +1,45 @@
+
+lock_input on
+let his = rival.starter
+spawn rival BLUE 36 4
+music meetrival
+if player.x == 36
+    queue rival down 3
+    march
+    face rival down
+else
+    queue rival down 4
+    march
+    face player left
+    face rival right
+end
+say rom:SSAnne2FRivalText.Text
+wait_text
+if his == MONSTER007
+    battlestart 42 1 "Humph!\fAt least you're\nraising your\n#MON!"
+elif his == MONSTER001
+    battlestart 42 2 "Humph!\fAt least you're\nraising your\n#MON!"
+else
+    battlestart 42 3 "Humph!\fAt least you're\nraising your\n#MON!"
+end
+set_event EVENT_BEAT_SS_ANNE_RIVAL
+if player.x == 36
+    face rival down
+else
+    face player left
+    face rival right
+end
+say rom:SSAnne2FRivalCutMasterText
+wait_text
+music_rival_alt start
+if player.x == 37
+    queue rival down 4
+else
+    queue rival right 1
+    queue rival down 5
+end
+march
+despawn rival
+music ss_anne
+lock_input off
+end

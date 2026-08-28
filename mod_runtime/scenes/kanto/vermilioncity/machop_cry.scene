@@ -1,0 +1,8 @@
+
+cry_on_print MONSTER066
+say rom:VermilionCityMachopText
+wait_text
+wait_cry
+say rom:VermilionCityMachopText.StompingTheLandFlatText
+wait_text
+end

@@ -1,0 +1,73 @@
+
+if EVENT_IN_SAFARI_ZONE
+    if EVENT_SAFARI_GAME_OVER
+
+        lock_input on
+        face player down
+        leave_safari_zone
+        say rom:SafariZoneGateSafariZoneWorker1GoodHaulComeAgainText
+        wait_text
+        sim_walk down 3
+        lock_input off
+        stop
+    end
+    lock_input on
+    ask rom:SafariZoneGateSafariZoneWorker1LeavingEarlyText
+    if answer is no
+        say rom:SafariZoneGateSafariZoneWorker1LeavingEarlyText.GoodLuckText
+        wait_text
+        queue player up 1
+        march
+        lock_input off
+        stop
+    end
+    say rom:SafariZoneGateSafariZoneWorker1LeavingEarlyText.ReturnSafariBallsText
+    wait_text
+    leave_safari_zone
+    sim_walk down 3
+    lock_input off
+    stop
+end
+lock_input on
+say rom:SafariZoneGateSafariZoneWorker1Text
+wait_text
+if player.x < 4
+
+    queue player right 1
+    march
+end
+
+show_money on_yesno
+ask rom:SafariZoneGateSafariZoneWorker1WouldYouLikeToJoinText
+if answer is no
+    say rom:SafariZoneGateSafariZoneWorker1WouldYouLikeToJoinText.PleaseComeAgainText
+    wait_text
+    hide_money
+    queue player down 1
+    march
+    lock_input off
+    stop
+end
+if money < 500
+    say rom:SafariZoneGateSafariZoneWorker1WouldYouLikeToJoinText.NotEnoughMoneyText
+    wait_text
+    hide_money
+    queue player down 1
+    march
+    lock_input off
+    stop
+end
+pay 500
+
+show_money
+
+sfx_on_print get_item
+say rom:SafariZoneGateSafariZoneWorker1WouldYouLikeToJoinText.MakePaymentText page=0-2
+wait_text
+say rom:SafariZoneGateSafariZoneWorker1WouldYouLikeToJoinText.MakePaymentText page=3
+wait_text
+hide_money
+enter_safari_zone
+sim_walk up 3
+lock_input off
+end

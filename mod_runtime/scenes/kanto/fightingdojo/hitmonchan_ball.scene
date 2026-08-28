@@ -1,0 +1,36 @@
+
+if EVENT_GOT_HITMONLEE
+    say rom:FightingDojoBetterNotGetGreedyText
+    wait_text
+    stop
+end
+if EVENT_GOT_HITMONCHAN
+    say rom:FightingDojoBetterNotGetGreedyText
+    wait_text
+    stop
+end
+show_dex MONSTER107
+ask rom:FightingDojoHitmonchanPokeBallText.Text
+if answer is no
+    stop
+end
+give_monster MONSTER107 30
+wait_text
+if party_full
+    stop
+end
+set_event EVENT_GOT_HITMONCHAN
+set_event EVENT_DEFEATED_FIGHTING_DOJO
+hide ball
+sfx get_key_item
+say rom:GotMonText badge=HITMONCHAN
+wait_text
+ask rom:DoYouWantToNicknameText badge=HITMONCHAN
+if answer is yes
+    name MONSTER107
+end
+if sent_to_box
+    say rom:SentToBoxText
+    wait_text
+end
+end

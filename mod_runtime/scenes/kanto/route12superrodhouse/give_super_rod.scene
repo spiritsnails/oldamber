@@ -1,0 +1,27 @@
+
+if has_item(SUPER_ROD)
+    say rom:Route12SuperRodHouseFishingGuruText.TryFishingText
+    wait_text
+    stop
+end
+ask rom:Route12SuperRodHouseFishingGuruText.DoYouLikeToFishText
+if answer is no
+    say rom:Route12SuperRodHouseFishingGuruText.ThatsDisappointingText
+    wait_text
+    stop
+end
+give_item SUPER_ROD
+if bag_full
+    say rom:Route12SuperRodHouseFishingGuruText.NoRoomText
+    wait_text
+    stop
+end
+
+say rom:Route12SuperRodHouseFishingGuruText.ReceivedSuperRodText page=0-1
+wait_text
+sfx_on_print get_item
+say rom:Route12SuperRodHouseFishingGuruText.ReceivedSuperRodText page=2
+wait_text
+say rom:Route12SuperRodHouseFishingGuruText.ReceivedSuperRodText page=3-4
+wait_text
+end

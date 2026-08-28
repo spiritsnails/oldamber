@@ -1,0 +1,22 @@
+
+if has_item(GOOD_ROD)
+    say rom:FuchsiaGoodRodHouseFishingGuruText.HowAreTheFishText
+    wait_text
+    stop
+end
+ask rom:FuchsiaGoodRodHouseFishingGuruText.Text
+if answer is no
+    say rom:FuchsiaGoodRodHouseFishingGuruText.ThatsSoDisappointingText
+    wait_text
+    stop
+end
+give_item GOOD_ROD
+if bag_full
+    say rom:FuchsiaGoodRodHouseFishingGuruText.NoRoomText
+    wait_text
+    stop
+end
+sfx_on_print get_item
+say rom:FuchsiaGoodRodHouseFishingGuruText.ReceivedGoodRodText
+wait_text
+end

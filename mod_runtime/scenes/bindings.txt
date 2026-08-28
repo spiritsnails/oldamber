@@ -1,0 +1,355 @@
+# Scene bindings: which .scene attaches to which map cell.
+# THIS PROJECT'S OWN DATA, not in the ROM, not derivable
+# from it. Committed. tools/romimport/emit_kanto.py injects
+# these into every generated map, so a clean checkout needs
+# only scenes/ and this file for scenes to work.
+#   <directive> <Map> <scene path> <x> <y>
+scene_npc BikeShop kanto/bikeshop/clerk 6 2
+scene_tile BillsHouse kanto/billshouse/bill_pc 1 4
+scene_npc BillsHouse kanto/billshouse/bill_ss_ticket 4 4
+scene_npc BillsHouse kanto/billshouse/bill_transform 6 5
+scene_npc BluesHouse kanto/blueshouse/blueshouse_daisy_talk 2 3
+scene_tile BluesHouse kanto/blueshouse/townmap 3 0
+scene_npc CeladonCity kanto/celadoncity/gramps3_tm41 22 16
+scene_npc CeladonCity kanto/celadoncity/poliwrath_cry 30 12
+scene_npc CeladonDiner kanto/celadondiner/gym_guide_coin_case 0 1
+scene_npc CeladonGym kanto/celadongym/erika 4 3
+scene_npc CeladonMansion1F kanto/celadonmansion1f/clefairy_cry 1 8
+scene_npc CeladonMansion1F kanto/celadonmansion1f/meowth_cry 0 5
+scene_npc CeladonMansion1F kanto/celadonmansion1f/nidoranf_cry 4 4
+scene_npc CeladonMansion3F kanto/celadonmansion3f/game_designer 2 3
+scene_tile CeladonMansion3F kanto/celadonmansion3f/game_program_pc 1 3
+scene_tile CeladonMansion3F kanto/celadonmansion3f/playing_game_pc 4 3
+scene_tile CeladonMansion3F kanto/celadonmansion3f/game_script_pc 1 6
+scene_tile CeladonMansion3F kanto/celadonmansion3f/dev_room_sign 4 9
+scene_npc CeladonMansionRoofHouse kanto/celadonmansionroofhouse/eevee_ball 4 3
+scene_tile CeladonMansionRoofHouse kanto/celadonmansionroofhouse/link_cable_help 3 0
+scene_tile CeladonMansionRoofHouse kanto/celadonmansionroofhouse/link_cable_help 4 0
+scene_npc CeladonMart3F kanto/celadonmart3f/clerk_tm18 16 5
+scene_npc CeladonMartRoof kanto/celadonmartroof/little_girl 5 5
+scene_npc CeruleanBadgeHouse kanto/ceruleanbadgehouse/badge_house 5 3
+scene_trigger CeruleanCity 20 6 kanto/ceruleancity/cerulean_rival when event_clear EVENT_BEAT_CERULEAN_RIVAL
+scene_trigger CeruleanCity 21 6 kanto/ceruleancity/cerulean_rival when event_clear EVENT_BEAT_CERULEAN_RIVAL
+scene_trigger CeruleanCity 30 7 kanto/ceruleancity/cerulean_rocket when event_clear EVENT_BEAT_CERULEAN_ROCKET_THIEF and event_set EVENT_GOT_SS_TICKET
+scene_trigger CeruleanCity 30 9 kanto/ceruleancity/cerulean_rocket when event_clear EVENT_BEAT_CERULEAN_ROCKET_THIEF and event_set EVENT_GOT_SS_TICKET
+scene_npc CeruleanCity kanto/ceruleancity/cerulean_rocket 30 8
+scene_npc CeruleanGym kanto/ceruleangym/gym_guide 7 10
+scene_npc CeruleanGym kanto/ceruleangym/misty 4 2
+scene_npc CeruleanTradeHouse kanto/ceruleantradehouse/lola_trade 1 2
+scene_tile CeruleanTradeHouse kanto/ceruleantradehouse/townmap 3 0
+scene_npc CeruleanTrashedHouse kanto/ceruleantrashedhouse/fishing_guru 2 1
+scene_npc CinnabarGym kanto/cinnabargym/blaine 3 3
+scene_npc CinnabarGym kanto/cinnabargym/gym_guide 16 13
+scene_trigger CinnabarIsland 18 4 kanto/cinnabarisland/gym_locked
+scene_npc CinnabarLabFossilRoom kanto/cinnabarlabfossilroom/sailor_trade 7 6
+scene_npc CinnabarLabFossilRoom kanto/cinnabarlabfossilroom/scientist_fossil 5 2
+scene_npc CinnabarLabMetronomeRoom kanto/cinnabarlabmetronomeroom/scientist_tm35 7 2
+scene_npc CinnabarLabTradeRoom kanto/cinnabarlabtraderoom/crinkles_trade 5 5
+scene_npc CinnabarLabTradeRoom kanto/cinnabarlabtraderoom/doris_trade 1 4
+scene_npc CopycatsHouse1F kanto/copycatshouse1f/chansey_cry 1 4
+scene_npc CopycatsHouse2F kanto/copycatshouse2f/copycat_tm31 4 3
+scene_tile Daycare kanto/blueshouse/townmap 3 0
+scene_trigger FightingDojo 4 3 kanto/fightingdojo/karate_master_challenge when event_clear EVENT_BEAT_KARATE_MASTER
+scene_npc FightingDojo kanto/fightingdojo/hitmonchan_ball 5 1
+scene_npc FightingDojo kanto/fightingdojo/hitmonlee_ball 4 1
+scene_npc FightingDojo kanto/fightingdojo/karate_master 5 3
+scene_tile FuchsiaCity kanto/fuchsiacity/chansey_sign 33 7
+scene_tile FuchsiaCity kanto/fuchsiacity/fossil_sign 7 7
+scene_tile FuchsiaCity kanto/fuchsiacity/kangaskhan_sign 13 7
+scene_tile FuchsiaCity kanto/fuchsiacity/lapras_sign 13 15
+scene_tile FuchsiaCity kanto/fuchsiacity/slowpoke_sign 31 13
+scene_tile FuchsiaCity kanto/fuchsiacity/voltorb_sign 27 7
+scene_npc FuchsiaGoodRodHouse kanto/fuchsiagoodrodhouse/give_good_rod 5 3
+scene_npc FuchsiaGym kanto/fuchsiagym/gym_guide 7 15
+scene_npc FuchsiaGym kanto/fuchsiagym/koga 4 10
+scene_npc GameCorner kanto/gamecorner/clerk1_buy_coins 5 6
+scene_npc GameCorner kanto/gamecorner/clerk2_free_coins 14 11
+scene_npc GameCorner kanto/gamecorner/fishing_guru_free_coins 5 11
+scene_npc GameCorner kanto/gamecorner/gentleman_free_coins 17 13
+scene_tile GameCorner kanto/gamecorner/poster_switch 9 4
+scene_npc GameCorner kanto/gamecorner/rocket_guard 9 5
+scene_tile GameCornerPrizeRoom kanto/gamecornerprizeroom/prize_vendor_1 2 2
+scene_tile GameCornerPrizeRoom kanto/gamecornerprizeroom/prize_vendor_2 4 2
+scene_tile GameCornerPrizeRoom kanto/gamecornerprizeroom/prize_vendor_3 6 2
+scene_tile LavenderCuboneHouse kanto/blueshouse/townmap 3 0
+scene_npc LavenderCuboneHouse kanto/lavendercubonehouse/cubone_cry 3 5
+scene_npc LavenderTown kanto/lavendertown/little_girl_ghosts 15 9
+scene_tile MrFujisHouse kanto/blueshouse/townmap 3 0
+scene_npc MrFujisHouse kanto/mrfujishouse/mr_fuji_poke_flute 3 1
+scene_npc MrFujisHouse kanto/mrfujishouse/nidorino_cry 1 3
+scene_npc MrFujisHouse kanto/mrfujishouse/psyduck_cry 6 4
+scene_tile MrPsychicsHouse kanto/blueshouse/townmap 3 0
+scene_npc MrPsychicsHouse kanto/mrpsychicshouse/mr_psychic_tm29 5 3
+scene_trigger MtMoonB2F 13 8 kanto/mtmoonb2f/super_nerd_ambush
+scene_npc MtMoonB2F kanto/mtmoonb2f/fossil_choice 12 6
+scene_npc MtMoonB2F kanto/mtmoonb2f/fossil_choice 13 6
+scene_npc MtMoonB2F kanto/mtmoonb2f/super_nerd_talk 12 8
+scene_npc MtMoonPokecenter kanto/mtmoonpokecenter/magikarp_salesman 10 6
+scene_trigger Museum1F 10 4 kanto/museum1f/ticket_gate when event_clear EVENT_BOUGHT_MUSEUM_TICKET
+scene_trigger Museum1F 9 4 kanto/museum1f/ticket_gate when event_clear EVENT_BOUGHT_MUSEUM_TICKET
+scene_tile Museum1F kanto/museum1f/aerodactyl_fossil 2 3
+scene_tile Museum1F kanto/museum1f/kabutops_fossil 2 6
+scene_npc Museum1F kanto/museum1f/old_amber 15 2
+scene_npc Museum1F kanto/museum1f/ticket_gate 12 4
+scene_tile NameRatersHouse kanto/blueshouse/townmap 3 0
+scene_trigger OaksLab -1 6 kanto/oakslab/dont_go_away when event_set EVENT_OAK_ASKED_TO_CHOOSE_MON and event_clear EVENT_GOT_STARTER
+scene_trigger OaksLab -1 6 kanto/oakslab/rival_challenge when event_set EVENT_GOT_STARTER
+scene_trigger OaksLab 5 11 kanto/oakslab/oakslab_entry when event_set EVENT_OAK_APPEARED_IN_PALLET and event_clear EVENT_OAK_ASKED_TO_CHOOSE_MON
+scene_npc OaksLab kanto/oakslab/oakslab_oak_talk 5 2
+scene_tile OaksLab kanto/oakslab/right_poster 5 0
+scene_npc OaksLab kanto/oakslab/take_starter 6 3
+scene_npc OaksLab kanto/oakslab/take_starter 7 3
+scene_npc OaksLab kanto/oakslab/take_starter 8 3
+scene_trigger PalletTown any 1 kanto/pallettown/pallettown_oak_heywait when event_clear EVENT_FOLLOWED_OAK_INTO_LAB
+scene_trigger PewterCity 35 17 kanto/pewtercity/gym_escort when event_clear EVENT_BEAT_BROCK
+scene_trigger PewterCity 36 17 kanto/pewtercity/gym_escort when event_clear EVENT_BEAT_BROCK
+scene_trigger PewterCity 37 18 kanto/pewtercity/gym_escort when event_clear EVENT_BEAT_BROCK
+scene_trigger PewterCity 37 19 kanto/pewtercity/gym_escort when event_clear EVENT_BEAT_BROCK
+scene_npc PewterCity kanto/pewtercity/gym_escort 35 16
+scene_npc PewterCity kanto/pewtercity/museum_escort 27 17
+scene_npc PewterCity kanto/pewtercity/supernerd2_repel 26 25
+scene_npc PewterGym kanto/pewtergym/brock 4 1
+scene_npc PewterGym kanto/pewtergym/gym_guide 7 10
+scene_tile PewterNidoranHouse kanto/blueshouse/townmap 3 0
+scene_npc PewterNidoranHouse kanto/pewternidoranhouse/nidoran_cry 4 5
+scene_npc PewterPokecenter kanto/pewterpokecenter/jigglypuff_dance 1 3
+scene_tile PewterSpeechHouse kanto/blueshouse/townmap 3 0
+scene_npc PokemonFanClub kanto/pokemonfanclub/chairman_bike_voucher 3 1
+scene_npc PokemonFanClub kanto/pokemonfanclub/pikachu_cry 6 4
+scene_npc PokemonFanClub kanto/pokemonfanclub/pikachu_fan 6 3
+scene_npc PokemonFanClub kanto/pokemonfanclub/seel_cry 1 4
+scene_npc PokemonFanClub kanto/pokemonfanclub/seel_fan 1 3
+scene_trigger PokemonTower2F 14 6 kanto/pokemontower2f/rival_battle when event_clear EVENT_BEAT_POKEMON_TOWER_RIVAL
+scene_trigger PokemonTower2F 15 5 kanto/pokemontower2f/rival_battle when event_clear EVENT_BEAT_POKEMON_TOWER_RIVAL
+scene_npc PokemonTower2F kanto/pokemontower2f/rival_battle 14 5
+scene_trigger PokemonTower5F 10 8 kanto/pokemontower5f/purified_zone when event_clear EVENT_IN_PURIFIED_ZONE
+scene_trigger PokemonTower5F 10 9 kanto/pokemontower5f/purified_zone when event_clear EVENT_IN_PURIFIED_ZONE
+scene_trigger PokemonTower5F 11 8 kanto/pokemontower5f/purified_zone when event_clear EVENT_IN_PURIFIED_ZONE
+scene_trigger PokemonTower5F 11 9 kanto/pokemontower5f/purified_zone when event_clear EVENT_IN_PURIFIED_ZONE
+scene_trigger PokemonTower6F 10 16 kanto/pokemontower6f/ghost_marowak when event_clear EVENT_BEAT_GHOST_MAROWAK
+scene_npc PokemonTower7F kanto/pokemontower7f/mr_fuji_rescue 10 3
+scene_npc RedsHouse1F kanto/redshouse1f/mom_talk 5 4
+scene_trigger RocketHideoutB1F onload kanto/rockethideoutb1f/trainer4_door
+scene_npc RocketHideoutB4F kanto/rockethideoutb4f/giovanni_battle 25 3
+scene_npc RocketHideoutB4F kanto/rockethideoutb4f/rocket3_lift_key 11 2
+scene_trigger RocketHideoutB4F onload kanto/rockethideoutb4f/door_check
+scene_npc Route1 kanto/route1/route1_potion 5 24
+scene_npc Route11Gate2F kanto/route11gate2f/oaks_aide_itemfinder 2 6
+scene_npc Route11Gate2F kanto/route11gate2f/terry_trade 4 2
+scene_trigger Route12 watch kanto/route12/snorlax_wake when event_set EVENT_FIGHT_ROUTE12_SNORLAX
+scene_npc Route12Gate2F kanto/route12gate2f/brunette_girl_tm39 3 4
+scene_tile Route12SuperRodHouse kanto/blueshouse/townmap 3 0
+scene_npc Route12SuperRodHouse kanto/route12superrodhouse/give_super_rod 2 4
+scene_npc Route15Gate2F kanto/route15gate2f/oaks_aide_exp_all 4 2
+scene_trigger Route16 watch kanto/route16/snorlax_wake when event_set EVENT_FIGHT_ROUTE16_SNORLAX
+scene_tile Route16FlyHouse kanto/blueshouse/townmap 3 0
+scene_npc Route16FlyHouse kanto/route16flyhouse/brunette_girl_hm02 2 3
+scene_npc Route16FlyHouse kanto/route16flyhouse/fearow_cry 6 4
+scene_trigger Route16Gate1F 4 10 kanto/route16gate1f/cycling_guard
+scene_trigger Route16Gate1F 4 7 kanto/route16gate1f/cycling_guard
+scene_trigger Route16Gate1F 4 8 kanto/route16gate1f/cycling_guard
+scene_trigger Route16Gate1F 4 9 kanto/route16gate1f/cycling_guard
+scene_npc Route16Gate1F kanto/route16gate1f/cycling_guard_talk 4 5
+scene_trigger Route18Gate1F 4 3 kanto/route18gate1f/cycling_guard
+scene_trigger Route18Gate1F 4 4 kanto/route18gate1f/cycling_guard
+scene_trigger Route18Gate1F 4 5 kanto/route18gate1f/cycling_guard
+scene_trigger Route18Gate1F 4 6 kanto/route18gate1f/cycling_guard
+scene_npc Route18Gate1F kanto/route18gate1f/cycling_guard_talk 4 1
+scene_npc Route18Gate2F kanto/route18gate2f/marc_trade 4 2
+scene_trigger Route22 29 4 kanto/route22/route22_rival_battle when event_set EVENT_ROUTE22_RIVAL_WANTS_BATTLE
+scene_trigger Route22 29 5 kanto/route22/route22_rival_battle when event_set EVENT_ROUTE22_RIVAL_WANTS_BATTLE
+scene_trigger Route22Gate 4 2 kanto/route22gate/badge_gate
+scene_trigger Route22Gate 5 2 kanto/route22gate/badge_gate
+scene_trigger Route23 0 35 kanto/route23/guard1_earth
+scene_trigger Route23 1 35 kanto/route23/guard1_earth
+scene_trigger Route23 10 35 kanto/route23/guard1_earth
+scene_trigger Route23 11 35 kanto/route23/guard1_earth
+scene_trigger Route23 12 35 kanto/route23/guard1_earth
+scene_trigger Route23 13 35 kanto/route23/guard1_earth
+scene_trigger Route23 2 35 kanto/route23/guard1_earth
+scene_trigger Route23 3 35 kanto/route23/guard1_earth
+scene_trigger Route23 4 35 kanto/route23/guard1_earth
+scene_trigger Route23 5 35 kanto/route23/guard1_earth
+scene_trigger Route23 6 35 kanto/route23/guard1_earth
+scene_trigger Route23 7 35 kanto/route23/guard1_earth
+scene_trigger Route23 8 35 kanto/route23/guard1_earth
+scene_trigger Route23 9 35 kanto/route23/guard1_earth
+scene_trigger Route23 any 105 kanto/route23/guard3_rainbow
+scene_trigger Route23 any 119 kanto/route23/guard4_thunder
+scene_trigger Route23 any 136 kanto/route23/guard5_cascade
+scene_trigger Route23 any 56 kanto/route23/guard2_volcano
+scene_trigger Route23 any 85 kanto/route23/swimmer1_marsh
+scene_trigger Route23 any 96 kanto/route23/swimmer2_soul
+scene_trigger Route24 10 15 kanto/route24/nugget_bridge_rocket when event_clear EVENT_GOT_NUGGET
+scene_npc Route24 kanto/route24/nugget_bridge_rocket 11 15
+scene_npc Route2Gate kanto/route2gate/oaks_aide_flash 1 4
+scene_tile Route2TradeHouse kanto/blueshouse/townmap 3 0
+scene_npc Route2TradeHouse kanto/route2tradehouse/marcel_trade 4 1
+scene_trigger Route5Gate 3 3 kanto/route5gate/saffron_gate when event_clear EVENT_GAVE_SAFFRON_GUARDS_DRINK
+scene_trigger Route5Gate 4 3 kanto/route5gate/saffron_gate_far when event_clear EVENT_GAVE_SAFFRON_GUARDS_DRINK
+scene_npc Route5Gate kanto/route5gate/saffron_gate 1 3
+scene_trigger Route6Gate 3 2 kanto/route6gate/saffron_gate_far when event_clear EVENT_GAVE_SAFFRON_GUARDS_DRINK
+scene_trigger Route6Gate 4 2 kanto/route6gate/saffron_gate when event_clear EVENT_GAVE_SAFFRON_GUARDS_DRINK
+scene_npc Route6Gate kanto/route6gate/saffron_gate 6 2
+scene_trigger Route7Gate 3 3 kanto/route7gate/saffron_gate when event_clear EVENT_GAVE_SAFFRON_GUARDS_DRINK
+scene_trigger Route7Gate 3 4 kanto/route7gate/saffron_gate_far when event_clear EVENT_GAVE_SAFFRON_GUARDS_DRINK
+scene_npc Route7Gate kanto/route7gate/saffron_gate 3 1
+scene_trigger Route8Gate 2 3 kanto/route8gate/saffron_gate when event_clear EVENT_GAVE_SAFFRON_GUARDS_DRINK
+scene_trigger Route8Gate 2 4 kanto/route8gate/saffron_gate_far when event_clear EVENT_GAVE_SAFFRON_GUARDS_DRINK
+scene_npc Route8Gate kanto/route8gate/saffron_gate 2 1
+scene_npc SSAnne1FRooms kanto/ssanne1frooms/wigglytuff_cry 3 11
+scene_trigger SSAnne2F 36 8 kanto/ssanne2f/rival_battle when event_clear EVENT_BEAT_SS_ANNE_RIVAL
+scene_trigger SSAnne2F 37 8 kanto/ssanne2f/rival_battle when event_clear EVENT_BEAT_SS_ANNE_RIVAL
+scene_npc SSAnne2FRooms kanto/ssanne2frooms/snorlax_dex 1 2
+scene_npc SSAnneB1FRooms kanto/ssanneb1frooms/machoke_cry 11 12
+scene_npc SSAnneCaptainsRoom kanto/ssannecaptainsroom/captain_hm01 4 2
+scene_trigger SafariZoneGate 3 2 kanto/safarizonegate/worker1_gate
+scene_trigger SafariZoneGate 4 0 kanto/safarizonegate/worker1_gate when event_set EVENT_SAFARI_GAME_OVER
+scene_trigger SafariZoneGate 4 2 kanto/safarizonegate/worker1_gate
+scene_npc SafariZoneGate kanto/safarizonegate/worker1_gate 6 2
+scene_npc SafariZoneGate kanto/safarizonegate/worker2_gate 1 4
+scene_npc SafariZoneSecretHouse kanto/safarizonesecrethouse/give_hm03_surf 3 3
+scene_npc SaffronCity kanto/saffroncity/pidgeot_cry 31 12
+scene_trigger SaffronGym 1 11 kanto/saffrongym/teleport_1_11
+scene_trigger SaffronGym 1 15 kanto/saffrongym/teleport_1_15
+scene_trigger SaffronGym 1 17 kanto/saffrongym/teleport_1_17
+scene_trigger SaffronGym 1 3 kanto/saffrongym/teleport_1_3
+scene_trigger SaffronGym 1 5 kanto/saffrongym/teleport_1_5
+scene_trigger SaffronGym 1 9 kanto/saffrongym/teleport_1_9
+scene_trigger SaffronGym 11 11 kanto/saffrongym/teleport_11_11
+scene_trigger SaffronGym 11 15 kanto/saffrongym/teleport_11_15
+scene_trigger SaffronGym 11 3 kanto/saffrongym/teleport_11_3
+scene_trigger SaffronGym 11 5 kanto/saffrongym/teleport_11_5
+scene_trigger SaffronGym 15 11 kanto/saffrongym/teleport_15_11
+scene_trigger SaffronGym 15 15 kanto/saffrongym/teleport_15_15
+scene_trigger SaffronGym 15 17 kanto/saffrongym/teleport_15_17
+scene_trigger SaffronGym 15 3 kanto/saffrongym/teleport_15_3
+scene_trigger SaffronGym 15 5 kanto/saffrongym/teleport_15_5
+scene_trigger SaffronGym 15 9 kanto/saffrongym/teleport_15_9
+scene_trigger SaffronGym 19 11 kanto/saffrongym/teleport_19_11
+scene_trigger SaffronGym 19 15 kanto/saffrongym/teleport_19_15
+scene_trigger SaffronGym 19 17 kanto/saffrongym/teleport_19_17
+scene_trigger SaffronGym 19 3 kanto/saffrongym/teleport_19_3
+scene_trigger SaffronGym 19 5 kanto/saffrongym/teleport_19_5
+scene_trigger SaffronGym 19 9 kanto/saffrongym/teleport_19_9
+scene_trigger SaffronGym 5 11 kanto/saffrongym/teleport_5_11
+scene_trigger SaffronGym 5 15 kanto/saffrongym/teleport_5_15
+scene_trigger SaffronGym 5 17 kanto/saffrongym/teleport_5_17
+scene_trigger SaffronGym 5 3 kanto/saffrongym/teleport_5_3
+scene_trigger SaffronGym 5 5 kanto/saffrongym/teleport_5_5
+scene_trigger SaffronGym 5 9 kanto/saffrongym/teleport_5_9
+scene_trigger SaffronGym 9 3 kanto/saffrongym/teleport_9_3
+scene_trigger SaffronGym 9 5 kanto/saffrongym/teleport_9_5
+scene_npc SaffronGym kanto/saffrongym/gym_guide 10 15
+scene_npc SaffronGym kanto/saffrongym/sabrina 9 8
+scene_tile SaffronPidgeyHouse kanto/blueshouse/townmap 3 0
+scene_npc SaffronPidgeyHouse kanto/saffronpidgeyhouse/pidgey_cry 0 4
+scene_trigger SilphCo10F 13 15 kanto/silphco10f/teleport_13_15
+scene_trigger SilphCo10F 13 7 kanto/silphco10f/teleport_13_7
+scene_trigger SilphCo10F 9 11 kanto/silphco10f/teleport_9_11
+scene_tile SilphCo10F kanto/silphco10f/card_key_door_10_door 10 8
+scene_tile SilphCo10F kanto/silphco10f/card_key_door_10_door 11 8
+scene_trigger SilphCo11F 3 2 kanto/silphco11f/teleport_3_2
+scene_trigger SilphCo11F 6 13 kanto/silphco11f/giovanni_battle when event_clear EVENT_BEAT_SILPH_CO_GIOVANNI
+scene_trigger SilphCo11F 7 12 kanto/silphco11f/giovanni_battle when event_clear EVENT_BEAT_SILPH_CO_GIOVANNI
+scene_tile SilphCo11F kanto/silphco11f/card_key_door_11_door 6 13
+scene_tile SilphCo11F kanto/silphco11f/card_key_door_11_door 7 13
+scene_npc SilphCo11F kanto/silphco11f/president_gift 7 5
+scene_trigger SilphCo2F 13 3 kanto/silphco2f/teleport_13_3
+scene_trigger SilphCo2F 27 15 kanto/silphco2f/teleport_27_15
+scene_trigger SilphCo2F 3 3 kanto/silphco2f/teleport_3_3
+scene_trigger SilphCo2F 9 15 kanto/silphco2f/teleport_9_15
+scene_tile SilphCo2F kanto/silphco2f/card_key_door_2_door1 4 4
+scene_tile SilphCo2F kanto/silphco2f/card_key_door_2_door1 5 4
+scene_tile SilphCo2F kanto/silphco2f/card_key_door_2_door2 4 10
+scene_tile SilphCo2F kanto/silphco2f/card_key_door_2_door2 5 10
+scene_npc SilphCo2F kanto/silphco2f/tm36_gift 10 1
+scene_trigger SilphCo3F 11 11 kanto/silphco3f/teleport_11_11
+scene_trigger SilphCo3F 23 11 kanto/silphco3f/teleport_a
+scene_trigger SilphCo3F 27 15 kanto/silphco3f/teleport_b
+scene_trigger SilphCo3F 27 3 kanto/silphco3f/teleport_27_3
+scene_trigger SilphCo3F 3 11 kanto/silphco3f/teleport_3_11
+scene_trigger SilphCo3F 3 15 kanto/silphco3f/teleport_3_15
+scene_trigger SilphCo3F 3 3 kanto/silphco3f/teleport_3_3
+scene_tile SilphCo3F kanto/silphco3f/card_key_door_3_door1 9 8
+scene_tile SilphCo3F kanto/silphco3f/card_key_door_3_door1 9 9
+scene_tile SilphCo3F kanto/silphco3f/card_key_door_3_door2 17 8
+scene_tile SilphCo3F kanto/silphco3f/card_key_door_3_door2 17 9
+scene_trigger SilphCo4F 11 7 kanto/silphco4f/teleport_11_7
+scene_trigger SilphCo4F 17 11 kanto/silphco4f/teleport_17_11
+scene_trigger SilphCo4F 17 3 kanto/silphco4f/teleport_17_3
+scene_trigger SilphCo4F 3 15 kanto/silphco4f/teleport_3_15
+scene_tile SilphCo4F kanto/silphco4f/card_key_door_4_door1 4 12
+scene_tile SilphCo4F kanto/silphco4f/card_key_door_4_door1 5 12
+scene_tile SilphCo4F kanto/silphco4f/card_key_door_4_door2 12 8
+scene_tile SilphCo4F kanto/silphco4f/card_key_door_4_door2 13 8
+scene_trigger SilphCo5F 11 5 kanto/silphco5f/teleport_11_5
+scene_trigger SilphCo5F 27 3 kanto/silphco5f/teleport_27_3
+scene_trigger SilphCo5F 3 15 kanto/silphco5f/teleport_3_15
+scene_trigger SilphCo5F 9 15 kanto/silphco5f/teleport_9_15
+scene_tile SilphCo5F kanto/silphco5f/card_key_door_5_door1 7 4
+scene_tile SilphCo5F kanto/silphco5f/card_key_door_5_door1 7 5
+scene_tile SilphCo5F kanto/silphco5f/card_key_door_5_door2 7 12
+scene_tile SilphCo5F kanto/silphco5f/card_key_door_5_door2 7 13
+scene_tile SilphCo5F kanto/silphco5f/card_key_door_5_door3 15 10
+scene_tile SilphCo5F kanto/silphco5f/card_key_door_5_door3 15 11
+scene_trigger SilphCo6F 23 3 kanto/silphco6f/teleport_23_3
+scene_trigger SilphCo6F 3 3 kanto/silphco6f/teleport_3_3
+scene_tile SilphCo6F kanto/silphco6f/card_key_door_6_door 5 12
+scene_tile SilphCo6F kanto/silphco6f/card_key_door_6_door 5 13
+scene_trigger SilphCo7F 21 15 kanto/silphco7f/teleport_21_15
+scene_trigger SilphCo7F 3 2 kanto/silphco7f/rival_battle when event_clear EVENT_BEAT_SILPH_CO_RIVAL
+scene_trigger SilphCo7F 3 3 kanto/silphco7f/rival_battle when event_clear EVENT_BEAT_SILPH_CO_RIVAL
+scene_trigger SilphCo7F 5 3 kanto/silphco7f/teleport_5_3
+scene_trigger SilphCo7F 5 7 kanto/silphco7f/teleport_5_7
+scene_tile SilphCo7F kanto/silphco7f/card_key_door_7_door1 10 6
+scene_tile SilphCo7F kanto/silphco7f/card_key_door_7_door1 11 6
+scene_tile SilphCo7F kanto/silphco7f/card_key_door_7_door2 20 4
+scene_tile SilphCo7F kanto/silphco7f/card_key_door_7_door2 21 4
+scene_tile SilphCo7F kanto/silphco7f/card_key_door_7_door3 20 12
+scene_tile SilphCo7F kanto/silphco7f/card_key_door_7_door3 21 12
+scene_npc SilphCo7F kanto/silphco7f/lapras_gift 1 5
+scene_trigger SilphCo8F 11 5 kanto/silphco8f/teleport_11_5
+scene_trigger SilphCo8F 11 9 kanto/silphco8f/teleport_b
+scene_trigger SilphCo8F 3 11 kanto/silphco8f/teleport_a
+scene_trigger SilphCo8F 3 15 kanto/silphco8f/teleport_3_15
+scene_tile SilphCo8F kanto/silphco8f/card_key_door_8_door 7 8
+scene_tile SilphCo8F kanto/silphco8f/card_key_door_8_door 7 9
+scene_trigger SilphCo9F 17 15 kanto/silphco9f/teleport_17_15
+scene_trigger SilphCo9F 9 3 kanto/silphco9f/teleport_9_3
+scene_tile SilphCo9F kanto/silphco9f/card_key_door_9_door1 3 8
+scene_tile SilphCo9F kanto/silphco9f/card_key_door_9_door1 3 9
+scene_tile SilphCo9F kanto/silphco9f/card_key_door_9_door2 18 4
+scene_tile SilphCo9F kanto/silphco9f/card_key_door_9_door2 19 4
+scene_tile SilphCo9F kanto/silphco9f/card_key_door_9_door3 18 10
+scene_tile SilphCo9F kanto/silphco9f/card_key_door_9_door3 19 10
+scene_tile SilphCo9F kanto/silphco9f/card_key_door_9_door4 11 12
+scene_tile SilphCo9F kanto/silphco9f/card_key_door_9_door4 11 13
+scene_npc SilphCo9F kanto/silphco9f/nurse_heal 3 14
+scene_npc UndergroundPathRoute5 kanto/undergroundpathroute5/spot_trade 2 3
+scene_trigger VermilionCity 18 30 kanto/vermilioncity/ssanne_checkpoint
+scene_npc VermilionCity kanto/vermilioncity/machop_cry 29 9
+scene_npc VermilionCity kanto/vermilioncity/ssanne_ticket_check 19 30
+scene_trigger VermilionDock onload kanto/vermiliondock/ss_anne_departs when event_set EVENT_GOT_HM01 and event_clear EVENT_SS_ANNE_LEFT
+scene_npc VermilionGym kanto/vermiliongym/gym_guide 4 14
+scene_npc VermilionGym kanto/vermiliongym/lt_surge 5 1
+scene_tile VermilionOldRodHouse kanto/blueshouse/townmap 3 0
+scene_npc VermilionOldRodHouse kanto/vermilionoldrodhouse/give_old_rod 2 4
+scene_tile VermilionPidgeyHouse kanto/blueshouse/townmap 3 0
+scene_npc VermilionPidgeyHouse kanto/vermilionpidgeyhouse/pidgey_cry 3 5
+scene_tile VermilionTradeHouse kanto/blueshouse/townmap 3 0
+scene_npc VermilionTradeHouse kanto/vermiliontradehouse/dux_trade 3 5
+scene_trigger ViridianCity 19 9 kanto/viridiancity/old_man_blocked when event_clear EVENT_GOT_POKEDEX
+scene_trigger ViridianCity 32 8 kanto/viridiancity/gym_locked when event_clear EVENT_VIRIDIAN_GYM_OPEN
+scene_npc ViridianCity kanto/viridiancity/fisher_tm42 6 23
+scene_npc ViridianCity kanto/viridiancity/gambler1_gym 30 8
+scene_npc ViridianCity kanto/viridiancity/old_man_catch_tutorial 17 5
+scene_npc ViridianCity kanto/viridiancity/youngster2_caterpie_weedle 30 25
+scene_npc ViridianGym kanto/viridiangym/giovanni 2 1
+scene_npc ViridianGym kanto/viridiangym/gym_guide 16 15
+scene_trigger ViridianMart 3 7 kanto/viridianmart/viridianmart_oaks_parcel when event_clear EVENT_GOT_OAKS_PARCEL
+scene_tile ViridianNicknameHouse kanto/blueshouse/townmap 3 0
+scene_npc ViridianNicknameHouse kanto/viridiannicknamehouse/spearow_cry 5 5
+scene_tile ViridianSchoolHouse kanto/viridianschoolhouse/blackboard 3 0
+scene_tile ViridianSchoolHouse kanto/viridianschoolhouse/notebook 3 4
+scene_npc WardensHouse kanto/wardenshouse/warden 2 3

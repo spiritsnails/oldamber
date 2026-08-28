@@ -1,0 +1,48 @@
+
+if (player.y == 4 and player.x == 13) or (player.y == 3 and player.x == 12)
+    ask rom:Museum1FScientist1Text.DoYouKnowWhatAmberIsText
+    if answer is yes
+        say rom:Museum1FScientist1Text.TheresALabSomewhereText
+        wait_text
+    else
+        say rom:Museum1FScientist1Text.AmberIsFossilizedTreeSapText
+        wait_text
+    end
+    stop
+end
+if EVENT_BOUGHT_MUSEUM_TICKET
+    say rom:Museum1FScientist1Text.TakePlentyOfTimeText
+    wait_text
+    stop
+end
+lock_input on
+
+show_money
+ask rom:Museum1FScientist1Text.WouldYouLikeToComeInText
+if answer is no
+    hide_money
+    say rom:Museum1FScientist1Text.GoToOtherSideText
+    wait_text
+    queue player down 1
+    march
+    lock_input off
+    stop
+end
+if money < 50
+    hide_money
+    say rom:Museum1FScientist1Text.DontHaveEnoughMoneyText
+    wait_text
+    queue player down 1
+    march
+    lock_input off
+    stop
+end
+pay 50
+show_money
+sfx purchase
+say rom:Museum1FScientist1Text.ThankYouText
+wait_text
+hide_money
+set_event EVENT_BOUGHT_MUSEUM_TICKET
+lock_input off
+end

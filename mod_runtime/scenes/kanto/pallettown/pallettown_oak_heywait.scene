@@ -1,0 +1,34 @@
+
+lock_input on
+
+set_event EVENT_OAK_APPEARED_IN_PALLET
+face player down
+music meetprofoak
+
+wait 3
+emote player
+say rom:_PalletTownOakHeyWaitDontGoOutText
+wait_text
+spawn oak OAK 8 5
+move_to_player oak
+face oak player
+say rom:PalletTownOakText.ItsUnsafeText
+walk_to_x oak 10
+walk_to_x player 10
+wait_text
+queue oak down 5
+queue oak left 1
+queue oak down 5
+queue oak right 3
+queue oak up 1
+queue oak face down
+queue player down 6
+queue player left 1
+queue player down 5
+queue player right 3
+queue player up 2
+march
+despawn oak
+set_event EVENT_FOLLOWED_OAK_INTO_LAB
+lock_input off
+end

@@ -1,0 +1,16 @@
+
+let sum = 0
+let i = 0
+repeat 5
+    let i = i + 1
+    let sum = sum + i
+end
+let n = 0
+while n < 100
+    let n = n + 1
+    if n == 3
+        break
+    end
+end
+let done = 1
+end

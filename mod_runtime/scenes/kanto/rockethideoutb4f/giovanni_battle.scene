@@ -1,0 +1,17 @@
+
+if EVENT_BEAT_ROCKET_HIDEOUT_GIOVANNI
+    say rom:RocketHideoutB4FGiovanniHopeWeMeetAgainText
+    stop
+end
+
+say rom:RocketHideoutB4FGiovanniText.ImpressedYouGotHereText
+wait_text
+battlestart GIOVANNI 1 "WHAT!\nThis cannot be!@"
+
+set_event EVENT_BEAT_ROCKET_HIDEOUT_GIOVANNI
+say rom:RocketHideoutB4FGiovanniHopeWeMeetAgainText
+wait_text
+fade out black
+refresh_npcs
+fade in black
+end

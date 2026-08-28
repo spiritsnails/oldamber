@@ -1,0 +1,32 @@
+{
+  "_comment": "Accepted compiled-in literals, checked by tools/assetpack/audit_linked.py. Every entry needs a REASON: an unexplained one is how a real finding gets silenced. Regenerate the list with --update-baseline, but write the reasons by hand. As of 2026-08-02 every RED-sourced literal has been migrated to the pack, so all three entries here are Crystal, and all three are blocked on the same thing.",
+  "accepted": [
+    {
+      "symbol": "kJohtoWavePatterns",
+      "file": "src/game/johto_music.c",
+      "bytes": 160,
+      "verdict": "copied",
+      "rom": "crystal",
+      "hits": 1,
+      "reason": "CRYSTAL-SOURCED: blocked on the crystal package (execution plan item 7). Migrating it needs AssetPack_Optional to exist first -- AssetPack_Require abort()s, so a Red-only player with no crystal.pak would SIGABRT the moment this bound. Rows 0-4 are byte-identical to kWavePatterns, which IS migrated, so the Gen 1 half of the old 'wave tables' question (item 5) is closed and only this remains."
+    },
+    {
+      "symbol": "kJohtoWaterFrames",
+      "file": "src/game/amberscript_tilemod.c",
+      "bytes": 64,
+      "verdict": "copied",
+      "rom": "crystal",
+      "hits": 1,
+      "reason": "CRYSTAL-SOURCED: same blocker as kJohtoWavePatterns (execution plan item 7). Its Kanto siblings in the same file -- kKantoWaterBase, kKantoFlowerBase, kKantoGymFlowerBase, kKantoFlowerFrames -- are all migrated, so this is the Johto half of an otherwise finished file."
+    },
+    {
+      "symbol": "kPTile",
+      "file": "src/game/summary_screen.c",
+      "bytes": 16,
+      "verdict": "likely",
+      "rom": "crystal",
+      "hits": 1,
+      "reason": "CRYSTAL-SOURCED (AsciiFontGFX + 768): same blocker as above. Note the verdict is 'likely', not 'copied' -- 16 bytes unique in the ROM is suggestive, not proof. Do not harden it into a claim without a second signal."
+    }
+  ]
+}

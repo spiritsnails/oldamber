@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER040
+say rom:SSAnne1FRoomsWigglytuffText
+wait_text
+end

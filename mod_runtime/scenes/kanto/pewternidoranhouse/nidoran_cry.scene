@@ -1,0 +1,5 @@
+
+cry MONSTER032
+say rom:PewterNidoranHouseNidoranText
+wait_text
+end

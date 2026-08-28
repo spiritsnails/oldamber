@@ -1,0 +1,11 @@
+
+lock_input on
+
+spawn oak OAK 5 2
+face oak down
+say rom:OaksLabOakDontGoAwayYetText.Text
+
+queue player up 1
+march
+lock_input off
+end

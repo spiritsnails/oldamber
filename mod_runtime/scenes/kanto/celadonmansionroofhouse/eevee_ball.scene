@@ -1,0 +1,23 @@
+
+if EVENT_GOT_EEVEE
+    stop
+end
+give_monster MONSTER133 25
+wait_text
+if party_full
+    stop
+end
+set_event EVENT_GOT_EEVEE
+hide ball
+sfx get_key_item
+say rom:GotMonText badge=EEVEE
+wait_text
+ask rom:DoYouWantToNicknameText badge=EEVEE
+if answer is yes
+    name MONSTER133
+end
+if sent_to_box
+    say rom:SentToBoxText
+    wait_text
+end
+end

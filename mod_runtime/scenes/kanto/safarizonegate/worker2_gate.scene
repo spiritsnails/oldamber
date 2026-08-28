@@ -1,0 +1,10 @@
+
+ask rom:SafariZoneGateSafariZoneWorker2Text.FirstTimeHereText
+if answer is no
+    say rom:SafariZoneGateSafariZoneWorker2Text.YoureARegularHereText
+    wait_text
+else
+    say rom:SafariZoneGateSafariZoneWorker2Text.SafariZoneExplanationText
+    wait_text
+end
+end

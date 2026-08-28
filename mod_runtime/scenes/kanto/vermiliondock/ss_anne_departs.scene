@@ -1,0 +1,17 @@
+
+lock_input on
+
+set_event EVENT_SS_ANNE_LEFT
+
+music surfing
+
+face player down
+
+ship_depart
+
+sim_walk up 3
+
+set_event EVENT_STARTED_WALKING_OUT_OF_DOCK
+set_event EVENT_WALKED_OUT_OF_DOCK
+
+lock_input off

@@ -1,0 +1,9 @@
+
+ask rom:ViridianCityYoungster2Text.YouWantToKnowAboutText
+if answer is yes
+    say rom:ViridianCityYoungster2CaterpieAndWeedleDescriptionText
+else
+    say rom:ViridianCityYoungster2OkThenText
+end
+wait_text
+end

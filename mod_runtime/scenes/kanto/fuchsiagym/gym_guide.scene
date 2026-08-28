@@ -1,0 +1,8 @@
+
+if EVENT_BEAT_KOGA
+    say rom:FuchsiaGymGymGuideText.BeatKogaText
+else
+    say rom:FuchsiaGymGymGuideText.ChampInMakingText
+end
+wait_text
+end

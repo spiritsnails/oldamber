@@ -1,0 +1,33 @@
+
+if EVENT_GOT_HM01
+    say rom:SSAnneCaptainsRoomCaptainNotSickAnymoreText
+    wait_text
+    stop
+end
+
+lock_input on
+fullrate on
+
+say_hold rom:SSAnneCaptainsRoomRubCaptainsBackText
+music pkmnhealed
+wait_music
+music ss_anne
+set_event EVENT_RUBBED_CAPTAINS_BACK
+face @4,2 player
+close_text
+fullrate off
+say rom:SSAnneCaptainsRoomCaptainIFeelMuchBetterText
+wait_text
+give_item HM_CUT 1
+if bag_full
+    say rom:SSAnneCaptainsRoomCaptainHM01NoRoomText
+    wait_text
+    lock_input off
+    stop
+end
+sfx get_key_item
+say rom:SSAnneCaptainsRoomCaptainReceivedHM01Text
+wait_text
+set_event EVENT_GOT_HM01
+lock_input off
+end

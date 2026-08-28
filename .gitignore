@@ -1,0 +1,322 @@
+# ROM-derived assets.
+#
+# Everything under generated/ is extracted from the user's own legally-obtained
+# ROM at build time and MUST NOT be committed -- the repo ships extractors and
+# code, never the assets themselves.  Same model as Ship of Harkinian and the
+# other static recomps.  Regenerate with:
+#     pwsh tools/py.ps1 tools/assetpack/build_pak.py --rom <path-to-rom>
+#
+# NOT everything ROM-SHAPED belongs here.  src/data/gbc_palettes.c is committed
+# on purpose: it is colour, not artwork, and nothing generates it.
+generated/
+
+# Build artifacts
+build/
+# the RED_ONLY tree (cmake -DRED_ONLY=ON), see README.md
+build-red/
+# and the same for a Blue-side tree -- a build dir is a build dir
+build-blue/
+# CI compile-check dir, and the local dir used to reproduce a
+# fixture-headers build (tools/ci/gen_audio_id_fixture.py).
+build-ci/
+build-fixture/
+# Any other build tree. Named dirs kept missing new ones: a Release tree for
+# packaging Windows landed in a commit before this line existed.
+build-*/
+*.exe
+*.dll
+*.o
+*.a
+build_err*.txt
+build_err.bin
+build_out*.txt
+gcc*.err
+gcc*.out
+tmp_gcc_*.txt
+
+# Save files
+*.sav
+
+# Debug outputs
+debug/screenshots/
+debug.png
+debug/dsl_bank_scene_npc.cfg
+debug/dsl_bank_scene_npc.dat
+
+# Per-slot vmap runtime cache (amberscript_mapbank.c's pks_mb_copy_file):
+# every time a real map streams into one of the 8 rotating vmap slots
+# (248-255), the engine copies that map's name-keyed placement file
+# (mod_runtime/map_edits/vmap_<Name>.txt, real tracked content) into a
+# slot-keyed mirror here so the slot machinery can address "whatever's
+# currently in slot N" uniformly. Its content is just "whichever map was
+# last visited in that slot this session" -- not an authored decision, and
+# it gets silently rewritten by the game itself on every play session that
+# touches those slots. Tracking it just produces phantom diffs unrelated
+# to any real change (confirmed 2026-08-06: looked like a decoder/emitter
+# regression, was actually two different play sessions visiting different
+# maps in the same slot).
+mod_runtime/map_edits/map_248.txt
+mod_runtime/map_edits/map_249.txt
+mod_runtime/map_edits/map_250.txt
+mod_runtime/map_edits/map_251.txt
+mod_runtime/map_edits/map_252.txt
+mod_runtime/map_edits/map_253.txt
+mod_runtime/map_edits/map_254.txt
+mod_runtime/map_edits/map_255.txt
+bird_*.png
+.tmp_bird_contact.bmp
+fly_*.log
+make_fly.log
+# The game's own runtime log. It was TRACKED, so every launch left the tree
+# dirty and blocked anything that insists on a clean tree -- the release export
+# among them. It is output, not source.
+pokered_log.txt
+oldamber_log.txt
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Reference disassemblies: clone these here manually (see README).  They carry
+# their own ROM-derived assets, which is exactly what this repo must not, so
+# they are never part of it -- they are read as source-of-truth ASM, as symbol
+# tables for the extractors, and as verification oracles.
+#
+# One exception: pokered.sym. The extractors need it to build the asset pack, so
+# without it a clone plus a ROM cannot build, and cloning a disassembly is not
+# something this project asks anyone to do. It is `bank:addr Name` lines and
+# carries no ROM bytes, and the release already ships it frozen inside setup
+# (tools/dist/make_release.sh, --add-data). Tracking it changes where it comes
+# from, not whether it is distributed.
+#
+# Written as a glob plus a negation because git does not descend into an
+# excluded DIRECTORY, so `pokered-master/` with a negation after it would not
+# work.
+pokered-master/*
+!pokered-master/pokered.sym
+pokered-gbc-master/
+pokecrystal-master/
+redstarbluestar-master/
+pokeyellow-master/
+
+# Debug/export scratch and legacy ROM-derived art.  DIRECTORY rules, never
+# per-file: this file's own history records that per-file entries are what let
+# an archive walk out from under its rules during a rename and silently
+# re-enter tracking.
+#
+# map_export/ is intermediate capture output -- kanto_map_export_offline.py
+# regenerates it and is safe to re-run (docs/amberscript/import-pipeline.md).
+# crystalsprites/ is superseded by tools/extract_crystal_mon_pics.py, which is
+# ROM-only by construction and covers a strict superset.
+#
+# Untracked via `git rm -r --cached` 2026-08-04 (release-asset-pipeline-plan.md
+# Phase 1b/2). Files remain on disk; only removed from git's index.
+mods/gfx/crystalsprites/
+mod_runtime/map_export/
+mod_runtime/generated/
+experiment/
+maps/
+debug/block.png
+debug/cherrygrovebug.PNG
+iconred.png
+iconblue.png
+
+# reference/hand_authored_kanto/ -- the 222 retired hand-authored Kanto maps
+# (see its own README.md). Never loaded at runtime; kept ON DISK for local
+# diffing against a freshly-generated map, but not tracked -- it is old,
+# superseded content, not source.
+reference/hand_authored_kanto/
+
+# mnemo memory tree (project-local, regenerates from codebase)
+.mnemo/
+plugins/mnemo/
+
+# Empty scratch file
+powershell
+
+# IDE / OS
+.vscode/
+*.user
+Thumbs.db
+.DS_Store
+
+# Packed archives (mnemo snapshots, source zips)
+*.zip
+
+# Debug suite lab workdirs (headless replay instances) and their loose
+# screenshot/scratch output at repo root
+lab_*/
+lab_*.bmp
+
+# Ad-hoc trace scratch dumps (debug-session byproduct, not source)
+scratch_traces/
+
+# debugsuite: generated battle cases (regenerate with tools/debugsuite/bgen.py)
+tools/debugsuite/cases/matrix/
+tools/debugsuite/cases/fuzz/
+tools/debugsuite/cases/branches/
+
+# The runtime asset pack: pure ROM data, built by the user from their own ROM
+# via tools/assetpack/build_pak.py. Never committed, for the same reason
+# generated/ is not.
+assets.pak
+*.pak
+
+# Per-game packages and their manifests. One <id>.pak + <id>.json per source
+# ROM, plus packages.txt giving the mount order -- all regenerated by
+# build_pak.py, so the manifests are as derived as the archives they vouch for.
+packages/
+
+# ---- Kanto tile art: ROM-derived, 16,674 files ----
+# <maplower>_tNNN.bin is RAW 2bpp lifted straight from the ROM's tileset
+# graphics, and the .png beside it is the editable source that converts to it.
+# The "custom_art" name is misleading -- none of this is hand-drawn. Measured:
+# all 8331 .bin regenerate BYTE-IDENTICALLY from the ROM, and all 8331 .png
+# regenerate PIXEL-IDENTICALLY (the committed ones are 2-bit greyscale, ours
+# 8-bit -- irrelevant, since the game reads the .bin and only reconverts the
+# .png when it is newer).
+#
+# Regenerate with:  pwsh tools/py.ps1 tools/romimport/emit_kanto.py --art-all
+#
+# DIRECTORY rule, not per-file: per-file entries are exactly what let the Johto
+# archive walk out from under its own ignore rules during a rename and silently
+# re-enter tracking.
+mod_runtime/custom_art/kanto/
+
+# ---- ROM-derived Johto import (proof of concept) ----
+# Extracted from a Crystal ROM by the old disassembly-sourced importer
+# (tools/pokecrystal_import.py).  ROM-derived assets are not committed --
+# same rule as generated/.  Kept on disk, just not tracked; this Johto set
+# was a proof of concept and is being replaced by tools/romimport/.
+#
+# The whole set now lives under _archive/johto_disasm/ (moved there by the
+# Johto import branch).  That rename walked the files out from under the
+# path-specific rules below and they became TRACKED again -- 1344 of them,
+# while the archive's own README claimed they were not.  A directory rule is
+# safe HERE, unlike below: this path holds nothing but the disassembly set.
+mod_runtime/_archive/johto_disasm/
+#
+# Listed file by file on purpose: a glob over mod_runtime/blocks would take
+# the Kanto work with it.  Regenerate with the grep in this repo's history
+# (every .block referencing custom_art/pokecrystal or custom_art/imported).
+mod_runtime/custom_art/pokecrystal/
+mod_runtime/custom_art/imported/
+mod_runtime/blocks/AzaleaTown.block
+mod_runtime/blocks/BlackthornCity.block
+mod_runtime/blocks/CherrygroveCity.block
+mod_runtime/blocks/CianwoodCity.block
+mod_runtime/blocks/EcruteakCity.block
+mod_runtime/blocks/ElmsHouse.block
+mod_runtime/blocks/ElmsLab.block
+mod_runtime/blocks/GoldenrodCity.block
+mod_runtime/blocks/IlexForest.block
+mod_runtime/blocks/LakeOfRage.block
+mod_runtime/blocks/MahoganyTown.block
+mod_runtime/blocks/NationalPark.block
+mod_runtime/blocks/NewBarkTown.block
+mod_runtime/blocks/OlivineCity.block
+mod_runtime/blocks/PlayersHouse1F.block
+mod_runtime/blocks/PlayersHouse2F.block
+mod_runtime/blocks/PlayersNeighborsHouse.block
+mod_runtime/blocks/Route26.block
+mod_runtime/blocks/Route27.block
+mod_runtime/blocks/Route29.block
+mod_runtime/blocks/Route30.block
+mod_runtime/blocks/Route31.block
+mod_runtime/blocks/Route32.block
+mod_runtime/blocks/Route33.block
+mod_runtime/blocks/Route34.block
+mod_runtime/blocks/Route35.block
+mod_runtime/blocks/Route36.block
+mod_runtime/blocks/Route37.block
+mod_runtime/blocks/Route38.block
+mod_runtime/blocks/Route39.block
+mod_runtime/blocks/Route40.block
+mod_runtime/blocks/Route41.block
+mod_runtime/blocks/Route42.block
+mod_runtime/blocks/Route43.block
+mod_runtime/blocks/Route44.block
+mod_runtime/blocks/Route45.block
+mod_runtime/blocks/Route46.block
+mod_runtime/blocks/RuinsOfAlphOutside.block
+mod_runtime/blocks/VioletCity.block
+mod_runtime/blocks/WhirlIslandNE.block
+mod_runtime/blocks/WhirlIslandNW.block
+mod_runtime/blocks/WhirlIslandSE.block
+mod_runtime/blocks/WhirlIslandSW.block
+mod_runtime/blocks/WildTestRoom.block
+mod_runtime/blocks/newbark_imported.block
+mod_runtime/blocks/vmap_AzaleaTown_properties.block
+mod_runtime/blocks/vmap_BlackthornCity_properties.block
+mod_runtime/blocks/vmap_CianwoodCity_properties.block
+mod_runtime/blocks/vmap_EcruteakCity_properties.block
+mod_runtime/blocks/vmap_IlexForest_properties.block
+mod_runtime/blocks/vmap_LakeOfRage_properties.block
+mod_runtime/blocks/vmap_MahoganyTown_properties.block
+mod_runtime/blocks/vmap_NewBarkTown_properties.block
+mod_runtime/blocks/vmap_Route26_properties.block
+mod_runtime/blocks/vmap_Route27_properties.block
+mod_runtime/blocks/vmap_Route29_properties.block
+mod_runtime/blocks/vmap_Route30_properties.block
+mod_runtime/blocks/vmap_Route31_properties.block
+mod_runtime/blocks/vmap_Route32_properties.block
+mod_runtime/blocks/vmap_Route33_properties.block
+mod_runtime/blocks/vmap_Route37_properties.block
+mod_runtime/blocks/vmap_Route38_properties.block
+mod_runtime/blocks/vmap_Route39_properties.block
+mod_runtime/blocks/vmap_Route43_properties.block
+mod_runtime/blocks/vmap_Route44_properties.block
+mod_runtime/blocks/vmap_Route45_properties.block
+mod_runtime/blocks/vmap_Route46_properties.block
+mod_runtime/blocks/vmap_RuinsOfAlphOutside_properties.block
+mod_runtime/blocks/vmap_VioletCity_properties.block
+mod_runtime/blocks/vmap_WhirlIslandNE_properties.block
+mod_runtime/map_edits/vmap_AzaleaTown.txt
+mod_runtime/map_edits/vmap_BlackthornCity.txt
+mod_runtime/map_edits/vmap_CherrygroveCity.txt
+mod_runtime/map_edits/vmap_CianwoodCity.txt
+mod_runtime/map_edits/vmap_EcruteakCity.txt
+mod_runtime/map_edits/vmap_ElmsHouse.txt
+mod_runtime/map_edits/vmap_ElmsLab.txt
+mod_runtime/map_edits/vmap_GoldenrodCity.txt
+mod_runtime/map_edits/vmap_IlexForest.txt
+mod_runtime/map_edits/vmap_LakeOfRage.txt
+mod_runtime/map_edits/vmap_MahoganyTown.txt
+mod_runtime/map_edits/vmap_NationalPark.txt
+mod_runtime/map_edits/vmap_NewBarkTown.txt
+mod_runtime/map_edits/vmap_OlivineCity.txt
+mod_runtime/map_edits/vmap_PlayersHouse1F.txt
+mod_runtime/map_edits/vmap_PlayersHouse2F.txt
+mod_runtime/map_edits/vmap_PlayersNeighborsHouse.txt
+mod_runtime/map_edits/vmap_Route26.txt
+mod_runtime/map_edits/vmap_Route27.txt
+mod_runtime/map_edits/vmap_Route29.txt
+mod_runtime/map_edits/vmap_Route30.txt
+mod_runtime/map_edits/vmap_Route31.txt
+mod_runtime/map_edits/vmap_Route32.txt
+mod_runtime/map_edits/vmap_Route33.txt
+mod_runtime/map_edits/vmap_Route34.txt
+mod_runtime/map_edits/vmap_Route35.txt
+mod_runtime/map_edits/vmap_Route36.txt
+mod_runtime/map_edits/vmap_Route37.txt
+mod_runtime/map_edits/vmap_Route38.txt
+mod_runtime/map_edits/vmap_Route39.txt
+mod_runtime/map_edits/vmap_Route40.txt
+mod_runtime/map_edits/vmap_Route41.txt
+mod_runtime/map_edits/vmap_Route42.txt
+mod_runtime/map_edits/vmap_Route43.txt
+mod_runtime/map_edits/vmap_Route44.txt
+mod_runtime/map_edits/vmap_Route45.txt
+mod_runtime/map_edits/vmap_Route46.txt
+mod_runtime/map_edits/vmap_RuinsOfAlphOutside.txt
+mod_runtime/map_edits/vmap_VioletCity.txt
+mod_runtime/map_edits/vmap_WhirlIslandNE.txt
+mod_runtime/map_edits/vmap_WhirlIslandNW.txt
+mod_runtime/map_edits/vmap_WhirlIslandSE.txt
+mod_runtime/map_edits/vmap_WhirlIslandSW.txt
+mod_runtime/map_edits/vmap_WildTestRoom.txt
+
+# ROM-derived maps imported by tools/romimport -- assets, same rule as generated/.
+# The vmap streamer searches this root FIRST (kPksGenRoots in amberscript_mapbank.c).
+mod_runtime/generatedmaps/
+build-audiotrace/

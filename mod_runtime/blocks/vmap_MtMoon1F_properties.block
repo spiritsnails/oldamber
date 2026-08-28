@@ -1,0 +1,22 @@
+
+block kanto_qe8e33c0c
+    pair_block elev_high
+end
+block kanto_q522b3a01
+    pair_block elev_high
+end
+block kanto_qc6748d22
+    pair_block elev_high
+end
+block kanto_q0d3168d5
+    pair_block elev_high
+end
+block kanto_qf86e100c
+    pair_block elev_low
+end
+block kanto_q27ae75a7
+    pair_block elev_low
+end
+block kanto_we7f2ccec
+    pair_block elev_low
+end

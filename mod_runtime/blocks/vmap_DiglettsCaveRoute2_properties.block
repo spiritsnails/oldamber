@@ -1,0 +1,10 @@
+
+block kanto_qf86e100c
+    pair_block elev_low
+end
+block kanto_q27ae75a7
+    pair_block elev_low
+end
+block kanto_wd99c8bca
+    pair_block elev_low
+end

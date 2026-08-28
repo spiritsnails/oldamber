@@ -1,0 +1,20 @@
+
+def battle_intro
+lock_input on
+say "$1"
+wait_text
+battlestart random
+battlend "$2"
+enddef
+
+def battle_intro_custom
+lock_input on
+say "$1"
+wait_text
+battlestart custom "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10"
+battlend "$11"
+enddef
+
+def battle_ref
+battlestart $1 $2 "$3"
+enddef

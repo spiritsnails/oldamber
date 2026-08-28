@@ -1,0 +1,7 @@
+
+spawn rival YOUNGSTER player+1 player+0
+face rival player
+lock_input on
+say "Hey! I am a DSL test battle. Let's battle!@"
+battlestart brock
+battlend "Great battle! Scene will end now.@"

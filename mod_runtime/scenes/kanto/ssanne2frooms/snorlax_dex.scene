@@ -1,0 +1,5 @@
+
+say rom:SSAnne2FRoomsGentleman3Text.Text
+wait_text
+show_dex MONSTER143
+end

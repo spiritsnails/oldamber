@@ -1,0 +1,3 @@
+let mine = 7
+say "You chose number {mine}!@"
+end

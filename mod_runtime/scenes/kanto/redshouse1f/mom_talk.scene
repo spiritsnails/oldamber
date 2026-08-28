@@ -1,0 +1,19 @@
+
+if GOT_STARTER
+    lock_input on
+    fullrate on
+    say rom:RedsHouse1FMomYouShouldRestText
+    wait_text
+    fade out white
+    heal
+    music pkmnhealed
+    wait_music
+    music pallettown
+    fade in white
+    say rom:RedsHouse1FMomLookingGreatText
+    wait_text
+    fullrate off
+    lock_input off
+    stop
+end
+say rom:RedsHouse1FMomText.WakeUpText

@@ -1,0 +1,24 @@
+
+if EVENT_GOT_10_COINS
+    say rom:GameCornerFishingGuruText.WinsComeAndGoText
+    wait_text
+    stop
+end
+say rom:GameCornerFishingGuruText.WantToPlayText
+wait_text
+if not has_item(COIN_CASE)
+    say rom:GameCornerOopsForgotCoinCaseText
+    wait_text
+    stop
+end
+if coins > 9990
+    say rom:GameCornerFishingGuruText.DontNeedMyCoinsText
+    wait_text
+    stop
+end
+give_coins 10
+set_event EVENT_GOT_10_COINS
+sfx_on_print get_item
+say rom:GameCornerFishingGuruText.Received10CoinsText
+wait_text
+end

@@ -1,0 +1,112 @@
+
+spawn oak OAK 5 2 keep
+
+face oak player
+if OAK_GOT_PARCEL
+
+    if dex_owned >= 2
+        say rom:OaksLabOak1Text.HowIsYourPokedexComingText
+        wait_text
+        show_dex_rating
+        stop
+    end
+
+    if has_item(MONSTER_CAPSULE)
+        say rom:OaksLabOak1Text.ComeSeeMeSometimesText
+        stop
+    end
+
+    if BEAT_ROUTE22_RIVAL_1ST_BATTLE
+        if GOT_POKEBALLS_FROM_OAK
+            say rom:OaksLabOak1Text.ComeSeeMeSometimesText
+            stop
+        end
+        give_item MONSTER_CAPSULE 5
+        set_event GOT_POKEBALLS_FROM_OAK
+
+        say rom:OaksLabOak1Text.GivePokeballsText page=0-1
+        wait_text
+        sfx_on_print get_key_item
+        say rom:OaksLabOak1Text.GivePokeballsText page=2
+        wait_text
+        say rom:OaksLabOak1Text.GivePokeballsText page=3-6
+        stop
+    end
+
+    say rom:OaksLabOak1Text.PokemonAroundTheWorldText
+    stop
+end
+if GOT_OAKS_PARCEL
+    lock_input on
+
+    hide 4 3
+    say rom:OaksLabOak1Text.DeliverParcelText page=0-4
+    wait_text
+
+    sfx_on_print get_key_item
+    say rom:OaksLabOak1Text.DeliverParcelText page=5
+    wait_text
+    take_item OAKS_PARCEL
+
+    say rom:OaksLabOak1Text.DeliverParcelText page=6
+    wait_text
+
+    music_rival_alt start
+    say rom:OaksLabRivalGrampsText
+    wait_text
+
+    spawn rival BLUE 4 10
+    face rival up
+    queue rival up 7
+    march
+    face rival up
+    say rom:OaksLabRivalWhatDidYouCallMeForText
+    wait_text
+    say rom:OaksLabOakIHaveARequestText
+    wait_text
+    say rom:OaksLabOakMyInventionPokedexText
+    wait_text
+    give_item MONSTER_DEX
+
+    sfx_on_print get_key_item
+    say rom:OaksLabOakGotPokedexText
+    wait_text
+
+    hide 2 1
+    hide 3 1
+    say rom:OaksLabOakThatWasMyDreamText
+    wait_text
+
+    face rival player
+    say rom:OaksLabRivalLeaveItAllToMeText
+    wait_text
+
+    set_event GOT_POKEDEX
+    set_event OAK_GOT_PARCEL
+    face rival down
+
+    music_rival_alt start
+    queue rival down 5
+    march
+    despawn rival
+    music oakslab
+
+    set_event 1ST_ROUTE22_RIVAL_BATTLE
+    clear_event 2ND_ROUTE22_RIVAL_BATTLE
+    set_event ROUTE22_RIVAL_WANTS_BATTLE
+    lock_input off
+    stop
+end
+if OAK_ASKED_TO_CHOOSE_MON
+    if not GOT_STARTER
+        say rom:OaksLabOak1Text.WhichPokemonDoYouWantText
+        stop
+    end
+    if not BATTLED_RIVAL_IN_OAKS_LAB
+        say rom:OaksLabOak1Text.YourPokemonCanFightText
+        stop
+    end
+    say rom:OaksLabOak1Text.RaiseYourYoungPokemonText
+    stop
+end
+say rom:OaksLabOak1Text.RaiseYourYoungPokemonText

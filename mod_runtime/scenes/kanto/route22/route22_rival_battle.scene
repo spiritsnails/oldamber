@@ -1,0 +1,104 @@
+
+lock_input on
+let his = rival.starter
+spawn rival BLUE 25 5
+if EVENT_1ST_ROUTE22_RIVAL_BATTLE
+    music meetrival
+
+    if player.y == 4
+        queue rival right 4
+        march
+        face rival up
+    else
+        queue rival right 3
+        march
+        face rival right
+    end
+
+    say rom:Route22RivalBeforeBattleText1
+    wait_text
+    if his == MONSTER007
+        battlestart 25 4 "Awww!\nYou just lucked\nout!"
+    elif his == MONSTER001
+        battlestart 25 5 "Awww!\nYou just lucked\nout!"
+    else
+        battlestart 25 6 "Awww!\nYou just lucked\nout!"
+    end
+
+    if player.facing == 0
+        face rival up
+    else
+        face rival right
+    end
+    set_event EVENT_BEAT_ROUTE22_RIVAL_1ST_BATTLE
+
+    music_rival_alt start
+    say rom:Route22RivalAfterBattleText1
+    wait_text
+
+    if player.y == 4
+        face rival right
+        queue rival right 2
+        queue rival down 5
+    else
+        face rival up
+        queue rival up 1
+        queue rival right 3
+        queue rival down 6
+    end
+    march
+    despawn rival
+    music routes3
+    clear_event EVENT_1ST_ROUTE22_RIVAL_BATTLE
+    clear_event EVENT_ROUTE22_RIVAL_WANTS_BATTLE
+elif EVENT_2ND_ROUTE22_RIVAL_BATTLE
+
+    music_rival_alt tempo
+
+    if player.y == 4
+        queue rival right 4
+        march
+        face rival up
+    else
+        queue rival right 3
+        march
+        face rival right
+    end
+
+    say rom:Route22RivalBeforeBattleText2
+    wait_text
+    if his == MONSTER007
+        battlestart 42 10 "What!?\nI was just\ncareless!"
+    elif his == MONSTER001
+        battlestart 42 11 "What!?\nI was just\ncareless!"
+    else
+        battlestart 42 12 "What!?\nI was just\ncareless!"
+    end
+
+    if player.y == 4
+        face player down
+        face rival up
+    else
+        face player left
+        face rival right
+    end
+    set_event EVENT_BEAT_ROUTE22_RIVAL_2ND_BATTLE
+
+    music_rival_alt start_tempo
+    say rom:Route22RivalAfterBattleText2
+    wait_text
+
+    face rival left
+    if player.y == 4
+        queue rival left 1
+    else
+        queue rival left 3
+    end
+    march
+    despawn rival
+    music routes3
+    clear_event EVENT_2ND_ROUTE22_RIVAL_BATTLE
+    clear_event EVENT_ROUTE22_RIVAL_WANTS_BATTLE
+end
+lock_input off
+end

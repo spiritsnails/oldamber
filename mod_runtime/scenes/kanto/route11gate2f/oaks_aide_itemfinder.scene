@@ -1,0 +1,33 @@
+
+if EVENT_GOT_ITEMFINDER
+    say rom:Route11Gate2FOaksAideText.ItemfinderDescriptionText
+    wait_text
+    stop
+end
+ask rom:OaksAideHiText req=30 item=ITEMFINDER
+if answer is no
+    say rom:OaksAideComeBackText req=30 item=ITEMFINDER
+    wait_text
+    stop
+end
+let owned = dex_owned
+if owned < 30
+    say rom:OaksAideUhOhText req=30 item=ITEMFINDER
+    wait_text
+    stop
+end
+say rom:OaksAideHereYouGoText
+wait_text
+give_item ITEMFINDER
+if bag_full
+    say rom:OaksAideNoRoomText item=ITEMFINDER
+    wait_text
+    stop
+end
+set_event EVENT_GOT_ITEMFINDER
+sfx_on_print get_item
+say rom:OaksAideGotItemText item=ITEMFINDER
+wait_text
+say rom:Route11Gate2FOaksAideText.ItemfinderDescriptionText
+wait_text
+end

@@ -1,0 +1,43 @@
+
+if EVENT_BOUGHT_MAGIKARP
+    say rom:MtMoonPokecenterMagikarpSalesmanText.NoRefundsText
+    wait_text
+    stop
+end
+show_money on_yesno
+ask rom:MtMoonPokecenterMagikarpSalesmanText.IGotADealText
+if answer is no
+    say rom:MtMoonPokecenterMagikarpSalesmanText.NoText
+    wait_text
+    hide_money
+    stop
+end
+if money < 500
+    say rom:MtMoonPokecenterMagikarpSalesmanText.NoMoneyText
+    wait_text
+    hide_money
+    stop
+end
+give_monster MONSTER129 5
+if party_full
+    say rom:BoxIsFullText
+    wait_text
+    hide_money
+    stop
+end
+sfx_on_print get_item
+say rom:GotMonText badge=MAGIKARP
+wait_text
+if sent_to_box
+    say rom:SentToBoxText
+    wait_text
+else
+    ask rom:DoYouWantToNicknameText badge=MAGIKARP
+    if answer is yes
+        name MONSTER129
+    end
+end
+pay 500
+set_event EVENT_BOUGHT_MAGIKARP
+hide_money
+end

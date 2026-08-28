@@ -1,0 +1,15 @@
+
+if EVENT_BEAT_SILPH_CO_GIOVANNI
+    say rom:SilphCo9FNurseText.ThankYouText
+    wait_text
+    stop
+end
+say rom:SilphCo9FNurseText.YouLookTiredText
+wait_text
+heal
+fade out white
+wait 3
+fade in white
+say rom:SilphCo9FNurseDontGiveUpText
+wait_text
+end

@@ -1,0 +1,47 @@
+
+lock_input on
+let his = rival.starter
+spawn rival BLUE 14 5
+if player.x == 15 and player.y == 5
+    music meetrival
+    set_event EVENT_POKEMON_TOWER_RIVAL_ON_LEFT
+    face player left
+    face rival right
+elif player.x == 14 and player.y == 6
+    music meetrival
+    clear_event EVENT_POKEMON_TOWER_RIVAL_ON_LEFT
+    face player up
+    face rival down
+else
+    face rival player
+end
+say rom:PokemonTower2FRivalText.WhatBringsYouHereText
+wait_text
+if his == MONSTER007
+    battlestart 42 4 "What?\nYou stinker!\fI took it easy on\nyou too!"
+elif his == MONSTER001
+    battlestart 42 5 "What?\nYou stinker!\fI took it easy on\nyou too!"
+else
+    battlestart 42 6 "What?\nYou stinker!\fI took it easy on\nyou too!"
+end
+set_event EVENT_BEAT_POKEMON_TOWER_RIVAL
+face rival player
+say rom:PokemonTower2FRivalText.HowsYourDexText
+wait_text
+music_rival_alt start
+if EVENT_POKEMON_TOWER_RIVAL_ON_LEFT
+    queue rival down 2
+    queue rival right 4
+    queue rival down 2
+else
+    queue rival right 1
+    queue rival down 2
+    queue rival right 1
+    queue rival down 2
+    queue rival right 2
+end
+march
+despawn rival
+music pokemontower
+lock_input off
+end

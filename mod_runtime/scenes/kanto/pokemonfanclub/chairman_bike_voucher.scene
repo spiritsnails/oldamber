@@ -1,0 +1,28 @@
+
+if EVENT_GOT_BIKE_VOUCHER or has_item(BICYCLE) or has_item(BIKE_VOUCHER)
+    say rom:PokemonFanClubChairmanText.FinalText
+    wait_text
+    stop
+end
+ask rom:PokemonFanClubChairmanText.IntroText
+if answer is no
+    say rom:PokemonFanClubChairmanText.NoStoryText
+    wait_text
+    stop
+end
+say rom:PokemonFanClubChairmanText.StoryText
+wait_text
+give_item BIKE_VOUCHER
+if bag_full
+    say rom:PokemonFanClubChairmanText.BagFullText
+    wait_text
+    stop
+end
+
+sfx_on_print get_key_item
+say rom:PokemonFanClubChairmanText.BikeVoucherText page=0
+wait_text
+say rom:PokemonFanClubChairmanText.BikeVoucherText page=1-4
+wait_text
+set_event EVENT_GOT_BIKE_VOUCHER
+end

@@ -1,0 +1,5 @@
+
+say rom:FuchsiaCityLaprasSignText.Text
+wait_text
+show_dex MONSTER131
+end

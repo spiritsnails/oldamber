@@ -1,0 +1,7 @@
+
+let a = 3 + 4
+let b = a * 2
+let c = (a > 5) and (b == 14)
+let d = not c
+let e = a >= 7 or d
+end

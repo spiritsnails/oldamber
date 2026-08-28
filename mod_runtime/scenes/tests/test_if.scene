@@ -1,0 +1,17 @@
+
+let x = 5
+if x > 10
+    let a = 111
+elif x > 3
+    let a = 222
+else
+    let a = 333
+end
+if x == 5
+    let b = 1
+end
+if x == 7
+    let b = 2
+end
+let done = 1
+end

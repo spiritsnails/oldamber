@@ -1,0 +1,33 @@
+
+show_coin_box
+ask rom:GameCornerClerk1Text.DoYouNeedSomeGameCoins
+if answer is no
+    say rom:GameCornerClerk1Text.PleaseComePlaySometime
+    wait_text
+    hide_coin_box
+    stop
+end
+if not has_item(COIN_CASE)
+    say rom:GameCornerClerk1Text.DontHaveCoinCase
+    wait_text
+    hide_coin_box
+    stop
+end
+if coins > 9990
+    say rom:GameCornerClerk1Text.CoinCaseIsFull
+    wait_text
+    hide_coin_box
+    stop
+end
+if money < 1000
+    say rom:GameCornerClerk1Text.CantAffordTheCoins
+    wait_text
+    hide_coin_box
+    stop
+end
+pay 1000
+give_coins 50
+say rom:GameCornerClerk1Text.ThanksHereAre50Coins
+wait_text
+hide_coin_box
+end

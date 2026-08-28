@@ -1,0 +1,13 @@
+
+if EVENT_DEFEATED_FIGHTING_DOJO
+    say rom:FightingDojoKarateMasterText.StayAndTrainWithUsText
+    wait_text
+    stop
+end
+if EVENT_BEAT_KARATE_MASTER
+    say rom:FightingDojoKarateMasterText.IWillGiveYouAPokemonText
+    wait_text
+    stop
+end
+engage_trainer 5 3
+end

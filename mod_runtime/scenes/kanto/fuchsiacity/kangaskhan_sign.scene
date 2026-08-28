@@ -1,0 +1,5 @@
+
+say rom:FuchsiaCityKangaskhanSignText.Text
+wait_text
+show_dex MONSTER115
+end

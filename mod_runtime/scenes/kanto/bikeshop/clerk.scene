@@ -1,0 +1,36 @@
+
+if EVENT_GOT_BICYCLE
+    say rom:BikeShopClerkHowDoYouLikeYourBicycleText
+    wait_text
+    stop
+end
+if has_item(BIKE_VOUCHER)
+    say rom:BikeShopClerkOhThatsAVoucherText
+    wait_text
+    take_item BIKE_VOUCHER
+    give_item BICYCLE
+    if bag_full
+        say rom:BikeShopBagFullText
+        wait_text
+        stop
+    end
+    set_event EVENT_GOT_BICYCLE
+
+    say rom:BikeShopExchangedVoucherText
+    sfx get_key_item
+    wait_sfx
+    wait_text
+    stop
+end
+say rom:BikeShopClerkWelcomeText
+wait_text
+say rom:BikeShopClerkDoYouLikeItText
+wait_text
+priced_choice "BICYCLE" 1000000 "CANCEL"
+if answer is yes
+    say rom:BikeShopCantAffordText
+    wait_text
+end
+say rom:BikeShopComeAgainText
+wait_text
+end

@@ -1,0 +1,16 @@
+
+block kanto_q66810676
+    surfable yes
+end
+block lancesroom_door_l_closed_bl
+    surfable yes
+end
+block lancesroom_door_l_open_bl
+    surfable yes
+end
+block lancesroom_door_r_closed_br
+    surfable yes
+end
+block lancesroom_door_r_open_br
+    surfable yes
+end

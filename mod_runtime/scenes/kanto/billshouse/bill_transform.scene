@@ -1,0 +1,27 @@
+
+if EVENT_LEFT_BILLS_HOUSE_AFTER_HELPING
+    say rom:BillsHouseBillCheckOutMyRarePokemonText.Text
+    stop
+end
+
+if EVENT_BILL_SAID_USE_CELL_SEPARATOR
+    stop
+end
+
+lock_input on
+
+say rom:BillsHouseBillPokemonText.ImNotAPokemonText page=0-2
+wait_text
+ask rom:BillsHouseBillPokemonText.ImNotAPokemonText page=3
+if answer is no
+    say rom:BillsHouseBillPokemonText.NoYouGottaHelpText
+    wait_text
+end
+say rom:BillsHouseBillPokemonText.UseSeparationSystemText
+wait_text
+
+move @6,5 up 3
+hide 6 2
+set_event EVENT_BILL_SAID_USE_CELL_SEPARATOR
+lock_input off
+end

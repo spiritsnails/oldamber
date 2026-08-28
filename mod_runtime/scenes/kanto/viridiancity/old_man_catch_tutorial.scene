@@ -1,0 +1,13 @@
+
+ask rom:_ViridianCityOldManHadMyCoffeeNowText
+if answer is yes
+    say rom:_ViridianCityOldManTimeIsMoneyText
+    wait_text
+    stop
+end
+say rom:_ViridianCityOldManKnowHowToCatchPokemonText
+wait_text
+wildbattle MONSTER013 5 oldman
+say rom:_ViridianCityOldManYouNeedToWeakenTheTargetText
+wait_text
+end

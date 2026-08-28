@@ -1,0 +1,21 @@
+{
+  "_comment": "Tracked ROM-asset-shaped files accepted by tools/assetpack/check_tracked_assets.py. Every entry needs a written REASON -- an unexplained one is how a real regression gets silenced. Regenerate the path list with --update-baseline, but write reasons by hand.",
+  "accepted": [
+    {
+      "path": "amber engine 2.png",
+      "reason": "PROJECT BRANDING, not ROM-derived -- an OldAmber build logo. release-asset-pipeline-plan.md Phase 2 noted the user was clearing this by hand; as of 2026-08-04 it is still tracked and on disk. Not a legal exposure (no ROM content), so left in place pending the user's own decision rather than removed unilaterally."
+    },
+    {
+      "path": "amber engine transparent.png",
+      "reason": "Same as 'amber engine 2.png' -- project branding, not ROM-derived, pending the user's own cleanup decision."
+    },
+    {
+      "path": "mod_runtime/custom_art/test_block.bin",
+      "reason": "Hand-authored synthetic test tile (visually confirmed 2026-08-04: a small checkerboard pattern, no recognizable ROM sprite content), not extracted from any ROM. release-asset-pipeline-plan.md flagged this pair as needing a visual check before deciding; check done, safe to keep tracked."
+    },
+    {
+      "path": "mod_runtime/custom_art/test_block.png",
+      "reason": "Editable PNG source for test_block.bin above -- same synthetic, non-ROM-derived test content."
+    }
+  ]
+}

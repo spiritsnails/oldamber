@@ -1,0 +1,26 @@
+
+block kanto_qdd44671e
+    surfable yes
+    pair_block elev_low
+end
+block kanto_w960b4f80
+    surfable yes
+    pair_block elev_low
+end
+block kanto_w97c925b7
+    surfable yes
+    pair_block elev_low
+end
+
+block kanto_qe8e33c0c
+    pair_block elev_high
+end
+block kanto_qc6748d22
+    pair_block elev_high
+end
+block kanto_q0d3168d5
+    pair_block elev_high
+end
+block kanto_qf86e100c
+    pair_block elev_low
+end

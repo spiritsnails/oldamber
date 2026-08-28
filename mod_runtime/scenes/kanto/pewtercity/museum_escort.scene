@@ -1,0 +1,43 @@
+
+ask rom:PewterCitySuperNerd1Text.DidYouCheckOutMuseumText
+if answer is yes
+    say rom:PewterCitySuperNerd1Text.WerentThoseFossilsAmazingText
+    wait_text
+    stop
+end
+say rom:PewterCitySuperNerd1Text.YouHaveToGoText
+wait_text
+lock_input on
+music museumguy
+
+spawn museumguide SUPER_NERD 27 17
+queue museumguide up 6
+queue museumguide left 13
+queue museumguide up 3
+queue museumguide left 1
+if player.y == 18
+    queue player up 7
+elif player.x == 26
+    queue player right 1
+    queue player up 6
+elif player.x == 28
+    queue player left 1
+    queue player up 6
+elif player.y == 16
+    queue player left 1
+    queue player right 1
+    queue player up 5
+end
+queue player left 13
+queue player up 3
+march
+face museumguide up
+music cities1
+say rom:PewterCitySuperNerd1ItsRightHereText
+wait_text
+queue museumguide down 4
+march
+despawn museumguide
+show 27 17
+lock_input off
+end

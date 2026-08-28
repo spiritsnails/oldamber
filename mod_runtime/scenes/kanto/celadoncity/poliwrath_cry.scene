@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER062
+say rom:CeladonCityPoliwrathText
+wait_text
+end

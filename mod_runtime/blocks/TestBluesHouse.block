@@ -1,0 +1,124 @@
+
+gbc_tileset TestBluesHouse house
+subtile blueshouse_t000 mod_runtime/custom_art/kanto/blueshouse_t000.png
+subtile blueshouse_t001 mod_runtime/custom_art/kanto/blueshouse_t001.png
+subtile blueshouse_t002 mod_runtime/custom_art/kanto/blueshouse_t002.png
+subtile blueshouse_t003 mod_runtime/custom_art/kanto/blueshouse_t003.png
+subtile blueshouse_t004 mod_runtime/custom_art/kanto/blueshouse_t004.png
+subtile blueshouse_t008 mod_runtime/custom_art/kanto/blueshouse_t008.png
+subtile blueshouse_t009 mod_runtime/custom_art/kanto/blueshouse_t009.png
+subtile blueshouse_t010 mod_runtime/custom_art/kanto/blueshouse_t010.png
+subtile blueshouse_t011 mod_runtime/custom_art/kanto/blueshouse_t011.png
+subtile blueshouse_t014 mod_runtime/custom_art/kanto/blueshouse_t014.png
+subtile blueshouse_t015 mod_runtime/custom_art/kanto/blueshouse_t015.png
+subtile blueshouse_t016 mod_runtime/custom_art/kanto/blueshouse_t016.png
+subtile blueshouse_t018 mod_runtime/custom_art/kanto/blueshouse_t018.png
+subtile blueshouse_t019 mod_runtime/custom_art/kanto/blueshouse_t019.png
+subtile blueshouse_t020 mod_runtime/custom_art/kanto/blueshouse_t020.png
+subtile blueshouse_t024 mod_runtime/custom_art/kanto/blueshouse_t024.png
+subtile blueshouse_t025 mod_runtime/custom_art/kanto/blueshouse_t025.png
+subtile blueshouse_t026 mod_runtime/custom_art/kanto/blueshouse_t026.png
+subtile blueshouse_t027 mod_runtime/custom_art/kanto/blueshouse_t027.png
+subtile blueshouse_t030 mod_runtime/custom_art/kanto/blueshouse_t030.png
+subtile blueshouse_t031 mod_runtime/custom_art/kanto/blueshouse_t031.png
+subtile blueshouse_t036 mod_runtime/custom_art/kanto/blueshouse_t036.png
+subtile blueshouse_t038 mod_runtime/custom_art/kanto/blueshouse_t038.png
+subtile blueshouse_t039 mod_runtime/custom_art/kanto/blueshouse_t039.png
+subtile blueshouse_t041 mod_runtime/custom_art/kanto/blueshouse_t041.png
+subtile blueshouse_t045 mod_runtime/custom_art/kanto/blueshouse_t045.png
+subtile blueshouse_t046 mod_runtime/custom_art/kanto/blueshouse_t046.png
+subtile blueshouse_t047 mod_runtime/custom_art/kanto/blueshouse_t047.png
+subtile blueshouse_t048 mod_runtime/custom_art/kanto/blueshouse_t048.png
+subtile blueshouse_t049 mod_runtime/custom_art/kanto/blueshouse_t049.png
+subtile blueshouse_t052 mod_runtime/custom_art/kanto/blueshouse_t052.png
+subtile blueshouse_t054 mod_runtime/custom_art/kanto/blueshouse_t054.png
+subtile blueshouse_t057 mod_runtime/custom_art/kanto/blueshouse_t057.png
+subtile blueshouse_t058 mod_runtime/custom_art/kanto/blueshouse_t058.png
+subtile blueshouse_t059 mod_runtime/custom_art/kanto/blueshouse_t059.png
+subtile blueshouse_t060 mod_runtime/custom_art/kanto/blueshouse_t060.png
+subtile blueshouse_t061 mod_runtime/custom_art/kanto/blueshouse_t061.png
+subtile blueshouse_t062 mod_runtime/custom_art/kanto/blueshouse_t062.png
+block tst_blueshouse_q0000
+    source quad blueshouse_t038 blueshouse_t041 blueshouse_t014 blueshouse_t015
+    passable no
+end
+block tst_blueshouse_q0001
+    source quad blueshouse_t000 blueshouse_t000 blueshouse_t000 blueshouse_t000
+    passable no
+end
+block tst_blueshouse_q0002
+    source quad blueshouse_t045 blueshouse_t046 blueshouse_t061 blueshouse_t062
+    passable no
+end
+block tst_blueshouse_q0003
+    source quad blueshouse_t036 blueshouse_t036 blueshouse_t052 blueshouse_t052
+    passable no
+end
+block tst_blueshouse_q0004
+    source quad blueshouse_t038 blueshouse_t041 blueshouse_t048 blueshouse_t049
+    passable no
+end
+block tst_blueshouse_q0005
+    source quad blueshouse_t014 blueshouse_t015 blueshouse_t030 blueshouse_t031
+    passable no
+end
+block tst_blueshouse_q0006
+    source quad blueshouse_t001 blueshouse_t001 blueshouse_t001 blueshouse_t001
+    passable yes
+end
+block tst_blueshouse_q0007
+    source quad blueshouse_t048 blueshouse_t049 blueshouse_t030 blueshouse_t031
+    passable no
+end
+block tst_blueshouse_q0008
+    source quad blueshouse_t002 blueshouse_t003 blueshouse_t018 blueshouse_t019
+    passable yes
+end
+block tst_blueshouse_q0009
+    source quad blueshouse_t038 blueshouse_t039 blueshouse_t054 blueshouse_t047
+    passable no
+end
+block tst_blueshouse_q0010
+    source quad blueshouse_t039 blueshouse_t041 blueshouse_t047 blueshouse_t057
+    passable no
+end
+block tst_blueshouse_q0011
+    source quad blueshouse_t054 blueshouse_t047 blueshouse_t060 blueshouse_t058
+    passable no
+end
+block tst_blueshouse_q0012
+    source quad blueshouse_t047 blueshouse_t057 blueshouse_t058 blueshouse_t059
+    passable no
+end
+block tst_blueshouse_q0013
+    source quad blueshouse_t010 blueshouse_t011 blueshouse_t008 blueshouse_t009
+    passable no
+end
+block tst_blueshouse_q0014
+    source quad blueshouse_t026 blueshouse_t027 blueshouse_t024 blueshouse_t025
+    passable no
+end
+block tst_blueshouse_q0015
+    source quad blueshouse_t004 blueshouse_t004 blueshouse_t020 blueshouse_t020
+    passable no
+end
+block tst_blueshouse_q0016
+    source quad blueshouse_t016 blueshouse_t016 blueshouse_t016 blueshouse_t016
+    passable no
+end
+mapsize TestBluesHouse 4 4
+border TestBluesHouse tst_blueshouse_q0016 tst_blueshouse_q0016 tst_blueshouse_q0016 tst_blueshouse_q0016
+warpspot TestBluesHouse 0 3 7
+indoor TestBluesHouse
+music TestBluesHouse pallet_town
+block tst_blueshouse_q0017
+    source quad blueshouse_t004 blueshouse_t004 blueshouse_t020 blueshouse_t020
+    passable no
+    warp last 1
+end
+block tst_blueshouse_q0018
+    source quad blueshouse_t004 blueshouse_t004 blueshouse_t020 blueshouse_t020
+    passable no
+    warp last 1
+end
+warp_walk_into TestBluesHouse 3 7 down

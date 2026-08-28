@@ -1,0 +1,48 @@
+
+lock_input on
+face player down
+let his = rival.starter
+spawn rival BLUE 3 7
+if EVENT_BEAT_SILPH_CO_RIVAL
+    lock_input off
+    stop
+end
+music meetrival
+if player.y == 3
+    queue rival up 3
+    march
+else
+    queue rival up 4
+    march
+end
+face rival up
+say rom:SilphCo7FRivalWaitedHereText
+wait_text
+wait 3
+if his == MONSTER007
+    battlestart 42 7 "Oh ho!\nSo, you are ready\nfor BOSS ROCKET!@"
+elif his == MONSTER001
+    battlestart 42 8 "Oh ho!\nSo, you are ready\nfor BOSS ROCKET!@"
+else
+    battlestart 42 9 "Oh ho!\nSo, you are ready\nfor BOSS ROCKET!@"
+end
+set_event EVENT_BEAT_SILPH_CO_RIVAL
+face rival up
+music_rival_alt start
+say rom:SilphCo7FRivalGoodLuckToYouText
+wait_text
+if player.y == 3
+    face rival left
+    queue rival left 1
+    queue rival up 2
+    queue rival right 3
+    queue rival down 1
+else
+    face rival right
+    queue rival right 2
+end
+march
+despawn rival
+music silph_co
+lock_input off
+end

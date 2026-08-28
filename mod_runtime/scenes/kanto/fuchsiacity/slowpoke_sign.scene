@@ -1,0 +1,5 @@
+
+say rom:FuchsiaCitySlowpokeSignText.Text
+wait_text
+show_dex MONSTER079
+end

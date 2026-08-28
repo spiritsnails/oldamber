@@ -1,0 +1,53 @@
+
+if BATTLED_RIVAL_IN_OAKS_LAB
+    stop
+end
+lock_input on
+
+let his = rival.starter
+spawn rival BLUE 4 3
+face rival down
+
+face player up
+
+wait 3
+music meetrival
+say rom:_OaksLabRivalIllTakeYouOnText
+wait_text
+move_to_player rival
+
+if his == MONSTER007
+    battlestart 25 1 "WHAT?\nUnbelievable!\nI picked the\nwrong #MON!" no_blackout
+elif his == MONSTER001
+    battlestart 25 2 "WHAT?\nUnbelievable!\nI picked the\nwrong #MON!" no_blackout
+else
+    battlestart 25 3 "WHAT?\nUnbelievable!\nI picked the\nwrong #MON!" no_blackout
+end
+set_event EVENT_BATTLED_RIVAL_IN_OAKS_LAB
+
+heal
+say rom:OaksLabRivalSmellYouLaterText.Text
+wait_text
+music_rival_alt start
+face rival down
+
+if player.x == 4
+    queue rival right 1
+else
+    queue rival left 1
+end
+march
+if player.x == 4
+    face player right
+else
+    face player left
+end
+queue rival down 1
+march
+face player down
+queue rival down 4
+march
+despawn rival
+music oakslab
+lock_input off
+end

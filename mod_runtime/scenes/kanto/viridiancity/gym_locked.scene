@@ -1,0 +1,12 @@
+
+if badges >= 7
+    set_event EVENT_VIRIDIAN_GYM_OPEN
+    stop
+end
+lock_input on
+say rom:ViridianCityGymLockedText
+wait_text
+queue player down 1
+march
+lock_input off
+end

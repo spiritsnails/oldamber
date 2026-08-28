@@ -1,0 +1,5 @@
+
+tile_if_not EVENT_BEAT_ROCKET_HIDEOUT_1_TRAINER_4 rockethideoutb1f_door_closed_tl 24 16
+tile_if_not EVENT_BEAT_ROCKET_HIDEOUT_1_TRAINER_4 rockethideoutb1f_door_closed_tr 25 16
+tile_if_not EVENT_BEAT_ROCKET_HIDEOUT_1_TRAINER_4 rockethideoutb1f_door_closed_bl 24 17
+tile_if_not EVENT_BEAT_ROCKET_HIDEOUT_1_TRAINER_4 rockethideoutb1f_door_closed_br 25 17

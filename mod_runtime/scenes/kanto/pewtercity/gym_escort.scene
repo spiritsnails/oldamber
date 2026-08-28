@@ -1,0 +1,60 @@
+
+say rom:PewterCityYoungsterText.YoureATrainerFollowMeText
+wait_text
+lock_input on
+music museumguy
+
+spawn gymguide YOUNGSTER 35 16
+queue gymguide down 2
+queue gymguide left 15
+queue gymguide up 5
+queue gymguide left 11
+queue gymguide down 5
+queue gymguide right 3
+if player.x == 34
+
+    queue player right 1
+    queue player down 2
+    queue player left 15
+elif player.x == 35 and player.y == 17
+
+    queue player left 1
+    queue player right 1
+    queue player down 1
+    queue player left 15
+elif player.x == 36 and player.y == 16
+
+    queue player left 1
+    queue player down 2
+    queue player left 15
+elif player.x == 36 and player.y == 17
+
+    queue player pause 1
+    queue player left 1
+    queue player down 1
+    queue player left 15
+elif player.x == 37 and player.y == 18
+
+    queue player pause 1
+    queue player left 17
+elif player.x == 37 and player.y == 19
+
+    queue player left 1
+    queue player up 1
+    queue player left 16
+end
+queue player up 5
+queue player left 11
+queue player down 5
+queue player right 2
+march
+music cities1
+face gymguide left
+say rom:PewterCityYoungsterGoTakeOnBrockText
+wait_text
+queue gymguide right 5
+march
+despawn gymguide
+show 35 16
+lock_input off
+end

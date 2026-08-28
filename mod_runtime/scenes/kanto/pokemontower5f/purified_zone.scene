@@ -1,0 +1,13 @@
+
+fullrate on
+lock_input on
+set_event EVENT_IN_PURIFIED_ZONE
+heal
+fade out white
+wait 6
+fade in white
+say rom:PokemonTower5FPurifiedZoneText
+wait_text
+lock_input off
+fullrate off
+end

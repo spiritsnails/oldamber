@@ -1,0 +1,12 @@
+
+if not trainer_beaten(1208)
+    engage_trainer 12 8
+    stop
+end
+if EVENT_GOT_DOME_FOSSIL or EVENT_GOT_HELIX_FOSSIL
+    say rom:MtMoonB2FSuperNerdTheresAPokemonLabText
+else
+    say rom:MtMoonB2fSuperNerdEachTakeOneText
+end
+wait_text
+end

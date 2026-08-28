@@ -1,0 +1,21 @@
+
+if GOT_TOWN_MAP
+    say rom:BluesHouseDaisyUseMapText
+    stop
+end
+if GOT_POKEDEX
+    say rom:BluesHouseDaisyOfferMapText
+    wait_text
+    give_item TOWN_MAP
+    if bag_full
+        say rom:BluesHouseDaisyBagFullText
+        stop
+    end
+    hide 3 3
+
+    sfx_on_print get_key_item
+    say rom:GotMapText
+    set_event GOT_TOWN_MAP
+    stop
+end
+say rom:BluesHouseDaisyRivalAtLabText

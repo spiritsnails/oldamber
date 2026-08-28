@@ -1,0 +1,43 @@
+
+if EVENT_BEAT_KOGA
+    if EVENT_GOT_TM06
+        say rom:FuchsiaGymKogaText.PostBattleAdviceText
+        wait_text
+        stop
+    end
+else
+    say rom:FuchsiaGymKogaText.BeforeBattleText
+    wait_text
+
+    gym_leader 5
+    engage_trainer 4 10
+
+    gym_leader 0
+end
+
+say rom:FuchsiaGymKogaSoulBadgeInfoText
+wait_text
+set_event EVENT_BEAT_KOGA
+give_item TM06
+if bag_full
+    say rom:FuchsiaGymKogaTM06NoRoomText
+    wait_text
+else
+
+    sfx_on_print get_key_item
+    say rom:FuchsiaGymKogaReceivedTM06Text page=0-0
+    wait_text
+    say rom:FuchsiaGymKogaReceivedTM06Text page=1-2
+    wait_text
+    set_event EVENT_GOT_TM06
+end
+
+give_badge SOUL
+
+set_event EVENT_BEAT_FUCHSIA_GYM_TRAINER_0
+set_event EVENT_BEAT_FUCHSIA_GYM_TRAINER_1
+set_event EVENT_BEAT_FUCHSIA_GYM_TRAINER_2
+set_event EVENT_BEAT_FUCHSIA_GYM_TRAINER_3
+set_event EVENT_BEAT_FUCHSIA_GYM_TRAINER_4
+set_event EVENT_BEAT_FUCHSIA_GYM_TRAINER_5
+end

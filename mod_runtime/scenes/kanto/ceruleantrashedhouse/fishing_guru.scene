@@ -1,0 +1,8 @@
+
+if has_item(TM_DIG)
+    say rom:CeruleanTrashedHouseFishingGuruText.WhatsLostIsLostText
+else
+    say rom:CeruleanTrashedHouseFishingGuruText.TheyStoleATMText
+end
+wait_text
+end

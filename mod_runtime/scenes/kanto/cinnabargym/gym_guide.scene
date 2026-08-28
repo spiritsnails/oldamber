@@ -1,0 +1,8 @@
+
+if EVENT_BEAT_BLAINE
+    say rom:CinnabarGymGymGuideText.BeatBlaineText
+else
+    say rom:CinnabarGymGymGuideText.ChampInMakingText
+end
+wait_text
+end

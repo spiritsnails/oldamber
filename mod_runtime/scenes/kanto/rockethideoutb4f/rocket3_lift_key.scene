@@ -1,0 +1,15 @@
+
+if EVENT_ROCKET_DROPPED_LIFT_KEY
+    say rom:RocketHideoutB4FRocket3AfterBattleText.Text
+    wait_text
+    stop
+end
+if not EVENT_BEAT_ROCKET_HIDEOUT_4_TRAINER_2
+    engage_trainer 11 2
+    stop
+end
+say rom:RocketHideoutB4FRocket3AfterBattleText.Text
+wait_text
+set_event EVENT_ROCKET_DROPPED_LIFT_KEY
+refresh_npcs
+end

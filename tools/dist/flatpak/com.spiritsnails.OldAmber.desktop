@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=OldAmber
+Comment=The Poke RBY Generation 1 engine, rebuilt. Supply your own ROM.
+Exec=oldamber
+Icon=com.spiritsnails.OldAmber
+Terminal=false
+Categories=Game;ActionGame;
+Keywords=poke;gameboy;rpg;retro;

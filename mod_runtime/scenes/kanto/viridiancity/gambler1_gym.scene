@@ -1,0 +1,14 @@
+
+if badges >= 7
+    say rom:ViridianCityGambler1Text.GymLeaderReturnedText
+    wait_text
+    stop
+end
+if EVENT_BEAT_VIRIDIAN_GYM_GIOVANNI
+    say rom:ViridianCityGambler1Text.GymLeaderReturnedText
+    wait_text
+    stop
+end
+say rom:ViridianCityGambler1Text.GymAlwaysClosedText
+wait_text
+end

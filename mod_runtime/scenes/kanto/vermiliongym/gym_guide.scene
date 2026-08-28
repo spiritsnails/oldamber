@@ -1,0 +1,8 @@
+
+if EVENT_BEAT_LT_SURGE
+    say rom:VermilionGymGymGuideText.BeatLTSurgeText
+else
+    say rom:VermilionGymGymGuideText.ChampInMakingText
+end
+wait_text
+end

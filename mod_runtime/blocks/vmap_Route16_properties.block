@@ -1,0 +1,29 @@
+
+block route16_border_seam_water
+    source quad kanto_ts00_t020 kanto_ts00_t020 kanto_ts00_t020 kanto_ts00_t020
+    passable no
+end
+border_side Route16 south route16_border_seam_water route16_border_seam_water route16_border_seam_water route16_border_seam_water
+border_side Route16 west  route16_border_seam_water route16_border_seam_water route16_border_seam_water route16_border_seam_water
+
+block kanto_q153d9921
+    surfable yes
+end
+block kanto_q27674a7a
+    surfable yes
+end
+block kanto_qe201684d
+    surfable yes
+end
+block kanto_q513fbabc
+    surfable yes
+end
+block kanto_qe4298cf3
+    surfable yes
+end
+block kanto_q8c9dc44b
+    surfable yes
+end
+block kanto_qeeec85ea
+    surfable yes
+end

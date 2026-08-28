@@ -1,0 +1,21 @@
+
+if EVENT_GOT_TM36
+    say rom:SilphCo2FSilphWorkerFText.TM36ExplanationText
+    wait_text
+    stop
+end
+say rom:SilphCo2FSilphWorkerFPleaseTakeThisText
+wait_text
+give_item TM36
+if bag_full
+    say rom:SilphCo2FSilphWorkerFText.TM36NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_TM36
+sfx get_item
+say rom:SilphCo2FSilphWorkerFText.ReceivedTM36Text name=TM36
+wait_text
+say rom:SilphCo2FSilphWorkerFText.TM36ExplanationText
+wait_text
+end

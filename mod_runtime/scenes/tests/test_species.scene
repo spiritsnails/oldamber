@@ -1,0 +1,6 @@
+
+let mine = CHARMANDER
+let his = beats(mine)
+let b1 = beats(SQUIRTLE)
+let b2 = beats(BULBASAUR)
+end

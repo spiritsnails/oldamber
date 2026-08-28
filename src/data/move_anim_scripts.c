@@ -1,0 +1,47 @@
+
+#include "move_anim_scripts.h"
+
+const move_anim_special_effect_ptr_t gMoveAnimSpecialEffectPointers[39] = {
+    { 0xFE, "AnimationFlashScreen" },
+    { 0xFD, "AnimationDarkScreenPalette" },
+    { 0xFC, "AnimationResetScreenPalette" },
+    { 0xFB, "AnimationShakeScreen" },
+    { 0xFA, "AnimationWaterDropletsEverywhere" },
+    { 0xF9, "AnimationDarkenMonPalette" },
+    { 0xF8, "AnimationFlashScreenLong" },
+    { 0xF7, "AnimationSlideMonUp" },
+    { 0xF6, "AnimationSlideMonDown" },
+    { 0xF5, "AnimationFlashMonPic" },
+    { 0xF4, "AnimationSlideMonOff" },
+    { 0xF3, "AnimationBlinkMon" },
+    { 0xF2, "AnimationMoveMonHorizontally" },
+    { 0xF1, "AnimationResetMonPosition" },
+    { 0xF0, "AnimationLightScreenPalette" },
+    { 0xEF, "AnimationHideMonPic" },
+    { 0xEE, "AnimationSquishMonPic" },
+    { 0xED, "AnimationShootBallsUpward" },
+    { 0xEC, "AnimationShootManyBallsUpward" },
+    { 0xEB, "AnimationBoundUpAndDown" },
+    { 0xEA, "AnimationMinimizeMon" },
+    { 0xE9, "AnimationSlideMonDownAndHide" },
+    { 0xE8, "AnimationTransformMon" },
+    { 0xE7, "AnimationLeavesFalling" },
+    { 0xE6, "AnimationPetalsFalling" },
+    { 0xE5, "AnimationSlideMonHalfOff" },
+    { 0xE4, "AnimationShakeEnemyHUD" },
+    { 0xE3, "AnimationShakeEnemyHUD" },
+    { 0xE2, "AnimationSpiralBallsInward" },
+    { 0xE1, "AnimationDelay10" },
+    { 0xE0, "AnimationFlashEnemyMonPic" },
+    { 0xDF, "AnimationHideEnemyMonPic" },
+    { 0xDE, "AnimationBlinkEnemyMon" },
+    { 0xDD, "AnimationShowMonPic" },
+    { 0xDC, "AnimationShowEnemyMonPic" },
+    { 0xDB, "AnimationSlideEnemyMonOff" },
+    { 0xDA, "AnimationShakeBackAndForth" },
+    { 0xD9, "AnimationSubstitute" },
+    { 0xD8, "AnimationWavyScreen" },
+};
+
+const uint8_t gMoveAnimTilesetTileCounts[3] = { 79, 79, 64 };
+const char *const gMoveAnimTilesetAsmLabels[3] = { "MoveAnimationTiles0", "MoveAnimationTiles1", "MoveAnimationTiles2" };

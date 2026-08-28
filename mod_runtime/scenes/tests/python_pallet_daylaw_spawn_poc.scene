@@ -1,0 +1,3 @@
+
+py_law_spawn youngster player+1 player+1 mod_runtime/python/pallet_daylaw_npc.py
+end

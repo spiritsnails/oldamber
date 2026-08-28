@@ -1,0 +1,21 @@
+
+if GOT_TM42
+    say rom:ViridianCityFisherText.TM42ExplanationText
+    wait_text
+    stop
+end
+say rom:ViridianCityFisherText.YouCanHaveThisText
+wait_text
+give_item TM_DREAM_EATER
+if bag_full
+    say rom:ViridianCityFisherText.TM42NoRoomText
+    wait_text
+    stop
+end
+set_event GOT_TM42
+sfx_on_print get_item
+say rom:ViridianCityFisherText.ReceivedTM42Text
+wait_text
+say rom:ViridianCityFisherText.TM42ExplanationText
+wait_text
+end

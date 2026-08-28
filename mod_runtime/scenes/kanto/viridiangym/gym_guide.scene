@@ -1,0 +1,8 @@
+
+if EVENT_BEAT_VIRIDIAN_GYM_GIOVANNI
+    say rom:ViridianGymGuidePostBattleText
+else
+    say rom:ViridianGymGuidePreBattleText
+end
+wait_text
+end

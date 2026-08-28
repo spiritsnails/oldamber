@@ -1,0 +1,89 @@
+
+tile_ledge 20 4 down
+tile_ledge 21 4 down
+tile_ledge 22 4 down
+tile_ledge 23 4 down
+tile_ledge 24 4 down
+tile_ledge 30 4 down
+tile_ledge 32 4 down
+tile_ledge 33 4 down
+tile_ledge 38 4 down
+tile_ledge 40 4 down
+tile_ledge 41 4 down
+tile_ledge 42 4 down
+tile_ledge 43 4 down
+tile_ledge 44 4 down
+tile_ledge 45 4 down
+tile_ledge 50 4 down
+tile_ledge 51 4 down
+tile_ledge 6 6 down
+tile_ledge 7 6 down
+tile_ledge 8 6 down
+tile_ledge 9 6 down
+tile_ledge 10 6 down
+tile_ledge 11 6 down
+tile_ledge 12 6 down
+tile_ledge 13 6 down
+tile_ledge 20 8 down
+tile_ledge 21 8 down
+tile_ledge 22 8 down
+tile_ledge 23 8 down
+tile_ledge 24 8 down
+tile_ledge 25 8 down
+tile_ledge 26 8 down
+tile_ledge 27 8 down
+tile_ledge 28 8 down
+tile_ledge 10 10 down
+tile_ledge 11 10 down
+tile_ledge 12 10 down
+tile_ledge 13 10 down
+tile_ledge 34 10 down
+tile_ledge 35 10 down
+tile_ledge 40 10 down
+tile_ledge 46 10 down
+tile_ledge 47 10 down
+tile_ledge 52 10 down
+tile_ledge 53 10 down
+tile_ledge 10 12 down
+tile_ledge 11 12 down
+tile_ledge 12 12 down
+tile_ledge 13 12 down
+tile_ledge 14 12 down
+tile_ledge 15 12 down
+tile_ledge 16 12 down
+tile_ledge 17 12 down
+tile_ledge 18 12 down
+tile_ledge 20 12 down
+tile_ledge 21 12 down
+tile_ledge 22 12 down
+tile_ledge 23 12 down
+tile_ledge 28 12 down
+tile_ledge 30 12 down
+tile_ledge 31 12 down
+tile_ledge 32 12 down
+tile_ledge 33 12 down
+tile_ledge 34 12 down
+tile_ledge 35 12 down
+tile_ledge 36 12 down
+tile_ledge 37 12 down
+tile_ledge 38 12 down
+tile_ledge 39 12 down
+tile_ledge 40 12 down
+tile_ledge 41 12 down
+tile_ledge 46 12 down
+tile_ledge 47 12 down
+tile_ledge 52 12 down
+tile_ledge 53 12 down
+
+block kanto_q153d9921
+    surfable yes
+end
+block kanto_qe201684d
+    surfable yes
+end
+block kanto_q513fbabc
+    surfable yes
+end
+block kanto_qe4298cf3
+    surfable yes
+end

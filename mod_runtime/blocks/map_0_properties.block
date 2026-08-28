@@ -1,0 +1,4 @@
+block newbark_cell018
+    passable yes
+    warp 2 2
+end

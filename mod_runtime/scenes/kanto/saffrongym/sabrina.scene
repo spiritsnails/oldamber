@@ -1,0 +1,44 @@
+
+if EVENT_BEAT_SABRINA
+    if EVENT_GOT_TM46
+        say rom:SaffronGymSabrinaText.PostBattleAdviceText
+        wait_text
+        stop
+    end
+else
+    say rom:SaffronGymSabrinaText.Text
+    wait_text
+
+    gym_leader 6
+    engage_trainer 9 8
+
+    gym_leader 0
+end
+
+say rom:SaffronGymSabrinaMarshBadgeInfoText
+wait_text
+set_event EVENT_BEAT_SABRINA
+give_item TM46
+if bag_full
+    say rom:SaffronGymSabrinaTM46NoRoomText
+    wait_text
+else
+
+    sfx_on_print get_item
+    say rom:SaffronGymSabrinaReceivedTM46Text page=0-0
+    wait_text
+    say rom:SaffronGymSabrinaReceivedTM46Text page=1-1
+    wait_text
+    set_event EVENT_GOT_TM46
+end
+
+give_badge MARSH
+
+set_event EVENT_BEAT_SAFFRON_GYM_TRAINER_0
+set_event EVENT_BEAT_SAFFRON_GYM_TRAINER_1
+set_event EVENT_BEAT_SAFFRON_GYM_TRAINER_2
+set_event EVENT_BEAT_SAFFRON_GYM_TRAINER_3
+set_event EVENT_BEAT_SAFFRON_GYM_TRAINER_4
+set_event EVENT_BEAT_SAFFRON_GYM_TRAINER_5
+set_event EVENT_BEAT_SAFFRON_GYM_TRAINER_6
+end

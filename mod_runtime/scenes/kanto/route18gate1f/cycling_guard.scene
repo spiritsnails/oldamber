@@ -1,0 +1,27 @@
+
+if glitches
+    stop
+end
+if has_item(BICYCLE)
+    stop
+end
+
+let north = player.y == 3
+lock_input on
+say rom:Route18Gate1FGuardExcuseMeText
+wait_text
+if player.y == 6
+    sim_walk up 3
+elif player.y == 5
+    sim_walk up 2
+elif player.y == 4
+    sim_walk up 1
+end
+say rom:Route18Gate1FGuardText.YouNeedABicycleText
+wait_text
+
+if not (north and held_dir >= 0)
+    sim_walk right 1
+end
+lock_input off
+end

@@ -1,0 +1,21 @@
+
+if EVENT_GOT_HM03
+    say rom:SafariZoneSecretHouseFishingGuruText.HM03ExplanationText
+    wait_text
+    stop
+end
+say rom:SafariZoneSecretHouseFishingGuruText.YouHaveWonText
+wait_text
+give_item HM_SURF
+if bag_full
+    say rom:SafariZoneSecretHouseFishingGuruText.HM03NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_HM03
+sfx_on_print get_item
+say rom:SafariZoneSecretHouseFishingGuruText.ReceivedHM03Text
+wait_text
+say rom:SafariZoneSecretHouseFishingGuruText.HM03ExplanationText
+wait_text
+end

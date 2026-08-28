@@ -1,0 +1,19 @@
+
+if EVENT_GOT_TM29
+    say rom:MrPsychicsHouseMrPsychicText.TM29ExplanationText
+    wait_text
+    stop
+end
+say rom:MrPsychicsHouseMrPsychicText.YouWantedThisText
+wait_text
+give_item TM_PSYCHIC_M
+if bag_full
+    say rom:MrPsychicsHouseMrPsychicText.TM29NoRoomText
+    wait_text
+    stop
+end
+sfx_on_print get_item
+say rom:MrPsychicsHouseMrPsychicText.ReceivedTM29Text name=TM29
+wait_text
+set_event EVENT_GOT_TM29
+end

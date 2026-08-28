@@ -1,0 +1,28 @@
+
+lock_input on
+spawn giovanni GIOVANNI 6 9
+if EVENT_BEAT_SILPH_CO_GIOVANNI
+    lock_input off
+    stop
+end
+say rom:SilphCo11FGiovanniText
+wait_text
+queue giovanni down 3
+march
+if player.x == 6
+    face giovanni down
+    face player up
+else
+    face giovanni right
+    face player left
+end
+wait 3
+battlestart GIOVANNI 2 "Arrgh!!\nI lost again!?@"
+set_event EVENT_BEAT_SILPH_CO_GIOVANNI
+say rom:SilphCo11FGiovanniYouRuinedOurPlansText
+wait_text
+fade out black
+refresh_npcs
+fade in black
+lock_input off
+end

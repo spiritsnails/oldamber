@@ -1,0 +1,37 @@
+
+lock_input on
+
+spawn rival BLUE 20 2
+if player.x == 21
+    place rival 21 2
+end
+music meetrival
+queue rival down 3
+march
+say rom:CeruleanCityRivalText.PreBattleText
+wait_text
+let his = rival.starter
+if his == MONSTER007
+    battlestart 25 7 "Hey!\nTake it easy!\nYou won already!"
+elif his == MONSTER001
+    battlestart 25 8 "Hey!\nTake it easy!\nYou won already!"
+else
+    battlestart 25 9 "Hey!\nTake it easy!\nYou won already!"
+end
+set_event EVENT_BEAT_CERULEAN_RIVAL
+say rom:CeruleanCityRivalIWentToBillsText
+wait_text
+music_rival_alt start
+
+if player.x == 20
+    queue rival right 1
+    queue rival down 6
+else
+    queue rival left 1
+    queue rival down 6
+end
+march
+despawn rival
+music cities2
+lock_input off
+end

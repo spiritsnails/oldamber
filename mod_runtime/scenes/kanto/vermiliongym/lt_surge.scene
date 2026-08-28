@@ -1,0 +1,40 @@
+
+if EVENT_BEAT_LT_SURGE
+    if EVENT_GOT_TM24
+        say rom:VermilionGymLTSurgeText.PostBattleAdviceText
+        wait_text
+        stop
+    end
+else
+    say rom:VermilionGymLTSurgeText.PreBattleText
+    wait_text
+
+    gym_leader 3
+    engage_trainer 5 1
+
+    gym_leader 0
+end
+
+say rom:VermilionGymLTSurgeThunderBadgeInfoText
+wait_text
+set_event EVENT_BEAT_LT_SURGE
+give_item TM24
+if bag_full
+    say rom:VermilionGymLTSurgeTM24NoRoomText
+    wait_text
+else
+
+    sfx_on_print get_key_item
+    say rom:VermilionGymLTSurgeReceivedTM24Text page=0-0
+    wait_text
+    say rom:VermilionGymLTSurgeReceivedTM24Text page=1-2
+    wait_text
+    set_event EVENT_GOT_TM24
+end
+
+give_badge THUNDER
+
+set_event EVENT_BEAT_VERMILION_GYM_TRAINER_0
+set_event EVENT_BEAT_VERMILION_GYM_TRAINER_1
+set_event EVENT_BEAT_VERMILION_GYM_TRAINER_2
+end

@@ -1,0 +1,27 @@
+
+if EVENT_GOT_TM31
+    say rom:CopycatsHouse2FCopycatText.TM31Explanation2Text
+    wait_text
+    stop
+end
+say rom:CopycatsHouse2FCopycatText.DoYouLikePokemonText
+wait_text
+if not has_item(MONSTER_DOLL)
+    stop
+end
+say rom:CopycatsHouse2FCopycatText.TM31PreReceiveText
+wait_text
+give_item TM_MIMIC
+if bag_full
+    say rom:CopycatsHouse2FCopycatText.TM31NoRoomText
+    wait_text
+    stop
+end
+take_item MONSTER_DOLL
+set_event EVENT_GOT_TM31
+sfx_on_print get_item
+say rom:CopycatsHouse2FCopycatText.ReceivedTM31Text page=0
+wait_text
+say rom:CopycatsHouse2FCopycatText.ReceivedTM31Text page=1-2
+wait_text
+end

@@ -1,0 +1,42 @@
+
+tile_ledge 24 2 down
+tile_ledge 25 2 down
+tile_ledge 9 14 down
+tile_ledge 10 14 down
+tile_ledge 11 14 down
+tile_ledge 22 16 down
+tile_ledge 23 16 down
+tile_ledge 32 18 down
+tile_ledge 33 18 down
+tile_ledge 34 18 down
+tile_ledge 37 18 down
+tile_ledge 16 32 down
+tile_ledge 17 32 down
+tile_ledge 18 32 down
+tile_ledge 19 32 down
+tile_ledge 20 32 down
+tile_ledge 21 32 down
+tile_ledge 22 32 down
+tile_ledge 23 32 down
+
+block cerulean_border_south_flat
+    source quad kanto_ts00_t044 kanto_ts00_t044 kanto_ts00_t044 kanto_ts00_t044
+    passable no
+end
+border_side CeruleanCity south cerulean_border_south_flat cerulean_border_south_flat cerulean_border_south_flat cerulean_border_south_flat
+
+block kanto_q153d9921
+    surfable yes
+end
+block kanto_qe201684d
+    surfable yes
+end
+block kanto_q513fbabc
+    surfable yes
+end
+block kanto_qe4298cf3
+    surfable yes
+end
+block kanto_qeeec85ea
+    surfable yes
+end

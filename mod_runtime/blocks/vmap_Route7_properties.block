@@ -1,0 +1,21 @@
+
+tile_ledge 6 2 right
+tile_ledge 6 3 right
+tile_ledge 6 4 right
+tile_ledge 6 5 right
+tile_ledge 2 6 down
+tile_ledge 3 6 down
+tile_ledge 5 6 down
+tile_ledge 6 6 down|right
+tile_ledge 2 10 down
+tile_ledge 3 10 down
+tile_ledge 9 10 down
+tile_ledge 10 10 down
+tile_ledge 11 10 down
+
+block kanto_q153d9921
+    surfable yes
+end
+block kanto_qe4298cf3
+    surfable yes
+end

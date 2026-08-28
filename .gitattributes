@@ -1,0 +1,15 @@
+* text=auto
+*.c text eol=lf
+*.h text eol=lf
+*.py text eol=lf
+# .sh was missing from this list, and unlike the rest it is not cosmetic: a
+# script checked out CRLF on Windows and copied to Linux does not run at all.
+# The kernel reads the shebang literally, so `#!/usr/bin/env bash` + CR asks
+# for an interpreter named "bash\r", and `set -euo pipefail` + CR fails as
+#     tools/build.sh: line 30: set: pipefail: invalid option name
+# which points at the option rather than the line ending. Found building the
+# Steam Deck bundle: every script in the exported release tree was inert.
+*.sh text eol=lf
+*.md text eol=lf
+*.cmake text eol=lf
+CMakeLists.txt text eol=lf

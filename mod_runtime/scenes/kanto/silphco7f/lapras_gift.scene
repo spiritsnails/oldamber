@@ -1,0 +1,28 @@
+
+if EVENT_GOT_LAPRAS
+    if EVENT_BEAT_SILPH_CO_GIOVANNI
+        say rom:SilphCo7FSilphWorkerM1Text.SavedText
+        wait_text
+        stop
+    end
+    say rom:SilphCo7FSilphWorkerM1Text.IsOurPresidentOkText
+    wait_text
+    stop
+end
+say rom:SilphCo7FSilphWorkerM1Text.HaveThisPokemonText
+wait_text
+give_monster MONSTER131 15
+if party_full
+    stop
+end
+sfx get_item
+say rom:GotMonText badge=LAPRAS
+wait_text
+if sent_to_box
+    say rom:SentToBoxText
+    wait_text
+end
+set_event EVENT_GOT_LAPRAS
+say rom:SilphCo7FSilphWorkerM1Text.LaprasDescriptionText
+wait_text
+end

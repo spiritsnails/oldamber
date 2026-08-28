@@ -1,0 +1,9 @@
+
+say rom:PokemonTower7FMrFujiText.RescueText
+wait_text
+set_event EVENT_RESCUED_MR_FUJI
+set_event EVENT_RESCUED_MR_FUJI_2
+hide 10 3
+face player up
+warp MrFujisHouse 3 7
+end

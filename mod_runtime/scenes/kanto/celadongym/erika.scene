@@ -1,0 +1,44 @@
+
+if EVENT_BEAT_ERIKA
+    if EVENT_GOT_TM21
+        say rom:CeladonGymErikaText.PostBattleAdviceText
+        wait_text
+        stop
+    end
+else
+    say rom:CeladonGymErikaText.PreBattleText
+    wait_text
+
+    gym_leader 4
+    engage_trainer 4 3
+
+    gym_leader 0
+end
+
+say rom:CeladonGymRainbowBadgeInfoText
+wait_text
+set_event EVENT_BEAT_ERIKA
+give_item TM21
+if bag_full
+    say rom:CeladonGymTM21NoRoomText
+    wait_text
+else
+
+    sfx_on_print get_item
+    say rom:CeladonGymReceivedTM21Text page=0-0
+    wait_text
+    say rom:CeladonGymReceivedTM21Text page=1-2
+    wait_text
+    set_event EVENT_GOT_TM21
+end
+
+give_badge RAINBOW
+
+set_event EVENT_BEAT_CELADON_GYM_TRAINER_0
+set_event EVENT_BEAT_CELADON_GYM_TRAINER_1
+set_event EVENT_BEAT_CELADON_GYM_TRAINER_2
+set_event EVENT_BEAT_CELADON_GYM_TRAINER_3
+set_event EVENT_BEAT_CELADON_GYM_TRAINER_4
+set_event EVENT_BEAT_CELADON_GYM_TRAINER_5
+set_event EVENT_BEAT_CELADON_GYM_TRAINER_6
+end

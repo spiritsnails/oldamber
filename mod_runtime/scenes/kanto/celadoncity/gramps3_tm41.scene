@@ -1,0 +1,19 @@
+
+if EVENT_GOT_TM41
+    say rom:CeladonCityGramps3Text.TM41ExplanationText
+    wait_text
+    stop
+end
+say rom:CeladonCityGramps3Text.Text
+wait_text
+give_item TM_SOFTBOILED
+if bag_full
+    say rom:CeladonCityGramps3Text.TM41NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_TM41
+sfx_on_print get_item
+say rom:CeladonCityGramps3Text.ReceivedTM41Text
+wait_text
+end

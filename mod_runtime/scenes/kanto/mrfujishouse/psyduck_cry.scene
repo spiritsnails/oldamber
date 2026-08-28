@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER054
+say rom:MrFujisHousePsyduckText
+wait_text
+end

@@ -1,0 +1,122 @@
+
+gbc_tileset TestRedsHouse1F reds_house_1
+subtile redshouse1f_t000 mod_runtime/custom_art/kanto/redshouse1f_t000.png
+subtile redshouse1f_t001 mod_runtime/custom_art/kanto/redshouse1f_t001.png
+subtile redshouse1f_t002 mod_runtime/custom_art/kanto/redshouse1f_t002.png
+subtile redshouse1f_t003 mod_runtime/custom_art/kanto/redshouse1f_t003.png
+subtile redshouse1f_t004 mod_runtime/custom_art/kanto/redshouse1f_t004.png
+subtile redshouse1f_t006 mod_runtime/custom_art/kanto/redshouse1f_t006.png
+subtile redshouse1f_t007 mod_runtime/custom_art/kanto/redshouse1f_t007.png
+subtile redshouse1f_t012 mod_runtime/custom_art/kanto/redshouse1f_t012.png
+subtile redshouse1f_t013 mod_runtime/custom_art/kanto/redshouse1f_t013.png
+subtile redshouse1f_t016 mod_runtime/custom_art/kanto/redshouse1f_t016.png
+subtile redshouse1f_t018 mod_runtime/custom_art/kanto/redshouse1f_t018.png
+subtile redshouse1f_t019 mod_runtime/custom_art/kanto/redshouse1f_t019.png
+subtile redshouse1f_t020 mod_runtime/custom_art/kanto/redshouse1f_t020.png
+subtile redshouse1f_t022 mod_runtime/custom_art/kanto/redshouse1f_t022.png
+subtile redshouse1f_t023 mod_runtime/custom_art/kanto/redshouse1f_t023.png
+subtile redshouse1f_t028 mod_runtime/custom_art/kanto/redshouse1f_t028.png
+subtile redshouse1f_t029 mod_runtime/custom_art/kanto/redshouse1f_t029.png
+subtile redshouse1f_t034 mod_runtime/custom_art/kanto/redshouse1f_t034.png
+subtile redshouse1f_t035 mod_runtime/custom_art/kanto/redshouse1f_t035.png
+subtile redshouse1f_t036 mod_runtime/custom_art/kanto/redshouse1f_t036.png
+subtile redshouse1f_t037 mod_runtime/custom_art/kanto/redshouse1f_t037.png
+subtile redshouse1f_t038 mod_runtime/custom_art/kanto/redshouse1f_t038.png
+subtile redshouse1f_t039 mod_runtime/custom_art/kanto/redshouse1f_t039.png
+subtile redshouse1f_t040 mod_runtime/custom_art/kanto/redshouse1f_t040.png
+subtile redshouse1f_t041 mod_runtime/custom_art/kanto/redshouse1f_t041.png
+subtile redshouse1f_t042 mod_runtime/custom_art/kanto/redshouse1f_t042.png
+subtile redshouse1f_t043 mod_runtime/custom_art/kanto/redshouse1f_t043.png
+subtile redshouse1f_t044 mod_runtime/custom_art/kanto/redshouse1f_t044.png
+subtile redshouse1f_t048 mod_runtime/custom_art/kanto/redshouse1f_t048.png
+subtile redshouse1f_t049 mod_runtime/custom_art/kanto/redshouse1f_t049.png
+subtile redshouse1f_t050 mod_runtime/custom_art/kanto/redshouse1f_t050.png
+subtile redshouse1f_t051 mod_runtime/custom_art/kanto/redshouse1f_t051.png
+subtile redshouse1f_t052 mod_runtime/custom_art/kanto/redshouse1f_t052.png
+subtile redshouse1f_t053 mod_runtime/custom_art/kanto/redshouse1f_t053.png
+subtile redshouse1f_t054 mod_runtime/custom_art/kanto/redshouse1f_t054.png
+subtile redshouse1f_t055 mod_runtime/custom_art/kanto/redshouse1f_t055.png
+subtile redshouse1f_t056 mod_runtime/custom_art/kanto/redshouse1f_t056.png
+subtile redshouse1f_t057 mod_runtime/custom_art/kanto/redshouse1f_t057.png
+subtile redshouse1f_t058 mod_runtime/custom_art/kanto/redshouse1f_t058.png
+subtile redshouse1f_t059 mod_runtime/custom_art/kanto/redshouse1f_t059.png
+subtile redshouse1f_t060 mod_runtime/custom_art/kanto/redshouse1f_t060.png
+block tst_redshouse1f_q0000
+    source quad redshouse1f_t038 redshouse1f_t041 redshouse1f_t048 redshouse1f_t049
+    passable no
+end
+block tst_redshouse1f_q0001
+    source quad redshouse1f_t000 redshouse1f_t000 redshouse1f_t000 redshouse1f_t000
+    passable no
+end
+block tst_redshouse1f_q0002
+    source quad redshouse1f_t036 redshouse1f_t037 redshouse1f_t052 redshouse1f_t053
+    passable no
+end
+block tst_redshouse1f_q0003
+    source quad redshouse1f_t034 redshouse1f_t035 redshouse1f_t050 redshouse1f_t051
+    passable no
+end
+block tst_redshouse1f_q0004
+    source quad redshouse1f_t001 redshouse1f_t001 redshouse1f_t001 redshouse1f_t001
+    passable yes
+end
+block tst_redshouse1f_q0005
+    source quad redshouse1f_t006 redshouse1f_t007 redshouse1f_t022 redshouse1f_t023
+    passable no
+end
+block tst_redshouse1f_q0006
+    source quad redshouse1f_t012 redshouse1f_t013 redshouse1f_t028 redshouse1f_t029
+    passable no
+end
+block tst_redshouse1f_q0007
+    source quad redshouse1f_t002 redshouse1f_t003 redshouse1f_t018 redshouse1f_t019
+    passable yes
+end
+block tst_redshouse1f_q0008
+    source quad redshouse1f_t038 redshouse1f_t039 redshouse1f_t054 redshouse1f_t055
+    passable no
+end
+block tst_redshouse1f_q0009
+    source quad redshouse1f_t040 redshouse1f_t041 redshouse1f_t056 redshouse1f_t057
+    passable no
+end
+block tst_redshouse1f_q0010
+    source quad redshouse1f_t044 redshouse1f_t042 redshouse1f_t060 redshouse1f_t058
+    passable no
+end
+block tst_redshouse1f_q0011
+    source quad redshouse1f_t042 redshouse1f_t043 redshouse1f_t058 redshouse1f_t059
+    passable no
+end
+block tst_redshouse1f_q0012
+    source quad redshouse1f_t004 redshouse1f_t004 redshouse1f_t020 redshouse1f_t020
+    passable no
+end
+block tst_redshouse1f_q0013
+    source quad redshouse1f_t016 redshouse1f_t016 redshouse1f_t016 redshouse1f_t016
+    passable no
+end
+mapsize TestRedsHouse1F 4 4
+border TestRedsHouse1F tst_redshouse1f_q0013 tst_redshouse1f_q0013 tst_redshouse1f_q0013 tst_redshouse1f_q0013
+warpspot TestRedsHouse1F 0 3 7
+warpspot TestRedsHouse1F 2 7 1
+indoor TestRedsHouse1F
+music TestRedsHouse1F pallet_town
+block tst_redshouse1f_q0014
+    source quad redshouse1f_t004 redshouse1f_t004 redshouse1f_t020 redshouse1f_t020
+    passable no
+    warp last 0
+end
+block tst_redshouse1f_q0015
+    source quad redshouse1f_t004 redshouse1f_t004 redshouse1f_t020 redshouse1f_t020
+    passable no
+    warp last 0
+end
+block tst_redshouse1f_q0016
+    source quad redshouse1f_t012 redshouse1f_t013 redshouse1f_t028 redshouse1f_t029
+    passable no
+    warp TestRedsHouse2F 0
+end
+warp_walk_into TestRedsHouse1F 3 7 down
+warp_stair TestRedsHouse1F 7 1

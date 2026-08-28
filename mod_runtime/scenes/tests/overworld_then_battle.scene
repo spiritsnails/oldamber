@@ -1,0 +1,8 @@
+include defs_battle
+spawn rival YOUNGSTER player+1 player+0
+face rival player
+use battle_intro "Hey Nerd! I'm gonna smoke you.@" "GGEZ.@"
+face rival right
+move rival right 3
+despawn rival
+end

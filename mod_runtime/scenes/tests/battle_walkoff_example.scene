@@ -1,0 +1,12 @@
+
+include defs_battle
+
+spawn rival YOUNGSTER player+1 player+0
+face rival player
+
+use battle_intro "Hey! Debug battle check.@" "Nice battle. I am heading out now.@"
+
+face rival up
+move rival up 8
+despawn rival
+end

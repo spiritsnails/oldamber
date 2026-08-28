@@ -1,0 +1,19 @@
+
+if GOT_POTION_SAMPLE
+    say rom:Route1Youngster1Text.AlsoGotPokeballsText
+    wait_text
+    stop
+end
+set_event GOT_POTION_SAMPLE
+say rom:Route1Youngster1Text.MartSampleText
+wait_text
+give_item POTION
+if bag_full
+    say rom:Route1Youngster1Text.NoRoomText
+    wait_text
+    stop
+end
+sfx_on_print get_item
+say rom:Route1Youngster1Text.GotPotionText
+wait_text
+end

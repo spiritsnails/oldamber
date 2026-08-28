@@ -1,0 +1,30 @@
+
+if EVENT_GOT_NUGGET
+    say rom:Route24CooltrainerM1Text.YouCouldBecomeATopLeaderText
+    stop
+end
+
+lock_input on
+face @11,15 player
+
+say rom:Route24CooltrainerM1Text.YouBeatOurContestText page=0
+wait_text
+sfx_on_print get_item
+say rom:Route24CooltrainerM1Text.YouBeatOurContestText page=1
+wait_text
+give_item NUGGET
+set_event EVENT_GOT_NUGGET
+sfx_on_print get_item
+say rom:Route24CooltrainerM1Text.ReceivedNuggetText
+wait_text
+say rom:Route24CooltrainerM1Text.JoinTeamRocketText
+wait_text
+music meetevil
+wait 24
+
+battlestart 30 6 "Arrgh!\nYou are good!"
+set_event EVENT_BEAT_ROUTE24_ROCKET
+say rom:Route24CooltrainerM1Text.YouCouldBecomeATopLeaderText
+wait_text
+lock_input off
+end

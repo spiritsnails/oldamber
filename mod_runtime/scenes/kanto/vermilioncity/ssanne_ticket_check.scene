@@ -1,0 +1,26 @@
+
+if EVENT_SS_ANNE_LEFT
+    say rom:VermilionCitySailor1Text.ShipSetSailText
+    wait_text
+    stop
+end
+if player.facing == 3
+    say rom:VermilionCitySailor1Text.WelcomeToSSAnneText
+    wait_text
+    stop
+end
+if not (player.x == 19 and (player.y == 29 or player.y == 31))
+    say rom:VermilionCitySailor1Text.WelcomeToSSAnneText
+    wait_text
+    stop
+end
+say rom:VermilionCitySailor1Text.DoYouHaveATicketText
+wait_text
+if has_item(S_S_TICKET)
+    say rom:VermilionCitySailor1Text.FlashedTicketText
+    wait_text
+else
+    say rom:VermilionCitySailor1Text.YouNeedATicketText
+    wait_text
+end
+end

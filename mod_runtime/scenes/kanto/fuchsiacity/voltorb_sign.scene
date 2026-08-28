@@ -1,0 +1,5 @@
+
+say rom:FuchsiaCityVoltorbSignText.Text
+wait_text
+show_dex MONSTER100
+end

@@ -1,0 +1,61 @@
+
+block kanto_q72ed2ad4
+    surfable yes
+end
+block kanto_q8ec616ec
+    surfable yes
+end
+block kanto_q308e1e5e
+    surfable yes
+end
+block vdock_ship_h5_gone_tl
+    surfable yes
+end
+block vdock_ship_h5_gone_tr
+    surfable yes
+end
+block vdock_ship_h5_gone_bl
+    surfable yes
+end
+block vdock_ship_h5_gone_br
+    surfable yes
+end
+block vdock_ship_h5_present_bl
+    surfable yes
+end
+block vdock_ship_h6_gone_tl
+    surfable yes
+end
+block vdock_ship_h6_gone_tr
+    surfable yes
+end
+block vdock_ship_h6_gone_bl
+    surfable yes
+end
+block vdock_ship_h6_gone_br
+    surfable yes
+end
+block vdock_ship_h7_gone_tl
+    surfable yes
+end
+block vdock_ship_h7_gone_tr
+    surfable yes
+end
+block vdock_ship_h7_gone_bl
+    surfable yes
+end
+block vdock_ship_h7_gone_br
+    surfable yes
+end
+block vdock_ship_h8_gone_tl
+    surfable yes
+end
+block vdock_ship_h8_gone_tr
+    surfable yes
+end
+block vdock_ship_h8_gone_bl
+    surfable yes
+end
+block vdock_ship_h8_gone_br
+    surfable yes
+end

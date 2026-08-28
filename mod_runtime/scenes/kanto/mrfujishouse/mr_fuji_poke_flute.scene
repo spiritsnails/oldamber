@@ -1,0 +1,22 @@
+
+if EVENT_GOT_POKE_FLUTE
+    say rom:MrFujisHouseMrFujiText.HasMyFluteHelpedYouText
+    wait_text
+    stop
+end
+say rom:MrFujisHouseMrFujiText.IThinkThisMayHelpYourQuestText
+wait_text
+give_item MONSTER_FLUTE
+if bag_full
+    say rom:MrFujisHouseMrFujiText.PokeFluteNoRoomText
+    wait_text
+    stop
+end
+
+set_event EVENT_GOT_POKE_FLUTE
+sfx_on_print get_key_item
+say rom:MrFujisHouseMrFujiText.ReceivedPokeFluteText page=0 name="# FLUTE"
+wait_text
+say rom:MrFujisHouseMrFujiText.ReceivedPokeFluteText page=1-2
+wait_text
+end

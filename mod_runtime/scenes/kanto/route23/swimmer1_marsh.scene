@@ -1,0 +1,19 @@
+
+if EVENT_BEAT_SABRINA
+
+    say rom:Route23OhThatIsTheBadgeText page=0-1 badge=MARSHBADGE
+    wait_text
+    sfx_on_print get_item
+    say rom:Route23OhThatIsTheBadgeText page=2
+    wait_text
+    stop
+end
+lock_input on
+say rom:_Route23YouDontHaveTheBadgeYetText badge=MARSHBADGE
+wait_text
+sfx denied
+wait_text
+queue player down 1
+march
+lock_input off
+end

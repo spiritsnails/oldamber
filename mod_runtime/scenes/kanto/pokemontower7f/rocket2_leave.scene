@@ -1,0 +1,19 @@
+
+lock_input on
+spawn rocket ROCKET 12 9
+say rom:PokemonTower7FRocket2AfterBattleText
+wait_text
+if player.x == 12 and player.y == 10
+    queue rocket left 1
+    queue rocket down 6
+elif player.x == 11 and player.y == 9
+    queue rocket down 3
+    queue rocket left 1
+    queue rocket down 2
+else
+    queue rocket down 5
+end
+march
+despawn rocket
+lock_input off
+end

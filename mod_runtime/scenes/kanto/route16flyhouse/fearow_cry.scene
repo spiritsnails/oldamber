@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER022
+say rom:Route16FlyHouseFearowText.Text
+wait_text
+end

@@ -1,0 +1,19 @@
+
+if GOT_OLD_AMBER
+    say rom:Museum1FScientist2Text.GetTheOldAmberCheckText
+    wait_text
+    stop
+end
+say rom:Museum1FScientist2Text.TakeThisToAPokemonLabText
+wait_text
+give_item OLD_AMBER
+if bag_full
+    say rom:Museum1FScientist2Text.YouDontHaveSpaceText
+    wait_text
+    stop
+end
+set_event GOT_OLD_AMBER
+sfx_on_print get_item
+say rom:Museum1FScientist2Text.ReceivedOldAmberText
+wait_text
+end

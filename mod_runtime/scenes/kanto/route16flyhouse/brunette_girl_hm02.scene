@@ -1,0 +1,19 @@
+
+if EVENT_GOT_HM02
+    say rom:Route16FlyHouseBrunetteGirlText.HM02ExplanationText
+    wait_text
+    stop
+end
+say rom:Route16FlyHouseBrunetteGirlText.Text
+wait_text
+give_item HM_FLY
+if bag_full
+    say rom:Route16FlyHouseBrunetteGirlText.HM02NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_HM02
+sfx_on_print get_key_item
+say rom:Route16FlyHouseBrunetteGirlText.ReceivedHM02Text
+wait_text
+end

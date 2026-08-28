@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.spiritsnails.OldAmber</id>
+
+  <name>OldAmber</name>
+  <summary>The Poke RBY Generation 1 engine, rebuilt, using a ROM you supply</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+
+  <description>
+    <p>
+      A rebuild of the original Game Boy game in C and SDL2. It contains no game
+      data of its own: no graphics, no music, no statistics. All of that is read
+      out of a ROM you supply from your own computer the first time it runs, and
+      the ROM is only read, never modified or copied.
+    </p>
+    <p>
+      The launcher asks for the ROM, builds the game data, and starts the game.
+      That happens once. It can be driven entirely with a game controller.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">com.spiritsnails.OldAmber.desktop</launchable>
+
+  <categories>
+    <category>Game</category>
+    <category>ActionGame</category>
+  </categories>
+
+  <supports>
+    <control>gamepad</control>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </supports>
+
+  <releases>
+    <release version="0.0.1" date="2026-08-27">
+      <description>
+        <p>First packaged release.</p>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1"/>
+</component>

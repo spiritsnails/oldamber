@@ -1,0 +1,18 @@
+
+say rom:ViridianSchoolNotebookText1
+ask rom:TurnPageText
+if answer is no
+    stop
+end
+say rom:ViridianSchoolNotebookText2
+ask rom:TurnPageText
+if answer is no
+    stop
+end
+say rom:ViridianSchoolNotebookText3
+ask rom:TurnPageText
+if answer is no
+    stop
+end
+say rom:ViridianSchoolNotebookText4
+say rom:ViridianSchoolNotebookText5

@@ -1,0 +1,49 @@
+
+if EVENT_BEAT_VIRIDIAN_GYM_GIOVANNI
+    if EVENT_GOT_TM27
+        say rom:ViridianGymGiovanniText.PostBattleAdviceText
+        wait_text
+        stop
+    end
+else
+    say rom:ViridianGymGiovanniText.PreBattleText
+    wait_text
+
+    gym_leader 8
+    engage_trainer 2 1
+
+    gym_leader 0
+end
+
+say rom:ViridianGymGiovanniEarthBadgeInfoText
+wait_text
+set_event EVENT_BEAT_VIRIDIAN_GYM_GIOVANNI
+give_item TM27
+if bag_full
+    say rom:ViridianGymGiovanniTM27NoRoomText
+    wait_text
+else
+
+    sfx_on_print get_item
+    say rom:ViridianGymGiovanniReceivedTM27Text page=0-0
+    wait_text
+    say rom:ViridianGymGiovanniReceivedTM27Text page=1-2
+    wait_text
+    set_event EVENT_GOT_TM27
+end
+
+give_badge EARTH
+
+set_event EVENT_BEAT_VIRIDIAN_GYM_TRAINER_0
+set_event EVENT_BEAT_VIRIDIAN_GYM_TRAINER_1
+set_event EVENT_BEAT_VIRIDIAN_GYM_TRAINER_2
+set_event EVENT_BEAT_VIRIDIAN_GYM_TRAINER_3
+set_event EVENT_BEAT_VIRIDIAN_GYM_TRAINER_4
+set_event EVENT_BEAT_VIRIDIAN_GYM_TRAINER_5
+set_event EVENT_BEAT_VIRIDIAN_GYM_TRAINER_6
+set_event EVENT_BEAT_VIRIDIAN_GYM_TRAINER_7
+
+clear_event EVENT_1ST_ROUTE22_RIVAL_BATTLE
+set_event EVENT_2ND_ROUTE22_RIVAL_BATTLE
+set_event EVENT_ROUTE22_RIVAL_WANTS_BATTLE
+end

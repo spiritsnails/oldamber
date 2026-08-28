@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER016
+say rom:SaffronPidgeyHousePidgeyText
+wait_text
+end

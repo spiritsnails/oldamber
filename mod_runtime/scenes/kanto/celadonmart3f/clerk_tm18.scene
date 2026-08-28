@@ -1,0 +1,19 @@
+
+if EVENT_GOT_TM18
+    say rom:CeladonMart3FClerkText.TM18ExplanationText
+    wait_text
+    stop
+end
+say rom:CeladonMart3FClerkText.TM18PreReceiveText
+wait_text
+give_item TM_COUNTER
+if bag_full
+    say rom:CeladonMart3FClerkText.TM18NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_TM18
+sfx_on_print get_item
+say rom:CeladonMart3FClerkText.ReceivedTM18Text
+wait_text
+end

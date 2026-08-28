@@ -1,0 +1,5 @@
+
+tile_if_not EVENT_SILPH_CO_10_UNLOCKED_DOOR silphco10f_door_closed_tl 10 8
+tile_if_not EVENT_SILPH_CO_10_UNLOCKED_DOOR silphco10f_door_closed_tr 11 8
+tile_if_not EVENT_SILPH_CO_10_UNLOCKED_DOOR silphco10f_door_closed_bl 10 9
+tile_if_not EVENT_SILPH_CO_10_UNLOCKED_DOOR silphco10f_door_closed_br 11 9

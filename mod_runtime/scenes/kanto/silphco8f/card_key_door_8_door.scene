@@ -1,0 +1,16 @@
+
+if EVENT_SILPH_CO_8_UNLOCKED_DOOR
+    stop
+end
+if not has_item(CARD_KEY)
+    say rom:CardKeyFailText
+    wait_text
+    stop
+end
+sfx get_item
+say rom:CardKeySuccessText
+wait_text
+set_event EVENT_SILPH_CO_8_UNLOCKED_DOOR
+refresh_tiles
+sfx go_inside
+end

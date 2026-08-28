@@ -1,0 +1,16 @@
+
+clear_event EVENT_FIGHT_ROUTE16_SNORLAX
+
+say rom:Route16SnorlaxWokeUpText
+wait_text
+
+hide 26 10
+
+wildbattle MONSTER143 30
+
+if not battle_caught
+    say rom:Route16SnorlaxReturnedToMountainsText
+    wait_text
+end
+set_event EVENT_BEAT_ROUTE16_SNORLAX
+end

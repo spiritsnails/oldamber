@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER052
+say rom:CeladonMansion1FMeowthText
+wait_text
+end

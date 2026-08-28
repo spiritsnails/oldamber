@@ -1,0 +1,9 @@
+
+set_event EVENT_BEAT_KARATE_MASTER
+set_event EVENT_BEAT_FIGHTING_DOJO_TRAINER_0
+set_event EVENT_BEAT_FIGHTING_DOJO_TRAINER_1
+set_event EVENT_BEAT_FIGHTING_DOJO_TRAINER_2
+set_event EVENT_BEAT_FIGHTING_DOJO_TRAINER_3
+say rom:FightingDojoKarateMasterText.IWillGiveYouAPokemonText
+wait_text
+end

@@ -1,0 +1,9 @@
+
+ask rom:LavenderTownLittleGirlText.DoYouBelieveInGhostsText
+if answer is yes
+    say rom:LavenderTownLittleGirlText.SoThereAreBelieversText
+    wait_text
+else
+    say rom:LavenderTownLittleGirlText.HaHaGuessNotText
+    wait_text
+end

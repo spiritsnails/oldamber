@@ -1,0 +1,8 @@
+
+if EVENT_BEAT_MISTY
+    say rom:CeruleanGymGymGuideText.BeatMistyText
+else
+    say rom:CeruleanGymGymGuideText.ChampInMakingText
+end
+wait_text
+end

@@ -1,0 +1,28 @@
+
+if EVENT_1BF
+    stop
+end
+lock_input on
+engage_trainer 9 5
+say rom:GameCornerRocketAfterBattleText
+wait_text
+if player.y == 6 or player.x == 8
+    move @9,5 right 1
+    move @9,5 right 1
+    move @9,5 right 1
+    move @9,5 right 1
+    move @9,5 right 1
+else
+    move @9,5 down 1
+    move @9,5 right 1
+    move @9,5 right 1
+    move @9,5 up 1
+    move @9,5 right 1
+    move @9,5 right 1
+    move @9,5 right 1
+    move @9,5 right 1
+end
+hide ball
+set_event EVENT_1BF
+lock_input off
+end

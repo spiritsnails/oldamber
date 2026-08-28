@@ -1,0 +1,73 @@
+
+if EVENT_GAVE_FOSSIL_TO_LAB
+    if EVENT_LAB_STILL_REVIVING_FOSSIL
+        say rom:CinnabarLabFossilRoomScientist1Text.GoForAWalkText
+        wait_text
+        stop
+    end
+
+    fossil_names
+    say rom:CinnabarLabFossilRoomScientist1Text.FossilIsBackToLifeText
+    wait_text
+    set_event EVENT_LAB_HANDING_OVER_FOSSIL_MON
+    give_monster fossil_mon 30
+
+    if sent_to_box
+        say rom:SentToBoxText
+        wait_text
+    end
+
+    if party_full == 0
+        clear_event EVENT_GAVE_FOSSIL_TO_LAB
+        clear_event EVENT_LAB_STILL_REVIVING_FOSSIL
+        clear_event EVENT_LAB_HANDING_OVER_FOSSIL_MON
+    end
+    stop
+end
+
+say_hold rom:CinnabarLabFossilRoomScientist1Text.Text
+
+if has_item(DOME_FOSSIL)
+    let has_fossil = 1
+elif has_item(HELIX_FOSSIL)
+    let has_fossil = 1
+elif has_item(OLD_AMBER)
+    let has_fossil = 1
+else
+    let has_fossil = 0
+end
+
+if has_fossil == 0
+    close_text
+    say rom:CinnabarLabFossilRoomScientist1Text.NoFossilsText
+    wait_text
+    stop
+end
+
+list_choice DOME_FOSSIL HELIX_FOSSIL OLD_AMBER width=13
+close_text
+
+if chosen_item == 0
+    say rom:_CinnabarLabFossilRoomScientist1ComeAgainText
+    wait_text
+    stop
+end
+
+fossil_select chosen_item
+fossil_names
+
+ask rom:_CinnabarLabFossilRoomScientist1SeesFossilText
+if answer is no
+    say rom:_CinnabarLabFossilRoomScientist1ComeAgainText
+    wait_text
+    stop
+end
+
+say rom:_CinnabarLabFossilRoomScientist1TakesFossilText
+wait_text
+take_item chosen_item
+say rom:_CinnabarLabFossilRoomScientist1GoForAWalkText2
+wait_text
+set_event EVENT_GAVE_FOSSIL_TO_LAB
+set_event EVENT_LAB_STILL_REVIVING_FOSSIL
+end

@@ -1,0 +1,20 @@
+
+spawn greeter YOUNGSTER player+1 player+0
+face greeter player
+lock_input on
+wait 18
+ask "Hello!\nI am a DSL ask() test.\fDo you want to continue?@"
+say "Thanks! You picked an option.@"
+wait_text
+move greeter up 10
+move greeter down 9
+move greeter left 3
+move greeter right 3
+move greeter down 3
+move greeter left 3
+move greeter up 5
+face greeter player
+say "PLEASE HELP ME!!!@"
+wait_text
+lock_input off
+end

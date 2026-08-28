@@ -1,0 +1,8 @@
+
+lock_input on
+say rom:ViridianCityOldManSleepyText.PrivatePropertyText
+wait_text
+queue player down 1
+march
+lock_input off
+end

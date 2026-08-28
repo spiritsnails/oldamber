@@ -1,0 +1,11 @@
+
+if EVENT_FOUND_ROCKET_HIDEOUT
+    stop
+end
+say_auto rom:GameCornerPosterText.SwitchBehindPosterText
+sfx_on_print switch
+wait_text
+sfx go_inside
+set_event EVENT_FOUND_ROCKET_HIDEOUT
+tile_place_custom gamecorner_q0021 17 4
+end

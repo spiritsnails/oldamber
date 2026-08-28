@@ -1,0 +1,3 @@
+
+py_inject mod_runtime/python/bulbasaur_sprite_inject.py
+end

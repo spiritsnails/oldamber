@@ -1,0 +1,21 @@
+
+if EVENT_GOT_MASTER_BALL
+    say rom:SilphCo11FSilphPresidentText.MasterBallDescriptionText
+    wait_text
+    stop
+end
+say rom:SilphCo11FSilphPresidentText.Text
+wait_text
+give_item MASTER_BALL
+if bag_full
+    say rom:SilphCo11FSilphPresidentText.NoRoomText
+    wait_text
+    stop
+end
+set_event EVENT_GOT_MASTER_BALL
+
+say rom:SilphCo11FSilphPresidentText.ReceivedMasterBallText
+sfx get_key_item
+wait_sfx
+wait_text
+end

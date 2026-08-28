@@ -1,0 +1,18 @@
+
+if EVENT_BEAT_BROCK
+
+    sfx_on_print get_item
+    say rom:Route22GateGuardGoRightAheadText
+    wait_text
+    stop
+end
+lock_input on
+say rom:Route22GateGuardNoBoulderbadgeText
+wait_text
+sfx denied
+say rom:Route22GateGuardICantLetYouPassText
+wait_text
+queue player down 1
+march
+lock_input off
+end

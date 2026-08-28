@@ -1,0 +1,10 @@
+
+if dex_owned >= 150
+    say rom:CeladonMansion3FGameDesignerText.CompletedDexText
+    wait_text
+    diploma
+    stop
+end
+say rom:CeladonMansion3FGameDesignerText.Text
+wait_text
+end

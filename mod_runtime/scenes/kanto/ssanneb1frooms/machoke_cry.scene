@@ -1,0 +1,5 @@
+
+cry_on_print MONSTER067
+say rom:SSAnneB1FRoomsMachokeText
+wait_text
+end

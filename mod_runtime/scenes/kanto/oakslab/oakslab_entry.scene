@@ -1,0 +1,33 @@
+
+lock_input on
+face player up
+spawn rival BLUE 4 3
+
+spawn oak_enter OAK 5 10
+face oak_enter up
+queue oak_enter up 3
+march
+
+despawn oak_enter
+spawn oak OAK 5 2 keep
+face oak down
+
+queue player up 8
+march
+
+set_event EVENT_FOLLOWED_OAK_INTO_LAB
+set_event EVENT_FOLLOWED_OAK_INTO_LAB_2
+music oakslab
+face rival up
+face oak down
+say rom:OaksLabRivalFedUpWithWaitingText.Text
+wait_text
+say rom:OaksLabOakChooseMonText.Text
+wait_text
+say rom:OaksLabRivalWhatAboutMeText.Text
+wait_text
+say rom:OaksLabOakBePatientText.Text
+wait_text
+set_event EVENT_OAK_ASKED_TO_CHOOSE_MON
+lock_input off
+end

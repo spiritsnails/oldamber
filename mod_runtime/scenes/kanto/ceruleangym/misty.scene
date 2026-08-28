@@ -1,0 +1,37 @@
+
+if EVENT_BEAT_MISTY
+    if EVENT_GOT_TM11
+        say rom:CeruleanGymMistyText.TM11ExplanationText
+        wait_text
+        stop
+    end
+else
+    say rom:CeruleanGymMistyText.PreBattleText
+    wait_text
+
+    gym_leader 2
+    engage_trainer 4 2
+
+    gym_leader 0
+end
+
+say rom:CeruleanGymMistyCascadeBadgeInfoText
+wait_text
+set_event EVENT_BEAT_MISTY
+give_item TM11
+if bag_full
+    say rom:CeruleanGymMistyTM11NoRoomText
+    wait_text
+else
+
+    sfx_on_print get_item
+    say rom:CeruleanGymMistyReceivedTM11Text page=0-0
+    wait_text
+    set_event EVENT_GOT_TM11
+end
+
+give_badge CASCADE
+
+set_event EVENT_BEAT_CERULEAN_GYM_TRAINER_0
+set_event EVENT_BEAT_CERULEAN_GYM_TRAINER_1
+end

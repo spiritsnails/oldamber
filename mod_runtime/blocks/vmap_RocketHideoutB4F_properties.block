@@ -1,0 +1,5 @@
+
+tile_if_not EVENT_ROCKET_HIDEOUT_4_DOOR_UNLOCKED rockethideoutb4f_door_closed_tl 24 10
+tile_if_not EVENT_ROCKET_HIDEOUT_4_DOOR_UNLOCKED rockethideoutb4f_door_closed_tr 25 10
+tile_if_not EVENT_ROCKET_HIDEOUT_4_DOOR_UNLOCKED rockethideoutb4f_door_closed_bl 24 11
+tile_if_not EVENT_ROCKET_HIDEOUT_4_DOOR_UNLOCKED rockethideoutb4f_door_closed_br 25 11

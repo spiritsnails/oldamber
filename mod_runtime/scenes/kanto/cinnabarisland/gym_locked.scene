@@ -1,0 +1,10 @@
+
+if has_item(SECRET_KEY)
+    stop
+end
+lock_input on
+say rom:CinnabarIslandDoorIsLockedText
+wait_text
+sim_walk down 1
+lock_input off
+end

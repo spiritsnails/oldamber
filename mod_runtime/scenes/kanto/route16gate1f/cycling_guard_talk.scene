@@ -1,0 +1,7 @@
+
+if has_item(BICYCLE)
+    say rom:Route16Gate1FGuardText.CyclingRoadExplanationText
+else
+    say rom:Route16Gate1FGuardText.NoPedestriansAllowedText
+end
+end

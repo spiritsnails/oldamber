@@ -1,0 +1,19 @@
+
+if EVENT_GOT_20_COINS
+    say rom:GameCornerGentlemanText.CloselyWatchTheReelsText
+    wait_text
+    stop
+end
+say rom:GameCornerGentlemanText.ThrowingMeOffText
+wait_text
+if not has_item(COIN_CASE)
+    say rom:GameCornerOopsForgotCoinCaseText
+    wait_text
+    stop
+end
+give_coins 20
+set_event EVENT_GOT_20_COINS
+sfx_on_print get_item
+say rom:GameCornerClerk2Text.Received20CoinsText
+wait_text
+end

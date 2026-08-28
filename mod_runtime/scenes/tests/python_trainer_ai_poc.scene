@@ -1,0 +1,7 @@
+
+py_ai on mod_runtime/python/trainer_move_ai.py
+include defs_battle
+use battle_intro "Python AI is now selecting trainer moves.@"
+"Battle done. Disabling Python AI hook.@"
+py_ai off
+end
