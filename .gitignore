@@ -82,7 +82,7 @@ __pycache__/
 # they are never part of it -- they are read as source-of-truth ASM, as symbol
 # tables for the extractors, and as verification oracles.
 #
-# One exception: pokered.sym. The extractors need it to build the asset pack, so
+# One exception: the .sym files. The extractors need them to build the asset pack, so
 # without it a clone plus a ROM cannot build, and cloning a disassembly is not
 # something this project asks anyone to do. It is `bank:addr Name` lines and
 # carries no ROM bytes, and the release already ships it frozen inside setup
@@ -93,7 +93,7 @@ __pycache__/
 # excluded DIRECTORY, so `pokered-master/` with a negation after it would not
 # work.
 pokered-master/*
-!pokered-master/pokered.sym
+!pokered-master/*.sym
 pokered-gbc-master/
 pokecrystal-master/
 redstarbluestar-master/
