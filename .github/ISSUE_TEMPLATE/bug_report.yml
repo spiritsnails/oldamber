@@ -1,0 +1,73 @@
+name: Bug report
+description: Something in the game behaves wrongly, crashes, or will not start.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. The three fields below answer most of what
+        would otherwise be a round trip: which build you have, which version,
+        and what the log says.
+
+        **Please do not attach a ROM, a save, `assets.pak`, or anything under
+        `packages/`.** All of it is derived from a copyrighted cartridge and
+        cannot live in this repository. Screenshots of the game are fine.
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Which download are you using?
+      options:
+        - Windows (zip)
+        - macOS (universal zip)
+        - Linux (Flatpak)
+        - Linux (AppImage)
+        - Linux (tar.gz)
+        - Built from source
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: From the launcher, or the release you downloaded.
+      placeholder: "0.0.1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce it
+      description: >
+        Where you were and what you did. If it is somewhere specific in the
+        game, the map and roughly where on it helps a lot.
+    validations:
+      required: false
+
+  - type: textarea
+    id: log
+    attributes:
+      label: The first few lines of pokered_log.txt
+      description: |
+        The log names the data directory it chose, which explains a whole class
+        of "it will not start" reports on its own. Find it at:
+
+        - **Windows and Linux tar.gz:** beside the game, in the `OldAmber` folder
+        - **macOS:** `~/Library/Application Support/spiritsnails/OldAmber/`
+        - **Flatpak:** `~/.var/app/com.spiritsnails.OldAmber/data/spiritsnails/OldAmber/`
+        - **AppImage:** beside the AppImage, or the path above if that is read-only
+
+        Ten lines is plenty. Paste the whole thing if it is short.
+      render: text
+    validations:
+      required: false

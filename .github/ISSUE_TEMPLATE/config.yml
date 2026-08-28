@@ -1,0 +1,7 @@
+# blank_issues_enabled stays true: not everything is a bug report, and a form
+# that turns away anything it did not anticipate is worse than a blank box.
+blank_issues_enabled: true
+contact_links:
+  - name: Questions, help, and things you have built
+    url: https://discord.gg/2pZNRp6t8
+    about: The Discord is faster than an issue for anything that is not a bug.
