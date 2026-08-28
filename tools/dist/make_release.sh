@@ -91,7 +91,16 @@ echo "==> freezing setup.exe"
 # and a frozen setup built from a stale one gets a long way into an import
 # before it fails on a file nobody remembered. scan_extractor_sources.py answers
 # the question directly.
-ADD_DATA=( --add-data "$WIN_REPO/pokered-master/pokered.sym;pokered-master" )
+# Every symbol file, not just Red's. This line named pokered.sym alone, so a
+# Windows bundle could not import Blue however many .sym files the tree held,
+# and the failure landed on the player long after packaging reported success.
+# The Linux and macOS packagers already globbed; this one did not.
+ADD_DATA=()
+for _sym in "$REPO"/pokered-master/*.sym; do
+    [ -f "$_sym" ] || continue
+    ADD_DATA+=( --add-data "$(cygpath -w "$_sym");pokered-master" )
+done
+[ ${#ADD_DATA[@]} -gt 0 ] || { echo "no pokered-master/*.sym to embed" >&2; exit 1; }
 while IFS= read -r rel; do
     [ -n "$rel" ] || continue
     [ -f "$REPO/$rel" ] || { echo "scan_extractor_sources names $rel, which is missing" >&2; exit 1; }
