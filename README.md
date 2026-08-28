@@ -8,9 +8,14 @@ screen to the Hall of Fame.
 **[Join the Discord](https://discord.gg/2pZNRp6t8)**
 
 Behaviour follows the 1996 release closely. Damage and catch rates, status
-effects, move dispatch, trainer decisions and text timing reproduce what the
-original does, including the arithmetic quirks and overflow bugs that shipped
-with it.
+effects, move dispatch, trainer decisions and text timing are transcribed from
+the original rather than approximated, quirks included, because rounding any of
+it off is what makes a port feel wrong.
+
+How far that carries into the famous edge cases varies. Some fall out of the
+arithmetic on their own. Others lean on Game Boy behaviour this port does not
+have, and reproducing them is a goal rather than a promise. If one you know
+should work does not, that is worth an issue.
 
 ## You supply your own legally acquired ROM
 
