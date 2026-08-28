@@ -133,7 +133,7 @@ def fail(msg):
             pass
 
     try:
-        if sys.stdin and sys.stdin.isatty():
+        if not NO_DIALOG and sys.stdin and sys.stdin.isatty():
             input("\nPress Enter to close...")
     except Exception:
         pass
@@ -163,11 +163,11 @@ def main():
         Gen1Rom(rom, SYM)
     except RomError as e:
         return fail(
-            "That file was not recognised as a supported Pokemon Red ROM.\n\n"
+            "That file was not recognised as a supported Poke ROM.\n\n"
             f"{e}\n\n"
-            "It must be an unmodified Pokemon Red (UE) ROM. Note that Blue "
-            "and Yellow will not work, and neither will a patched or "
-            "trimmed dump.")
+            "It must be an unmodified Poke Red (UE) or Poke Blue (UE) dump. "
+            "Yellow will not work, and neither will a patched or trimmed "
+            "copy.")
     except Exception as e:
         return fail(f"Could not read that ROM:\n{e}")
 
