@@ -3,6 +3,10 @@
 A native C port of the Poke RBY Generation 1 engine, playable from the title
 screen to the Hall of Fame.
 
+**[Download the latest release](https://github.com/spiritsnails/oldamber/releases/latest)**
+&nbsp;&middot;&nbsp;
+**[Join the Discord](https://discord.gg/2pZNRp6t8)**
+
 Behaviour follows the 1996 release closely. Damage and catch rates, status
 effects, move dispatch, trainer decisions and text timing reproduce what the
 original does, including the arithmetic quirks and overflow bugs that shipped
@@ -267,11 +271,6 @@ and bug free. The engine is already built with modding and authorship in mind,
 but my current focus has still been on getting this feeling exactly like you
 remember. If you're a developer, take a look at the scene / block architecture
 to see what I mean.
-
-## Community
-
-[Discord](https://discord.gg/2pZNRp6t8) for questions, bug reports, and anything
-you build with the scene and block system.
 
 ## Thanks
 
