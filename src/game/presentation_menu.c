@@ -287,6 +287,19 @@ static const choice_t kVSyncChoices[] = {
     {"ON",       DISPLAY_GL_VSYNC_ON},
     {"ADAPTIVE", DISPLAY_GL_VSYNC_ADAPTIVE},
 };
+
+static const choice_t kRenderFpsChoices[] = {
+    {"30 FPS",   30},
+    {"60 FPS",   60},
+    {"75 FPS",   75},
+    {"90 FPS",   90},
+    {"120 FPS", 120},
+    {"144 FPS", 144},
+    {"165 FPS", 165},
+    {"180 FPS", 180},
+    {"240 FPS", 240},
+    {"360 FPS", 360},
+};
 static const choice_t kBlendChoices[] = {
     {"OFF",      DISPLAY_GL_BLEND_DISABLED},
     {"SIMPLE",   DISPLAY_GL_BLEND_SIMPLE},
@@ -315,6 +328,7 @@ static const choice_t kLightTempChoices[] = {
 #define N_RENDER  ((int)(sizeof kRendererChoices / sizeof kRendererChoices[0]))
 #define N_BLEND   ((int)(sizeof kBlendChoices   / sizeof kBlendChoices[0]))
 #define N_VSYNC   ((int)(sizeof kVSyncChoices   / sizeof kVSyncChoices[0]))
+#define N_RENDERFPS ((int)(sizeof kRenderFpsChoices / sizeof kRenderFpsChoices[0]))
 
 static const choice_t kAspectChoices[] = {
     { "NATIVE", 0 },
@@ -366,7 +380,9 @@ enum {
     ROW_PAL_S1R, ROW_PAL_S1G, ROW_PAL_S1B,
     ROW_PAL_S2R, ROW_PAL_S2G, ROW_PAL_S2B,
     ROW_PAL_S3R, ROW_PAL_S3G, ROW_PAL_S3B,
-    ROW_PAL_LAST = ROW_PAL_S3B
+    ROW_PAL_LAST = ROW_PAL_S3B,
+
+    ROW_RENDERFPS
 };
 
 typedef enum { RK_VALUE, RK_SUBMENU, RK_BACK } rowkind_t;
@@ -486,6 +502,7 @@ static const menu_header_t kSpeedHeaders[] = {
 static const menu_row_t kDisplayRows[] = {
     { RK_VALUE, ROW_RENDERER, "RENDERER", kRendererChoices,  1, 0, 0, DISPLAY_LABEL_W },
     { RK_VALUE, ROW_WINSCALE, "SIZE",     kWinScaleChoices,  2, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_RENDERFPS,"FPS",      kRenderFpsChoices, 3, 0, 0, DISPLAY_LABEL_W },
 
     { RK_VALUE, ROW_FILTER,   "FILTER",   kFilterChoices,    4, 0, 1, 0 },
 
@@ -600,6 +617,7 @@ static int current_index(int row) {
     case ROW_MONOPAL:   v = Display_MonoPalette();  tbl = kMonoPalChoices;  n = N_MONOPAL; break;
     case ROW_SCALE:     v = (int)DisplayGL_Scaling(); tbl = kScaleChoices;  n = N_SCALE;   break;
     case ROW_VSYNC:     v = (int)DisplayGL_VSync();   tbl = kVSyncChoices;  n = N_VSYNC;   break;
+    case ROW_RENDERFPS: v = Display_RenderFPS();      tbl = kRenderFpsChoices; n = N_RENDERFPS; break;
     case ROW_ASPECT:    v = Display_Widescreen();     tbl = kAspectChoices; n = N_ASPECT;  break;
     case ROW_SGBBORDER: v = SgbBorder_IsEnabled();    tbl = kSgbBorderChoices; n = N_SGBBORDER; break;
     case ROW_NTSC:      v = NtscFilter_IsEnabled();   tbl = kNtscChoices;      n = N_NTSC;      break;
@@ -768,6 +786,9 @@ static void apply(int row, int index) {
     case ROW_VSYNC:
         DisplayGL_SetVSync((display_gl_vsync_t)kVSyncChoices[index].value);
         break;
+    case ROW_RENDERFPS:
+        Display_SetRenderFPS(kRenderFpsChoices[index].value);
+        break;
     case ROW_NTSC:
         NtscFilter_SetEnabled(kNtscChoices[index].value);
         break;
@@ -845,6 +866,7 @@ static const choice_t *row_table(int row) {
     case ROW_MONOPAL:   return kMonoPalChoices;
     case ROW_SCALE:     return kScaleChoices;
     case ROW_VSYNC:     return kVSyncChoices;
+    case ROW_RENDERFPS: return kRenderFpsChoices;
     case ROW_ASPECT:    return kAspectChoices;
     case ROW_SGBBORDER: return kSgbBorderChoices;
     case ROW_NTSC:      return kNtscChoices;
@@ -885,6 +907,7 @@ static int row_count(int row) {
     case ROW_MONOPAL:  return N_MONOPAL;
     case ROW_SCALE:    return N_SCALE;
     case ROW_VSYNC:    return N_VSYNC;
+    case ROW_RENDERFPS: return N_RENDERFPS;
     case ROW_ASPECT:   return N_ASPECT;
     case ROW_SGBBORDER: return N_SGBBORDER;
     case ROW_NTSC:     return N_NTSC;
@@ -926,6 +949,7 @@ static const struct { int row; const char *key; } kPersistRows[] = {
     { ROW_MONOPAL,   "mono_pal"   },
     { ROW_SCALE,     "gl_scaling" },
     { ROW_VSYNC,     "vsync"      },
+    { ROW_RENDERFPS, "render_fps" },
     { ROW_ASPECT,    "aspect"     },
     { ROW_SGBBORDER, "sgb_border" },
     { ROW_NTSC,      "composite"  },

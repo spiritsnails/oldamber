@@ -64,12 +64,22 @@ static int authored_clip_lo(void) { return g_content_ox; }
 static int authored_clip_hi(void) { return g_content_ox + SCREEN_WIDTH_PX; }
 
 static uint32_t lcd_previous_fb[FB_MAX_W * SCREEN_HEIGHT_PX];
+
+static uint32_t lcd_present_previous_fb[FB_MAX_W * SCREEN_HEIGHT_PX];
 static uint32_t lcd_blended_fb[FB_MAX_W * SCREEN_HEIGHT_PX];
 static int g_lcd_ghosting_mode = DISPLAY_LCD_GHOSTING_PERSISTENCE;
 static int g_lcd_previous_valid = 0;
+static int s_present_previous_valid = 0;
 
 static int s_speed_pct = 100;
+
+static int s_render_fps = 60;
+static uint64_t s_present_deadline_ctr;
 static int g_lcd_blend_odd_frame = 0;
+static int s_present_blend_odd_frame = 0;
+static uint64_t s_source_serial;
+static uint64_t s_last_presented_source_serial;
+static int s_present_advances_source = 1;
 
 static uint8_t  tile_gfx[256][TILE_SIZE];
 static int      num_tiles_loaded = 0;
@@ -287,6 +297,7 @@ void Display_SetLCDGhostingMode(int mode) {
     g_lcd_ghosting_mode = mode;
 
     g_lcd_previous_valid = 0;
+    s_present_previous_valid = 0;
 }
 
 int Display_GetLCDGhostingMode(void) { return g_lcd_ghosting_mode; }
@@ -986,26 +997,27 @@ static uint32_t lcd_blend_pixel(uint32_t current, uint32_t previous) {
 }
 
 static const uint32_t *lcd_ghosted_frame(void) {
-    if (g_lcd_ghosting_mode == DISPLAY_LCD_GHOSTING_OFF || !g_lcd_previous_valid) return fb;
+    if (g_lcd_ghosting_mode == DISPLAY_LCD_GHOSTING_OFF ||
+        !s_present_previous_valid) return fb;
 
     if (g_lcd_ghosting_mode == DISPLAY_LCD_GHOSTING_SAMEBOY_ACCURATE) {
         for (int y = 0; y < SCREEN_HEIGHT_PX; y++) {
 
-            const int previous_weight = ((y & 1) == g_lcd_blend_odd_frame) ? 1 : 2;
+            const int previous_weight = ((y & 1) == s_present_blend_odd_frame) ? 1 : 2;
             const int current_weight = 3 - previous_weight;
             if (lcd_ghost_speed_scaled()) {
 
                 const int w = lcd_ghost_scaled(previous_weight * 256 / 3);
                 for (int x = 0; x < g_fb_w; x++) {
                     const int i = y * g_fb_w + x;
-                    lcd_blended_fb[i] = lcd_mix_256(fb[i], lcd_previous_fb[i], w);
+                    lcd_blended_fb[i] = lcd_mix_256(fb[i], lcd_present_previous_fb[i], w);
                 }
                 continue;
             }
             for (int x = 0; x < g_fb_w; x++) {
                 const int i = y * g_fb_w + x;
                 const uint32_t current = fb[i];
-                const uint32_t previous = lcd_previous_fb[i];
+                const uint32_t previous = lcd_present_previous_fb[i];
                 const uint32_t r = ((((current >> 24) & 0xFF) * current_weight) + (((previous >> 24) & 0xFF) * previous_weight)) / 3;
                 const uint32_t g = ((((current >> 16) & 0xFF) * current_weight) + (((previous >> 16) & 0xFF) * previous_weight)) / 3;
                 const uint32_t b = ((((current >>  8) & 0xFF) * current_weight) + (((previous >>  8) & 0xFF) * previous_weight)) / 3;
@@ -1019,17 +1031,18 @@ static const uint32_t *lcd_ghosted_frame(void) {
 
         const int w = lcd_ghost_scaled(64);
         for (int i = 0; i < g_fb_w * SCREEN_HEIGHT_PX; i++)
-            lcd_blended_fb[i] = lcd_mix_256(fb[i], lcd_previous_fb[i], w);
+            lcd_blended_fb[i] = lcd_mix_256(fb[i], lcd_present_previous_fb[i], w);
         return lcd_blended_fb;
     }
 
     for (int i = 0; i < g_fb_w * SCREEN_HEIGHT_PX; i++) {
-        lcd_blended_fb[i] = lcd_blend_pixel(fb[i], lcd_previous_fb[i]);
+        lcd_blended_fb[i] = lcd_blend_pixel(fb[i], lcd_present_previous_fb[i]);
     }
     return lcd_blended_fb;
 }
 
 static void lcd_remember_frame(const uint32_t *presented) {
+    if (!s_present_advances_source) return;
 
     memcpy(lcd_previous_fb,
            g_lcd_ghosting_mode == DISPLAY_LCD_GHOSTING_SAMEBOY_ACCURATE ? fb : presented,
@@ -1121,23 +1134,43 @@ static void fill_crt_desc(crt_frame_desc_t *d, int tex_w, int tex_h,
     d->frame_number   = ++s_crt_frame_number;
 }
 
-static uint64_t s_last_present_ctr;
+void Display_SetSpeedPct(int pct) {
+    if (pct != s_speed_pct) s_present_deadline_ctr = 0;
+    s_speed_pct = pct;
+}
 
-void Display_SetSpeedPct(int pct) { s_speed_pct = pct; }
+void Display_SetRenderFPS(int fps) {
+    if (fps < 15 || fps > 360) return;
+    if (fps != s_render_fps) s_present_deadline_ctr = 0;
+    s_render_fps = fps;
+}
+
+int Display_RenderFPS(void) { return s_render_fps; }
+uint64_t Display_NextPresentCounter(void) { return s_present_deadline_ctr; }
 
 static int present_is_due(void) {
     uint64_t hz, now, period;
-    if (s_speed_pct != 0 && s_speed_pct <= 100) return 1;
+    int catchup;
+
+    if (s_render_fps == 60 && s_speed_pct != 0 && s_speed_pct <= 100) return 1;
 
     hz = SDL_GetPerformanceFrequency();
     if (!hz) return 1;
     now    = SDL_GetPerformanceCounter();
-    period = hz / 60u;
-    if (s_last_present_ctr == 0 || now - s_last_present_ctr >= period) {
-        s_last_present_ctr = now;
+    period = hz / (uint64_t)s_render_fps;
+    if (s_present_deadline_ctr == 0) {
+        s_present_deadline_ctr = now + period;
         return 1;
     }
-    return 0;
+    if (now < s_present_deadline_ctr) return 0;
+
+    catchup = 0;
+    do {
+        s_present_deadline_ctr += period;
+        catchup++;
+    } while (s_present_deadline_ctr <= now && catchup < 4);
+    if (s_present_deadline_ctr <= now) s_present_deadline_ctr = now + period;
+    return 1;
 }
 
 void Display_SetSuspendOverlay(const uint32_t *(*fn)(int *, int *, int *, int *, int *, int *)) {
@@ -1230,22 +1263,30 @@ static int present_suspend_overlay(void) {
 
 static void present_fb(void) {
     const uint32_t *presented;
+    int advances_source;
 
-    if (!present_is_due()) {
+    if (!present_is_due() || s_source_serial == 0) return;
 
-        if (g_lcd_ghosting_mode != DISPLAY_LCD_GHOSTING_OFF) {
-            memcpy(lcd_previous_fb, fb,
+    advances_source = s_source_serial != s_last_presented_source_serial;
+    s_present_advances_source = advances_source;
+    if (advances_source) {
+        if (g_lcd_previous_valid) {
+            memcpy(lcd_present_previous_fb, lcd_previous_fb,
                    (size_t)g_fb_w * SCREEN_HEIGHT_PX * sizeof(uint32_t));
-            g_lcd_previous_valid = 1;
         }
-        return;
+        s_present_previous_valid = g_lcd_previous_valid;
+        s_present_blend_odd_frame = g_lcd_blend_odd_frame;
+        s_last_presented_source_serial = s_source_serial;
     }
+
+    DisplayGL_SetSourceFrameAdvanced(advances_source);
 
     if (s_suspend_overlay && present_suspend_overlay()) return;
 
     if (DisplayGL_IsActive()) {
 
-        const uint32_t *prev = g_lcd_previous_valid ? lcd_previous_fb : NULL;
+        const uint32_t *prev = s_present_previous_valid
+                             ? lcd_present_previous_fb : NULL;
         const uint32_t *cur_t  = apply_tint(fb);
         const uint32_t *prev_t = apply_tint_into(prev, s_tinted_prev);
         int cw = SGB_FRAME_W, ch = SGB_FRAME_H;
@@ -1269,8 +1310,12 @@ static void present_fb(void) {
             if (!DisplayGL_PresentCRT(cur_t, &desc))
                 DisplayGL_Present(cur_t, prev_t);
         }
-        memcpy(lcd_previous_fb, fb, (size_t)g_fb_w * SCREEN_HEIGHT_PX * sizeof(uint32_t));
-        g_lcd_previous_valid = 1;
+        if (advances_source) {
+            memcpy(lcd_previous_fb, fb,
+                   (size_t)g_fb_w * SCREEN_HEIGHT_PX * sizeof(uint32_t));
+            g_lcd_previous_valid = 1;
+            g_lcd_blend_odd_frame = !g_lcd_blend_odd_frame;
+        }
         return;
     }
 
@@ -1338,6 +1383,10 @@ static void present_fb(void) {
     }
     present_now();
     lcd_remember_frame(presented);
+}
+
+void Display_PresentLatestIfDue(void) {
+    present_fb();
 }
 
 int Display_LoadedTileCount(void) {
@@ -1699,7 +1748,20 @@ static void extend_frame_edges(void) {
     }
 }
 
+static void begin_source_frame(void) {
+    if (s_source_serial != 0 &&
+        s_source_serial != s_last_presented_source_serial &&
+        g_lcd_ghosting_mode != DISPLAY_LCD_GHOSTING_OFF) {
+        memcpy(lcd_previous_fb, fb,
+               (size_t)g_fb_w * SCREEN_HEIGHT_PX * sizeof(uint32_t));
+        g_lcd_previous_valid = 1;
+    }
+    s_source_serial++;
+    if (s_source_serial == 0) s_source_serial = 1;
+}
+
 void Display_Render(void) {
+    begin_source_frame();
 
     g_blit_ox = g_content_ox;
 
@@ -1731,6 +1793,7 @@ void Display_Render(void) {
 }
 
 void Display_RenderScrolled(int px, int py, const uint8_t *tile_map, int stride) {
+    begin_source_frame();
 
     const int frame_ox = g_authored_frame ? g_content_ox : 0;
 
@@ -1811,6 +1874,9 @@ void Display_SetFrameWidth(int px) {
     g_content_ox = (g_fb_w - SCREEN_WIDTH_PX) / 2;
 
     g_lcd_previous_valid = 0;
+    s_present_previous_valid = 0;
+
+    s_last_presented_source_serial = s_source_serial;
 
     if (renderer) {
         if (fb_tex) { SDL_DestroyTexture(fb_tex); fb_tex = NULL; }

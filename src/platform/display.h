@@ -5,6 +5,13 @@
 
 void Display_SetSpeedPct(int pct);
 
+void Display_SetRenderFPS(int fps);
+int  Display_RenderFPS(void);
+
+uint64_t Display_NextPresentCounter(void);
+
+void Display_PresentLatestIfDue(void);
+
 void Display_SetWindowScale(int scale);
 int  Display_WindowScale(void);
 

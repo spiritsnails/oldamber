@@ -315,6 +315,8 @@ int main(int argc, char *argv[]) {
     int debug_render = 0;
     int debug_render_typing = 0;
     int mute = 0;
+    int render_fps = 60;
+    int render_fps_from_cli = 0;
 
     char force_version[16] = "";
     for (int i = 1; i < argc; i++) {
@@ -344,6 +346,14 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(argv[i], "--mute") == 0) {
 
             mute = 1;
+        } else if (strncmp(argv[i], "--render-fps=", 13) == 0) {
+
+            render_fps = atoi(argv[i] + 13);
+            render_fps_from_cli = 1;
+            if (render_fps < 15 || render_fps > 360) {
+                fprintf(stderr, "[display] --render-fps must be 15..360\n");
+                return 1;
+            }
         } else if (strcmp(argv[i], "--pson") == 0) {
 
             AmberScript_SetEnabled(1);
@@ -450,6 +460,7 @@ int main(int argc, char *argv[]) {
         SDL_Quit();
         return 1;
     }
+    Display_SetRenderFPS(render_fps);
 
     if (Audio_Init() != 0) {
         fprintf(stderr, "Audio_Init failed: %s (continuing without audio)\n",
@@ -463,6 +474,12 @@ int main(int argc, char *argv[]) {
     Input_Init();
 
     PresentationMenu_LoadSettings();
+
+    if (render_fps_from_cli) Display_SetRenderFPS(render_fps);
+    if (Display_RenderFPS() != 60) {
+        printf("[display] render cap: %d FPS "
+               "(simulation remains 59.7275 Hz)\n", Display_RenderFPS());
+    }
 
     if (fs_from_cli >= 0) Display_SetFullscreen(fs_from_cli);
 
@@ -1004,10 +1021,23 @@ int main(int argc, char *argv[]) {
                 }
 
                 for (;;) {
-                    uint64_t left;
+                    uint64_t left, wake_deadline = video_deadline;
+                    uint64_t present_deadline = 0;
+
+                    if (Display_RenderFPS() > 60) {
+                        present_deadline = Display_NextPresentCounter();
+                        if (present_deadline != 0 &&
+                            present_deadline < wake_deadline)
+                            wake_deadline = present_deadline;
+                    }
+
                     now = SDL_GetPerformanceCounter();
                     if (now >= video_deadline) break;
-                    left = (video_deadline - now) * 1000u / video_perf_hz;
+                    if (present_deadline != 0 && now >= present_deadline) {
+                        Display_PresentLatestIfDue();
+                        continue;
+                    }
+                    left = (wake_deadline - now) * 1000u / video_perf_hz;
 
                     SDL_Delay(left > 1 ? (uint32_t)(left - 1) : 0);
                 }

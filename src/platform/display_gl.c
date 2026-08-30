@@ -98,11 +98,18 @@ static GLint  s_u_image, s_u_prev, s_u_blend, s_u_res, s_u_origin;
 static char   s_filter[64] = "NearestNeighbor";
 static display_gl_blend_t s_blend = DISPLAY_GL_BLEND_DISABLED;
 static int    s_blend_odd;
+static int    s_source_blend_odd;
+static int    s_source_frame_advanced = 1;
 static display_gl_scale_t s_scale = DISPLAY_GL_SCALE_INTEGER;
 
 static int s_par_num = 1, s_par_den = 1;
 static display_gl_vsync_t s_vsync = DISPLAY_GL_VSYNC_OFF;
 uint64_t g_dbg_swap_ticks;
+
+void DisplayGL_SetSourceFrameAdvanced(int advanced) {
+    s_source_frame_advanced = advanced != 0;
+    if (s_source_frame_advanced) s_source_blend_odd = s_blend_odd;
+}
 
 static uint32_t s_up[SCREEN_WIDTH_PX * SCREEN_HEIGHT_PX];
 static uint32_t s_up_prev[SCREEN_WIDTH_PX * SCREEN_HEIGHT_PX];
@@ -705,8 +712,8 @@ static void gl_present_impl(const uint32_t *fb, const uint32_t *prev,
 
     blend = (int)s_blend;
     if (s_blend == DISPLAY_GL_BLEND_ACCURATE) {
-        blend = s_blend_odd ? (int)DISPLAY_GL_BLEND_ACCURATE_ODD
-                            : (int)DISPLAY_GL_BLEND_ACCURATE_EVEN;
+        blend = s_source_blend_odd ? (int)DISPLAY_GL_BLEND_ACCURATE_ODD
+                                   : (int)DISPLAY_GL_BLEND_ACCURATE_EVEN;
     }
     if (!prev) blend = (int)DISPLAY_GL_BLEND_DISABLED;
     p_glUniform1i(s_u_blend, blend);
@@ -737,5 +744,5 @@ static void gl_present_impl(const uint32_t *fb, const uint32_t *prev,
         SDL_GL_SwapWindow(s_window);
         g_dbg_swap_ticks += SDL_GetPerformanceCounter() - sw0;
     }
-    s_blend_odd = !s_blend_odd;
+    if (s_source_frame_advanced) s_blend_odd = !s_blend_odd;
 }

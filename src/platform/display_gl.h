@@ -53,6 +53,8 @@ display_gl_vsync_t DisplayGL_VSync(void);
 void DisplayGL_SetBlending(display_gl_blend_t mode);
 display_gl_blend_t DisplayGL_Blending(void);
 
+void DisplayGL_SetSourceFrameAdvanced(int advanced);
+
 void DisplayGL_Present(const uint32_t *fb, const uint32_t *prev);
 
 void DisplayGL_PresentSized(const uint32_t *fb, const uint32_t *prev,
