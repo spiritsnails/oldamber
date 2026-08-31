@@ -350,8 +350,6 @@ static void isp_precompute(void) {
 
 #define ZOOM_PREPAUSE_FRAMES 30
 
-#define ZOOM_END_SCALE (2 * SCREEN_WIDTH_PX)
-
 #define ZOOM_BLACK_HOLD_FRAMES 90
 
 static int g_zoom_mode = 0;
@@ -367,7 +365,7 @@ static void zoom_pick_focus(int *fx, int *fy) {
     int py = (int)wShadowOAM[0].y - OAM_Y_OFS;
     if (!Display_FindDarkestPixel(px, py, 16, 16, fx, fy)) {
 
-        *fx = SCREEN_WIDTH_PX / 2;
+        *fx = Display_FrameWidth() / 2;
         *fy = SCREEN_HEIGHT_PX / 2;
     }
 }
@@ -381,7 +379,7 @@ static int tick_zoom(void) {
     if (next <= cur) next = cur + 1;
     g_zoom_scale = next;
     Display_ZoomSetScale(g_zoom_scale * 256);
-    return (g_zoom_scale >= ZOOM_END_SCALE);
+    return (g_zoom_scale >= 2 * Display_FrameWidth());
 }
 
 static int tick_flash(void) {

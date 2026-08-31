@@ -354,6 +354,28 @@ void NPC_GetScreenPos(int i, int *px, int *py) {
     *px = (int)wShadowOAM[oam + ref_slot].x - OAM_X_OFS;
 }
 
+int NPC_GetScreenTopLeft(int i, int *px, int *py) {
+    if (i < 0 || i >= npc_count) return 0;
+
+    int oam = NPC_OAM_BASE + i * 4;
+    if (wShadowOAM[oam].y == 0) return 0;
+    int left = 0;
+    int top = 0;
+    int found = 0;
+    for (int slot = 0; slot < 4; slot++) {
+        const oam_entry_t *entry = &wShadowOAM[oam + slot];
+        int x = (int)entry->x - OAM_X_OFS;
+        int y = (int)entry->y - OAM_Y_OFS;
+        if (!found || x < left) left = x;
+        if (!found || y < top) top = y;
+        found = 1;
+    }
+    if (!found) return 0;
+    *px = left;
+    *py = top;
+    return 1;
+}
+
 void NPC_GetTilePos(int i, int *tx, int *ty) {
     if (i < 0 || i >= npc_count) { *tx = *ty = 0; return; }
     *tx = (int)npc_x[i];

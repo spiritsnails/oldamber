@@ -439,24 +439,21 @@ void Emote_Hide(void) { s_emote_active = 0; }
 
 int Emote_BuildOAM(oam_entry_t out[4]) {
     if (!s_emote_active) return 0;
-    int sx, ey;
+    int actor_x, actor_y;
     if (s_emote_on_player) {
-
-        const int player_oam_x = Map_CamHalfX() * TILE_PX + OAM_X_OFS;
-        const int player_oam_y = 8 * TILE_PX + OAM_Y_OFS - 4;
-        sx = player_oam_x;
-        ey = player_oam_y - OAM_Y_OFS - 16;
+        if (wShadowOAM[0].y == 0) return 0;
+        actor_x = (int)wShadowOAM[0].x - OAM_X_OFS;
+        actor_y = (int)wShadowOAM[0].y - OAM_Y_OFS;
     } else if (s_emote_npc_idx >= 0) {
-        int nsx, nsy;
-        NPC_GetScreenPos(s_emote_npc_idx, &nsx, &nsy);
-        sx = nsx;
-        ey = nsy - 16;
+        if (!NPC_GetScreenTopLeft(s_emote_npc_idx, &actor_x, &actor_y)) return 0;
     } else {
         return 0;
     }
-    out[0].y = (uint8_t)(ey + 16); out[0].x = (sx);     out[0].tile = EMOTE_TILE_BASE + 0; out[0].flags = 0;
-    out[1].y = (uint8_t)(ey + 16); out[1].x = (sx + 8); out[1].tile = EMOTE_TILE_BASE + 1; out[1].flags = 0;
-    out[2].y = (uint8_t)(ey + 24); out[2].x = (sx);     out[2].tile = EMOTE_TILE_BASE + 2; out[2].flags = 0;
-    out[3].y = (uint8_t)(ey + 24); out[3].x = (sx + 8); out[3].tile = EMOTE_TILE_BASE + 3; out[3].flags = 0;
+    int bubble_x = actor_x + OAM_X_OFS;
+    int bubble_y = actor_y;
+    out[0].y = (uint8_t)(bubble_y);     out[0].x = (bubble_x);     out[0].tile = EMOTE_TILE_BASE + 0; out[0].flags = 0;
+    out[1].y = (uint8_t)(bubble_y);     out[1].x = (bubble_x + 8); out[1].tile = EMOTE_TILE_BASE + 1; out[1].flags = 0;
+    out[2].y = (uint8_t)(bubble_y + 8); out[2].x = (bubble_x);     out[2].tile = EMOTE_TILE_BASE + 2; out[2].flags = 0;
+    out[3].y = (uint8_t)(bubble_y + 8); out[3].x = (bubble_x + 8); out[3].tile = EMOTE_TILE_BASE + 3; out[3].flags = 0;
     return 1;
 }

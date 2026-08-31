@@ -843,9 +843,9 @@ int main(int argc, char *argv[]) {
             wIsInBattle == 0 && !BattleUI_IsActive()));
 
         {
-            static int s_geom_w = 0;
+            static int s_geom_w = SCREEN_WIDTH_PX;
             int geom_w = Display_FrameWidth();
-            if (s_geom_w != 0 && geom_w != s_geom_w) {
+            if (geom_w != s_geom_w) {
 
                 Map_UpdateCamera();
                 if (!BattleUI_IsActive() && !TitleScreen_IsOpen() &&

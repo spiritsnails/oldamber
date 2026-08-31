@@ -64,7 +64,7 @@ void CrystalGrassRustle_BuildOAM(int tracked_sx, int tracked_sy) {
     int px = tracked_sx;
     int py = tracked_sy;
 
-    if (px + 16 <= 0 || px >= SCREEN_WIDTH_PX ||
+    if (px + 16 <= 0 || px >= Display_FrameWidth() ||
         py + 16 <= 0 || py >= SCREEN_HEIGHT_PX) {
         clear_oam();
         return;

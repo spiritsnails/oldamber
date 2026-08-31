@@ -63,6 +63,8 @@ int NPC_GetLastInteracted(void);
 
 void NPC_GetScreenPos(int i, int *px, int *py);
 
+int NPC_GetScreenTopLeft(int i, int *px, int *py);
+
 void NPC_GetTilePos(int i, int *tx, int *ty);
 
 int NPC_GetDeclIdx(int i);
