@@ -37,6 +37,7 @@
 #include "game/pokedex.h"
 #include "game/party_menu.h"
 #include "game/trainer_card.h"
+#include "game/town_map.h"
 #include "game/battle/battle_ui.h"
 #include "assetpack_bind.h"
 #include "game/constants.h"
@@ -862,9 +863,10 @@ int main(int argc, char *argv[]) {
         Display_SetAuthoredFrame(TitleScreen_IsOpen() || Intro_IsActive());
 
         Display_SetLetterboxFrame(Pokedex_IsOpen() || PartyMenu_IsOpen() ||
-                                  TrainerCard_IsOpen(),
-                                  TrainerCard_IsOpen() ? DISPLAY_BOX_BLACK
-                                                       : DISPLAY_BOX_EXTEND);
+                                  TrainerCard_IsOpen() || TownMap_IsOpen(),
+                                  (TrainerCard_IsOpen() || TownMap_IsOpen())
+                                      ? DISPLAY_BOX_BLACK
+                                      : DISPLAY_BOX_EXTEND);
 
         update_random();
         DebugSuite_InjectInput();

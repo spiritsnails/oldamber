@@ -81,7 +81,9 @@ static void opt_close(void) {
 
 static void smset(int col, int row, uint8_t tile) {
 
-    gScrollTileMap[(row + 2) * SCROLL_MAP_W + (col + 2) + Map_UiColOfsRight()] = tile;
+    int ofs = (gSaveState != SAVE_NONE) ? Map_UiColOfs()
+                                         : Map_UiColOfsRight();
+    gScrollTileMap[(row + 2) * SCROLL_MAP_W + (col + 2) + ofs] = tile;
 }
 
 static void draw_box(void) {
@@ -379,7 +381,9 @@ static void draw_saved_game_msg(void) {
 }
 
 static uint8_t smget(int col, int row) {
-    return gScrollTileMap[(row + 2) * SCROLL_MAP_W + (col + 2) + Map_UiColOfsRight()];
+    int ofs = (gSaveState != SAVE_NONE) ? Map_UiColOfs()
+                                         : Map_UiColOfsRight();
+    return gScrollTileMap[(row + 2) * SCROLL_MAP_W + (col + 2) + ofs];
 }
 
 static void draw_save_yesno(void) {
@@ -394,10 +398,10 @@ static void restore_yn_tiles(void) { for (int r=0;r<5;r++) for (int c=0;c<6;c++)
 
 static void menu_start_save(void) {
 
+    gSaveState = SAVE_INFO_DELAY;
     for (int i = 0; i < MAX_SPRITES; i++) wShadowOAM[i].y = 0;
     draw_save_info_box();
     gSaveDelay = 30;
-    gSaveState = SAVE_INFO_DELAY;
 }
 
 static void menu_tick_save(void) {
