@@ -1,5 +1,6 @@
 
 #include "game_version.h"
+#include "data_dir.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -97,6 +98,8 @@ const char *GameVersion_FromRomHeader(const char *rom_path) {
 }
 
 const char *GameVersion_SavePath(const char *id) {
+    static char path[1200];
     const game_version_t *v = find(id ? id : s_current);
-    return v ? v->save : "pokered.sav";
+    const char *name = v ? v->save : "pokered.sav";
+    return UserDataPath(name, path, sizeof path) ? path : name;
 }

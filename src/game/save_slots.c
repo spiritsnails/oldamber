@@ -14,11 +14,15 @@
 #include "../platform/display.h"
 #include "../platform/hardware.h"
 #include "../platform/game_version.h"
+#include "../platform/data_dir.h"
 #include "../platform/launcher_draw.h"
 
 static const char *slots_dir(void) {
-    static char dir[256];
-    snprintf(dir, sizeof dir, "states/%s", GameVersion_Current());
+    static char dir[1200];
+    char relative[64];
+    snprintf(relative, sizeof relative, "states/%s", GameVersion_Current());
+    if (!UserDataPath(relative, dir, sizeof dir))
+        snprintf(dir, sizeof dir, "%s", relative);
     return dir;
 }
 
@@ -57,7 +61,7 @@ static int64_t file_mtime(const char *path) {
 }
 
 static void load_meta(int slot, save_slot_info_t *info, uint32_t *thumb) {
-    char path[320];
+    char path[1400];
     slot_meta_t m;
     FILE *f;
     size_t px;
@@ -87,7 +91,7 @@ static void load_meta(int slot, save_slot_info_t *info, uint32_t *thumb) {
 }
 
 const save_slot_info_t *SaveSlots_Info(int slot) {
-    char spath[320];
+    char spath[1400];
     slot_cache_t *c;
     int64_t mt;
 
@@ -121,7 +125,7 @@ static int popcount8(uint8_t v) {
 
 int SaveSlots_Write(int slot) {
     extern int Game_SceneHasMap(void);
-    char spath[320], mpath[320], tmp[336];
+    char spath[1400], mpath[1400], tmp[1420];
     slot_meta_t m;
     static uint32_t thumb[SAVE_SLOT_THUMB_MAX];
     int fw, th, i;
@@ -131,7 +135,12 @@ int SaveSlots_Write(int slot) {
 
     if (!Game_SceneHasMap()) return -1;
 
-    LauncherDraw_EnsureDir("states");
+    {
+        char states[1200];
+        if (!UserDataPath("states", states, sizeof states))
+            snprintf(states, sizeof states, "states");
+        LauncherDraw_EnsureDir(states);
+    }
     LauncherDraw_EnsureDir(slots_dir());
 
     slot_path(slot, "state", spath, sizeof spath);
@@ -177,7 +186,7 @@ int SaveSlots_Write(int slot) {
 }
 
 int SaveSlots_Read(int slot) {
-    char spath[320];
+    char spath[1400];
     if (slot < 0 || slot >= SAVE_SLOT_COUNT) return -1;
     slot_path(slot, "state", spath, sizeof spath);
     if (Save_StateLoad(spath) != 0) return -1;
@@ -187,7 +196,7 @@ int SaveSlots_Read(int slot) {
 }
 
 int SaveSlots_Delete(int slot) {
-    char spath[320], mpath[320];
+    char spath[1400], mpath[1400];
     if (slot < 0 || slot >= SAVE_SLOT_COUNT) return -1;
     slot_path(slot, "state", spath, sizeof spath);
     slot_path(slot, "meta",  mpath, sizeof mpath);

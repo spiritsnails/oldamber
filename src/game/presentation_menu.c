@@ -1,5 +1,6 @@
 
 #include "presentation_menu.h"
+#include "../platform/data_dir.h"
 #include "gbc_color.h"
 #include "speed_settings.h"
 #include "battle/battle_exp.h"
@@ -920,7 +921,11 @@ static int row_count(int row) {
     }
 }
 
-#define PRESENTATION_CFG "presentation.cfg"
+static const char *presentation_cfg_path(void) {
+    static char path[1200];
+    return UserDataPath("presentation.cfg", path, sizeof path) ? path : "presentation.cfg";
+}
+#define PRESENTATION_CFG presentation_cfg_path()
 
 static const struct { int row; const char *key; } kPersistRows[] = {
     { ROW_COLOR,    "color"       },

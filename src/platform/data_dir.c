@@ -26,6 +26,7 @@
 static char s_dir[1024];
 static int  s_resolved;
 static int  s_separate;
+static int  s_user_data_cwd;
 
 static int exists(const char *path) {
     struct stat st;
@@ -156,26 +157,38 @@ static int copy_file(const char *src, const char *dst) {
     return ok;
 }
 
-static void copy_tree(const char *src, const char *dst) {
+static int copy_if_missing(const char *src, const char *dst) {
+    char tmp[1280];
+    if (exists(dst) || !exists(src)) return 1;
+    if ((size_t)snprintf(tmp, sizeof tmp, "%s.migrating", dst) >= sizeof tmp) return 0;
+    remove(tmp);
+    if (!copy_file(src, tmp)) { remove(tmp); return 0; }
+    if (exists(dst)) { remove(tmp); return 1; }
+    if (rename(tmp, dst) != 0) { remove(tmp); return 0; }
+    return 1;
+}
+
+static int copy_tree(const char *src, const char *dst) {
     char sp[1200], dp[1200];
     struct stat st;
-    if (stat(src, &st) != 0) return;
-    if (!exists(dst)) make_tree(dst);
+    int ok = 1;
+    if (stat(src, &st) != 0) return 1;
+    if (!exists(dst) && !make_tree(dst)) return 0;
 
 #ifdef _WIN32
     {
         struct _finddata_t fd;
         intptr_t h;
         char pat[1200];
-        if ((size_t)snprintf(pat, sizeof pat, "%s\\*", src) >= sizeof pat) return;
+        if ((size_t)snprintf(pat, sizeof pat, "%s\\*", src) >= sizeof pat) return 0;
         h = _findfirst(pat, &fd);
-        if (h == -1) return;
+        if (h == -1) return 0;
         do {
             if (!strcmp(fd.name, ".") || !strcmp(fd.name, "..")) continue;
             if ((size_t)snprintf(sp, sizeof sp, "%s\\%s", src, fd.name) >= sizeof sp) continue;
             if ((size_t)snprintf(dp, sizeof dp, "%s\\%s", dst, fd.name) >= sizeof dp) continue;
-            if (fd.attrib & _A_SUBDIR) copy_tree(sp, dp);
-            else if (!exists(dp))      copy_file(sp, dp);
+            if (fd.attrib & _A_SUBDIR) { if (!copy_tree(sp, dp)) ok = 0; }
+            else if (!copy_if_missing(sp, dp)) ok = 0;
         } while (_findnext(h, &fd) == 0);
         _findclose(h);
     }
@@ -183,17 +196,19 @@ static void copy_tree(const char *src, const char *dst) {
     {
         DIR *d = opendir(src);
         struct dirent *e;
-        if (!d) return;
+        if (!d) return 0;
         while ((e = readdir(d))) {
             if (!strcmp(e->d_name, ".") || !strcmp(e->d_name, "..")) continue;
             if ((size_t)snprintf(sp, sizeof sp, "%s/%s", src, e->d_name) >= sizeof sp) continue;
             if ((size_t)snprintf(dp, sizeof dp, "%s/%s", dst, e->d_name) >= sizeof dp) continue;
-            if (stat(sp, &st) == 0 && S_ISDIR(st.st_mode)) copy_tree(sp, dp);
-            else if (!exists(dp))                          copy_file(sp, dp);
+            if (stat(sp, &st) == 0 && S_ISDIR(st.st_mode)) {
+                if (!copy_tree(sp, dp)) ok = 0;
+            } else if (!copy_if_missing(sp, dp)) ok = 0;
         }
         closedir(d);
     }
 #endif
+    return ok;
 }
 
 int DataDir_SeedFromInstall(void) {
@@ -217,7 +232,66 @@ int DataDir_SeedFromInstall(void) {
     for (int i = 0; kFiles[i]; i++) {
         if ((size_t)snprintf(sp, sizeof sp, "%s%s", exe, kFiles[i]) >= sizeof sp) continue;
         if ((size_t)snprintf(dp, sizeof dp, "%s%s", data, kFiles[i]) >= sizeof dp) continue;
-        if (!exists(dp)) copy_file(sp, dp);
+        copy_if_missing(sp, dp);
     }
     return 1;
+}
+
+int UserDataDir_Get(char *out, size_t n) {
+    const char *env = SDL_getenv("OLDAMBER_DATA_DIR");
+    char dir[1024];
+
+    if (s_user_data_cwd) return (size_t)snprintf(out, n, ".%c", DD_SEP) < n;
+    if (env && env[0] && (size_t)snprintf(dir, sizeof dir, "%s", env) < sizeof dir) {
+        with_sep(dir, sizeof dir);
+        if (make_tree(dir))
+            return (size_t)snprintf(out, n, "%s", dir) < n;
+    }
+#ifdef _WIN32
+    if (!pref_path(dir, sizeof dir)) return 0;
+    with_sep(dir, sizeof dir);
+    return (size_t)snprintf(out, n, "%s", dir) < n;
+#else
+    return DataDir_Get(out, n);
+#endif
+}
+
+void UserData_UseCurrentDirectory(void) {
+    s_user_data_cwd = 1;
+}
+
+int UserDataPath(const char *relative, char *out, size_t n) {
+    char dir[1024];
+    if (!relative || !UserDataDir_Get(dir, sizeof dir)) return 0;
+    return (size_t)snprintf(out, n, "%s%s", dir, relative) < n;
+}
+
+int UserData_MigrateFromInstall(void) {
+#ifdef _WIN32
+    static const char *kFiles[] = {
+        "pokered.sav", "pokered.sav.vmaps", "pokered.sav.npcrt",
+        "pokeblue.sav", "pokeblue.sav.vmaps", "pokeblue.sav.npcrt",
+        "presentation.cfg", "controls.cfg", NULL
+    };
+    static const char *kTrees[] = { "states", "saves_backup", NULL };
+    char exe[1024], data[1024], sp[1200], dp[1200];
+    int ok = 1;
+
+    if (!ExeDir_Get(exe, sizeof exe) || !UserDataDir_Get(data, sizeof data)) return 0;
+    if (strcmp(exe, data) == 0) return 1;
+
+    for (int i = 0; kFiles[i]; i++) {
+        if ((size_t)snprintf(sp, sizeof sp, "%s%s", exe, kFiles[i]) >= sizeof sp) continue;
+        if ((size_t)snprintf(dp, sizeof dp, "%s%s", data, kFiles[i]) >= sizeof dp) continue;
+        if (!copy_if_missing(sp, dp)) ok = 0;
+    }
+    for (int i = 0; kTrees[i]; i++) {
+        if ((size_t)snprintf(sp, sizeof sp, "%s%s", exe, kTrees[i]) >= sizeof sp) continue;
+        if ((size_t)snprintf(dp, sizeof dp, "%s%s", data, kTrees[i]) >= sizeof dp) continue;
+        if (!copy_tree(sp, dp)) ok = 0;
+    }
+    return ok;
+#else
+    return 1;
+#endif
 }

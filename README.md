@@ -259,11 +259,17 @@ border with monochromatic palettes.
 
 ## Where your data lives
 
-Saves, the imported game data and the log sit beside the game for an ordinary
-folder install. Where the install directory is read-only or should not be
-written into, they move to the platform's own location: Application Support on
-macOS, the app data directory inside a Flatpak. The game reports the directory
-it chose in `pokered_log.txt` on the first line.
+On Windows, progression saves, save-state slots, backups and settings live in
+`%APPDATA%\spiritsnails\OldAmber\`. The first build using this location copies
+any existing files from beside `OldAmber.exe` automatically, without deleting
+or overwriting either copy. That means the game folder can be replaced for an
+update without moving the save by hand.
+
+Imported game data and the log remain beside the game for an ordinary folder
+install. Where the install directory is read-only or should not be written
+into, they use the platform's own location: Application Support on macOS, or
+the app data directory inside a Flatpak. The game reports that content
+directory in `pokered_log.txt` on the first line.
 
 ## Not implemented
 

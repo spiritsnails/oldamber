@@ -984,7 +984,7 @@ static void unpack_save(void) {
 }
 
 static const char *save_sidecar(const char *ext) {
-    static char path[64];
+    static char path[1280];
     snprintf(path, sizeof(path), "%s%s", GameVersion_SavePath(NULL), ext);
     return path;
 }

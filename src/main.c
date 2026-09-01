@@ -215,6 +215,8 @@ static void anchor_cwd_to_exe_dir(int skip) {
                         "and assets will use the current directory instead\n");
         return;
     }
+    if (!UserData_MigrateFromInstall())
+        fprintf(stderr, "warning: could not migrate all existing saves and settings\n");
     if (suite_chdir(dir) != 0) {
         fprintf(stderr, "warning: could not enter %s; saves and assets "
                         "will use the current directory instead\n", dir);
@@ -289,6 +291,8 @@ int main(int argc, char *argv[]) {
             lab_mode = 1;
         }
     }
+
+    if (workdir_set) UserData_UseCurrentDirectory();
 
     anchor_cwd_to_exe_dir(workdir_set);
 

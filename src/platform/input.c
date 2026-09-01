@@ -1,5 +1,6 @@
 
 #include "input.h"
+#include "data_dir.h"
 #include "hardware.h"
 #include "display.h"
 #include "../game/constants.h"
@@ -12,7 +13,11 @@ static FILE *s_play_fp = NULL;
 static int   s_playing = 0;
 static int   s_block_gameplay_input = 0;
 
-#define CONTROLS_CFG "controls.cfg"
+static const char *controls_cfg_path(void) {
+    static char path[1200];
+    return UserDataPath("controls.cfg", path, sizeof path) ? path : "controls.cfg";
+}
+#define CONTROLS_CFG controls_cfg_path()
 
 static void bindings_save(void);
 

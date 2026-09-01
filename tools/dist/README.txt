@@ -58,14 +58,22 @@ pad, for two seconds to put the defaults back.
 
 WHERE YOUR SAVES GO
 
-For an ordinary folder install, your save, the imported game data and the
-log sit beside the game, so keep the folder somewhere you will not
-accidentally delete.
+On Windows, your save, save-state slots, backups and settings live in:
+
+  %APPDATA%\spiritsnails\OldAmber\
+
+The first version that uses this location copies any older save and settings
+from beside OldAmber.exe automatically. It does not delete or overwrite either
+copy. You can replace the game folder during an update without moving your
+save by hand.
+
+The imported game data and log still sit beside the game in an ordinary folder
+install. Re-import your ROM if that imported data is ever removed.
 
 Where the game cannot write beside itself, which is the case for the
-macOS app and the Flatpak, all of it moves to the usual place for that
-platform instead. The first line of pokered_log.txt names the directory
-the game chose, whichever it was.
+macOS app and the Flatpak, the data uses the usual place for that platform
+instead. The first line of pokered_log.txt names the content directory the
+game chose, whichever it was.
 
 
 IF SOMETHING GOES WRONG

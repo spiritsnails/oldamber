@@ -10,6 +10,7 @@
 #include "game_version.h"
 #include "steam_shortcut.h"
 #include "hardware.h"
+#include "data_dir.h"
 
 #include <SDL.h>
 #include <stdio.h>
@@ -96,13 +97,17 @@ static int copy_file(const char *src, const char *dst) {
 
 static int hotswap_save(const char *ver, const char *picked) {
     const char *active = GameVersion_SavePath(ver);
-    char backup[128];
-    snprintf(backup, sizeof(backup), SAVES_BACKUP_DIR "/%s_prev.sav", ver);
+    char backup[1200], relative[128], backup_dir[1200];
+    snprintf(relative, sizeof(relative), SAVES_BACKUP_DIR "/%s_prev.sav", ver);
+    if (!UserDataPath(relative, backup, sizeof backup))
+        snprintf(backup, sizeof backup, "%s", relative);
 
     FILE *cur = fopen(active, "rb");
     if (cur) {
         fclose(cur);
-        LauncherDraw_EnsureDir(SAVES_BACKUP_DIR);
+        if (!UserDataPath(SAVES_BACKUP_DIR, backup_dir, sizeof backup_dir))
+            snprintf(backup_dir, sizeof backup_dir, SAVES_BACKUP_DIR);
+        LauncherDraw_EnsureDir(backup_dir);
         copy_file(active, backup);
     }
     return copy_file(picked, active);
