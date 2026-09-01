@@ -222,7 +222,7 @@ say "run:   $OUT/OldAmber.sh"
 # tar, not zip: OldAmber, OldAmber.sh and setup all need their executable bit,
 # and zip does not carry it. A player unpacking a zip would get files that will
 # not run, on the platform least likely to forgive that.
-VERSION="${VERSION:-0.0.1}"
+VERSION="${VERSION:-0.0.2}"
 ARCHIVE="$REPO/build/OldAmber-$VERSION-linux-x64.tar.gz"
 say "archiving"
 rm -f "$ARCHIVE" "$ARCHIVE.sha256"

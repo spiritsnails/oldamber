@@ -35,6 +35,11 @@
   </supports>
 
   <releases>
+    <release version="0.0.2" date="2026-08-31">
+      <description>
+        <p>Adds configurable rendering rates, improves widescreen presentation, and moves Windows saves to stable per-user storage.</p>
+      </description>
+    </release>
     <release version="0.0.1" date="2026-08-27">
       <description>
         <p>First packaged release.</p>

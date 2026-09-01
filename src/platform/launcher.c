@@ -135,7 +135,7 @@ typedef enum {
 #define DESKTOP_MENU_BOTTOM (DESKTOP_VERSION_Y - 14)
 
 #define OLDAMBER_NAME    "OLDAMBER"
-#define OLDAMBER_VERSION "0.0.1"
+#define OLDAMBER_VERSION "0.0.2"
 
 #define ROW_H_SMALL 32
 #define ROW_H_GAME  44

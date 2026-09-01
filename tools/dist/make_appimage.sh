@@ -17,7 +17,7 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-VERSION="${VERSION:-0.0.1}"
+VERSION="${VERSION:-0.0.2}"
 TARBALL="$REPO/build/OldAmber-$VERSION-linux-x64.tar.gz"
 WORK="$REPO/build/appimage"
 APPDIR="$WORK/OldAmber.AppDir"

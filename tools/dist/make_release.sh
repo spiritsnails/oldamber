@@ -281,7 +281,7 @@ fi
 # own tar is GNU tar and cannot, and neither powershell nor pwsh is on the PATH
 # this script runs under, so both are called by absolute path if bsdtar is
 # missing. Everything here takes Windows paths, hence cygpath.
-VERSION="${VERSION:-0.0.1}"
+VERSION="${VERSION:-0.0.2}"
 ARCHIVE="$REPO/build/OldAmber-$VERSION-windows-x64.zip"
 WIN_TAR="/c/Windows/System32/tar.exe"
 WIN_PS="/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"

@@ -32,7 +32,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="${OUT:-$REPO/build/OldAmber-macos}"
 APP="$OUT/OldAmber.app"
 GAME_DIR="${GAME_DIR:-$REPO/build-macos}"
-VERSION="${VERSION:-0.0.1}"
+VERSION="${VERSION:-0.0.2}"
 
 say() { printf '[macos] %s\n' "$*"; }
 die() { printf '[macos] ERROR: %s\n' "$*" >&2; exit 1; }
