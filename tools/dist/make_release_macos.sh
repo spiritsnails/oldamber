@@ -246,6 +246,7 @@ done < <(python3 "$REPO/tools/dist/scan_extractor_sources.py" "$REPO" | tr -d '\
 say "embedding $(( ${#ADD_DATA[@]} / 2 )) file(s) into setup"
 
 python3 -m PyInstaller --noconfirm --clean --onefile \
+    --target-architecture universal2 \
     --name setup \
     --distpath "$REPO/build/dist_tmp_macos" \
     --workpath "$REPO/build/pyi_work_macos" \
@@ -262,6 +263,19 @@ python3 -m PyInstaller --noconfirm --clean --onefile \
     "$REPO/tools/dist/setup_assets.py" >/dev/null
 cp "$REPO/build/dist_tmp_macos/setup" "$BASE/setup"
 chmod +x "$BASE/setup"
+
+# The game binary is checked above, but the first-run importer is a second
+# executable and must be universal independently. An arm64-only setup inside a
+# universal app launches normally on Apple Silicon and then leaves every Intel
+# player unable to import a ROM, which makes the whole app unusable there.
+setup_archs="$(lipo -archs "$BASE/setup" 2>/dev/null || true)"
+case "$setup_archs" in
+    *arm64*) ;; *) die "no arm64 slice in bundled setup (lipo says: ${setup_archs:-nothing})" ;;
+esac
+case "$setup_archs" in
+    *x86_64*) say "setup is universal: $setup_archs" ;;
+    *) die "no x86_64 slice in bundled setup (lipo says: ${setup_archs:-nothing})" ;;
+esac
 
 # Refuse to ship something broken, or something ROM-derived.
 say "checking nothing ROM-derived got in"
