@@ -6,6 +6,7 @@
 #include "suspend_menu.h"
 #include "../platform/display.h"
 #include "../platform/launcher_draw.h"
+#include "../platform/launcher_dropdown.h"
 #include "../platform/launcher_nav.h"
 #include "presentation_menu.h"
 #include "../platform/input.h"
@@ -458,34 +459,12 @@ static int sm_page_txt(void) {
 static int s_dd_scroll;
 
 static SDL_Rect sm_dd_rect(int row, int n) {
-    const int top_limit = 4;
-    const int bot_limit = LDRAW_H - 52;
     SDL_Rect f = sm_combo_rect(row);
-    SDL_Rect d;
-    int below, above, want;
-
-    if (n < 1) n = 1;
-    d.x = f.x;
-    d.w = f.w;
-
-    below = bot_limit - (f.y + f.h);
-    above = f.y - top_limit;
-    want  = n * SM_DD_ITEM_H + 8;
-
-    if (want <= below || below >= above) {
-        d.y = f.y + f.h - 2;
-        d.h = (want <= below) ? want : below;
-    } else {
-        d.h = (want <= above) ? want : above;
-        d.y = f.y - d.h + 2;
-    }
-    if (d.h < SM_DD_ITEM_H + 8) d.h = SM_DD_ITEM_H + 8;
-    return d;
+    return LauncherDropdown_PanelRect(f, n, SM_DD_ITEM_H, 4, LDRAW_H - 52);
 }
 
 static int sm_dd_visible(const SDL_Rect *d) {
-    int v = (d->h - 8) / SM_DD_ITEM_H;
-    return v < 1 ? 1 : v;
+    return LauncherDropdown_Visible(d, SM_DD_ITEM_H);
 }
 
 static SDL_Rect sm_combo_rect(int row) {
@@ -515,20 +494,7 @@ static SDL_Rect sm_caret_rect(int row) {
 }
 
 static void sm_draw_caret(SDL_Renderer *r, SDL_Rect box, int up) {
-    const int w = 9;
-    const int h = (w + 1) / 2;
-    const int x0 = box.x + (box.w - w) / 2;
-    const int y0 = box.y + (box.h - h) / 2;
-    SDL_SetRenderDrawColor(r, LCOL_TEXT, 0xFF);
-    for (int row = 0; row < h; row++) {
-        SDL_Rect line;
-        line.w = w - row * 2;
-        if (line.w <= 0) break;
-        line.x = x0 + row;
-        line.y = up ? (y0 + h - 1 - row) : (y0 + row);
-        line.h = 1;
-        SDL_RenderFillRect(r, &line);
-    }
+    LauncherDropdown_DrawCaret(r, box, up);
 }
 
 static void sm_dd_clamp_scroll(const SDL_Rect *d, int n) {

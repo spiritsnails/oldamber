@@ -393,8 +393,11 @@ list(APPEND SOURCES
     src/platform/launcher_native.c
     src/platform/launcher_font.c
     src/platform/launcher_draw.c
+    src/platform/launcher_dropdown.c
     src/platform/launcher_nav.c
     src/platform/launcher_browse.c
+    src/platform/launcher_save_editor.c
+    src/platform/launcher_save_editor_workspace.c
     # Only does anything on a Deck, every entry point is gated on
     # Display_IsSteamDeck, but it compiles everywhere: the file is one
     # __linux__ branch with a stub tail, so no call site needs a platform

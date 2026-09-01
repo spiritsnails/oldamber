@@ -766,6 +766,7 @@ typedef char save_prefix_is_stable_v11[
      SAVE_PREFIX_PINNED(map_pal_offset)) ? 1 : -1];
 
 static save_block_t save;
+static int write_file_atomic(const char *path, const void *data, size_t len);
 
 #define SAVE_EVENT_NUMBERING_REV 3
 
@@ -910,12 +911,12 @@ static void save_migrate_gender_glyph_nicks_v2(void) {
 static int s_peek_only = 0;
 
 static void unpack_save(void) {
-    if (s_peek_only) return;
 
     if (save.event_numbering_rev < 1) save_migrate_event_numbering_v11(save.event_flags);
     if (save.event_numbering_rev < 2) save_migrate_purified_zone_v1(save.event_flags);
     if (save.event_numbering_rev < 3) save_migrate_gender_glyph_nicks_v2();
     save.event_numbering_rev = SAVE_EVENT_NUMBERING_REV;
+    if (s_peek_only) return;
     memcpy(wPlayerName,    save.player_name,   NAME_LENGTH);
     memcpy(wPokedexOwned,  save.pokedex_owned, sizeof(wPokedexOwned));
     memcpy(wPokedexSeen,   save.pokedex_seen,  sizeof(wPokedexSeen));
@@ -1063,6 +1064,146 @@ int Save_PeekFrom(const char *path, save_peek_t *out) {
                sizeof(out->pokedex_owned));
         out->valid = 1;
     }
+    save = keep;
+    return rc;
+}
+
+static unsigned bcd_read(const uint8_t *p, size_t n) {
+    unsigned v = 0;
+    for (size_t i = 0; i < n; i++)
+        v = v * 100u + ((p[i] >> 4) & 0xFu) * 10u + (p[i] & 0xFu);
+    return v;
+}
+
+static void bcd_write(uint8_t *p, size_t n, unsigned v) {
+    for (size_t i = n; i-- > 0;) {
+        unsigned pair = v % 100u;
+        p[i] = (uint8_t)(((pair / 10u) << 4) | (pair % 10u));
+        v /= 100u;
+    }
+}
+
+int Save_EditorRead(const char *path, save_editor_data_t *out) {
+    save_block_t keep = save;
+    int rc;
+    if (!path || !out) return -1;
+    memset(out, 0, sizeof(*out));
+    s_peek_only = 1;
+    rc = Save_LoadFrom(path);
+    s_peek_only = 0;
+    if (rc == 0) {
+        memcpy(out->player_name, save.player_name, sizeof(out->player_name));
+        memcpy(out->rival_name, save.rival_name, sizeof(out->rival_name));
+        out->player_id = save.player_id;
+        out->money = bcd_read(save.player_money, sizeof(save.player_money));
+        out->coins = (uint16_t)bcd_read(save.player_coins, sizeof(save.player_coins));
+        out->badges = save.badges;
+        out->cur_map = save.cur_map;
+        out->last_map = save.last_map;
+        out->x_coord = save.x_coord;
+        out->y_coord = save.y_coord;
+        memcpy(out->pokedex_owned, save.pokedex_owned, sizeof(out->pokedex_owned));
+        memcpy(out->pokedex_seen, save.pokedex_seen, sizeof(out->pokedex_seen));
+        out->num_bag_items = save.num_bag_items;
+        memcpy(out->bag_items, save.bag_items, sizeof(out->bag_items));
+        out->num_box_items = save.num_box_items;
+        memcpy(out->box_items, save.box_items, sizeof(out->box_items));
+        out->party_count = save.party_count;
+        memcpy(out->party_mons, save.party_mons, sizeof(out->party_mons));
+        memcpy(out->party_ot, save.party_ot, sizeof(out->party_ot));
+        memcpy(out->party_nicks, save.party_nicks, sizeof(out->party_nicks));
+        out->current_box_num = save.current_box_num;
+        memcpy(out->box_count, save.box_count, sizeof(out->box_count));
+        memcpy(out->box_species, save.box_species, sizeof(out->box_species));
+        memcpy(out->box_mons, save.box_mons, sizeof(out->box_mons));
+        memcpy(out->box_ot, save.box_ot, sizeof(out->box_ot));
+        memcpy(out->box_nicks, save.box_nicks, sizeof(out->box_nicks));
+        memcpy(out->event_flags, save.event_flags, SAVE_EVENT_FLAGS_BYTES);
+        memcpy(out->event_flags + SAVE_EVENT_FLAGS_BYTES, save.event_flags_ext,
+               SAVE_EVENT_FLAGS_EXT_BYTES);
+        memcpy(out->hand_authored_flags, save.hand_authored_flags,
+               sizeof(out->hand_authored_flags));
+    }
+    save = keep;
+    return rc;
+}
+
+int Save_EditorWrite(const char *path, const save_editor_data_t *data) {
+    char backup[1280];
+    save_block_t keep = save;
+    int rc;
+    if (!path || !data || data->money > 999999u || data->coins > 9999u)
+        return -1;
+
+    s_peek_only = 1;
+    rc = Save_LoadFrom(path);
+    s_peek_only = 0;
+    if (rc != 0) { save = keep; return -1; }
+
+    memcpy(save.player_name, data->player_name, sizeof(save.player_name));
+    memcpy(save.rival_name, data->rival_name, sizeof(save.rival_name));
+    save.player_id = data->player_id;
+    bcd_write(save.player_money, sizeof(save.player_money), data->money);
+    bcd_write(save.player_coins, sizeof(save.player_coins), data->coins);
+    save.badges = data->badges;
+    save.cur_map = data->cur_map;
+    save.last_map = data->last_map;
+    save.x_coord = data->x_coord;
+    save.y_coord = data->y_coord;
+    memcpy(save.pokedex_seen, data->pokedex_seen, sizeof(save.pokedex_seen));
+    memcpy(save.pokedex_owned, data->pokedex_owned, sizeof(save.pokedex_owned));
+    for (int i = 0; i < 19; i++)
+        save.pokedex_seen[i] |= save.pokedex_owned[i];
+    save.num_bag_items = data->num_bag_items <= BAG_ITEM_CAPACITY
+                       ? data->num_bag_items : BAG_ITEM_CAPACITY;
+    memcpy(save.bag_items, data->bag_items, sizeof(save.bag_items));
+    save.bag_items[save.num_bag_items * 2] = 0xFF;
+    save.num_box_items = data->num_box_items <= PC_ITEM_CAPACITY
+                       ? data->num_box_items : PC_ITEM_CAPACITY;
+    memcpy(save.box_items, data->box_items, sizeof(save.box_items));
+    save.box_items[save.num_box_items * 2] = 0xFF;
+    save.party_count = data->party_count <= PARTY_LENGTH ? data->party_count : PARTY_LENGTH;
+    memcpy(save.party_mons, data->party_mons, sizeof(save.party_mons));
+    memcpy(save.party_ot, data->party_ot, sizeof(save.party_ot));
+    memcpy(save.party_nicks, data->party_nicks, sizeof(save.party_nicks));
+    save.current_box_num = data->current_box_num < NUM_BOXES ? data->current_box_num : 0;
+    memcpy(save.box_count, data->box_count, sizeof(save.box_count));
+    memcpy(save.box_species, data->box_species, sizeof(save.box_species));
+    memcpy(save.box_mons, data->box_mons, sizeof(save.box_mons));
+    memcpy(save.box_ot, data->box_ot, sizeof(save.box_ot));
+    memcpy(save.box_nicks, data->box_nicks, sizeof(save.box_nicks));
+    for (int b = 0; b < NUM_BOXES; b++) {
+        if (save.box_count[b] > BOX_CAPACITY) save.box_count[b] = BOX_CAPACITY;
+        for (int i = 0; i < save.box_count[b]; i++)
+            save.box_species[b][i] = save.box_mons[b][i].species;
+        save.box_species[b][save.box_count[b]] = 0xFF;
+    }
+    memcpy(save.event_flags, data->event_flags, SAVE_EVENT_FLAGS_BYTES);
+    memcpy(save.event_flags_ext, data->event_flags + SAVE_EVENT_FLAGS_BYTES,
+           SAVE_EVENT_FLAGS_EXT_BYTES);
+    memcpy(save.hand_authored_flags, data->hand_authored_flags,
+           sizeof(save.hand_authored_flags));
+    save.checksum = CalcCheckSum((uint8_t *)&save, (uint16_t)(sizeof(save) - 1));
+
+    snprintf(backup, sizeof(backup), "%s.editor.bak", path);
+    {
+        FILE *in = fopen(path, "rb");
+        FILE *out = in ? fopen(backup, "wb") : NULL;
+        char buf[8192];
+        size_t n;
+        if (!in || !out) {
+            if (in) fclose(in);
+            if (out) fclose(out);
+            save = keep;
+            return -1;
+        }
+        while ((n = fread(buf, 1, sizeof(buf), in)) > 0)
+            if (fwrite(buf, 1, n, out) != n) { rc = -1; break; }
+        if (ferror(in) || fclose(out) != 0) rc = -1;
+        fclose(in);
+        if (rc != 0) { save = keep; return -1; }
+    }
+    rc = write_file_atomic(path, &save, sizeof(save));
     save = keep;
     return rc;
 }

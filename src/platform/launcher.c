@@ -4,6 +4,7 @@
 #include "launcher_draw.h"
 #include "launcher_nav.h"
 #include "launcher_browse.h"
+#include "launcher_save_editor.h"
 #include "rom_import.h"
 #include "display.h"
 #include "save.h"
@@ -119,7 +120,8 @@ static const char *const kRomExts[] = { "gb", "gbc", NULL };
 static const char *const kSavExts[] = { "sav", NULL };
 
 typedef enum {
-    ACT_CHOOSE_ROM = 0, ACT_PLAY, ACT_SWITCH_SAVE, ACT_ADD_TO_STEAM, ACT_QUIT
+    ACT_CHOOSE_ROM = 0, ACT_PLAY, ACT_SWITCH_SAVE, ACT_EDIT_SAVE,
+    ACT_ADD_TO_STEAM, ACT_QUIT
 } action_t;
 
 #define MENU_MAX 8
@@ -238,6 +240,7 @@ static void menu_build(menu_t *m, ui_state_t state,
     }
 
     menu_add(m, ACT_SWITCH_SAVE, "SWITCH SAVE FILE", "", ROW_H_SMALL, 2);
+    menu_add(m, ACT_EDIT_SAVE, "EDIT SAVE FILE", "", ROW_H_SMALL, 2);
 
     if (SteamShortcut_Offer())
         menu_add(m, ACT_ADD_TO_STEAM, "ADD TO STEAM", "", ROW_H_SMALL, 2);
@@ -288,7 +291,8 @@ static void menu_build(menu_t *m, ui_state_t state,
             }
 
             for (int i = 0; i < m->count; i++) {
-                if (m->rows[i].act == ACT_SWITCH_SAVE) continue;
+                if (m->rows[i].act == ACT_SWITCH_SAVE ||
+                    m->rows[i].act == ACT_EDIT_SAVE) continue;
                 if (m->rows[i].act == ACT_PLAY) continue;
                 m->rows[i].tile = 0;
                 m->rows[i].h = row_h;
@@ -304,7 +308,8 @@ static void menu_build(menu_t *m, ui_state_t state,
             y += SAVE_BOX_H + box_gap;
 
             for (int i = 0; i < m->count; i++) {
-                if (m->rows[i].act != ACT_SWITCH_SAVE) continue;
+                if (m->rows[i].act != ACT_SWITCH_SAVE &&
+                    m->rows[i].act != ACT_EDIT_SAVE) continue;
                 m->rows[i].tile = 0;
                 m->rows[i].h = row_h;
                 m->rect[i] = (SDL_Rect){ x, y, bw, m->rows[i].h };
@@ -801,6 +806,18 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
                         snprintf(status, sizeof(status), "COULD NOT SWITCH SAVE FILE");
                         fprintf(stderr, "launcher: could not switch to %s\n", picked);
                     }
+                }
+            } else if (act == ACT_EDIT_SAVE) {
+                int edited = LauncherSaveEditor_Run(
+                    r, win, &nav, GameVersion_SavePath(sel_ver),
+                    GameVersion_Label(sel_ver));
+                preview_focus = -1;
+                if (edited > 0) {
+                    status_err = 0;
+                    snprintf(status, sizeof(status), "SAVE CHANGES WRITTEN");
+                } else if (edited < 0) {
+                    status_err = 1;
+                    snprintf(status, sizeof(status), "COULD NOT EDIT SAVE FILE");
                 }
             }
         }
