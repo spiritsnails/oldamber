@@ -1,0 +1,59 @@
+name: Feature request
+description: Suggest a new feature or an improvement to OldAmber.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea. Describe the result you would like to see;
+        you do not need to know how it should be implemented.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of OldAmber would this affect most?
+      options:
+        - Gameplay
+        - Launcher and updates
+        - Save editor
+        - Display and presentation
+        - Controls and accessibility
+        - Modding and AmberScript
+        - Platform and build support
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: request
+    attributes:
+      label: What would you like to see?
+      description: Explain the feature or improvement in your own words.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why would this be useful?
+      description: Tell us what problem it solves or what it would make better.
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior
+    attributes:
+      label: How should it work?
+      description: Optional details, examples, mockups, or alternatives you considered.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: duplicates
+    attributes:
+      label: Existing requests
+      options:
+        - label: I searched the existing issues and did not find this request.
+          required: true

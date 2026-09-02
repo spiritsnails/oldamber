@@ -17,6 +17,18 @@ arithmetic on their own. Others lean on Game Boy behaviour this port does not
 have, and reproducing them is a goal rather than a promise. If one you know
 should work does not, that is worth an issue.
 
+## Bugs and feature requests
+
+Found something that behaves incorrectly, crashes, or will not start?
+**[Report a bug](https://github.com/spiritsnails/oldamber/issues/new?template=bug_report.yml)**
+with your platform, version, and the steps needed to reproduce it.
+
+Have an idea that would improve OldAmber?
+**[Request a feature](https://github.com/spiritsnails/oldamber/issues/new?template=feature_request.yml)**
+and explain what you would like, why it would be useful, and how you imagine it
+working. Questions and general conversation are still best suited to the
+[Discord](https://discord.gg/2pZNRp6t8).
+
 ## You supply your own legally acquired ROM
 
 This repository holds the engine and the extractors. The graphics, music, text,
