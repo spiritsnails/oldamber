@@ -20,6 +20,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+VERSION="${VERSION:-$(tr -d '\r\n' < "$REPO/VERSION")}"
+VERSION_DIR="v${VERSION//./_}"
 OUT="${OUT:-$REPO/build/OldAmber-linux}"
 GAME_DIR="${GAME_DIR:-$REPO/build-nopy}"
 
@@ -61,11 +63,17 @@ want AMBER_EMBED_PYTHON OFF \
 say "assembling $OUT"
 mkdir -p "$OUT"
 find "$OUT" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
-mkdir -p "$OUT/mod_runtime"
+PAYLOAD="$OUT/versions/$VERSION_DIR"
+mkdir -p "$PAYLOAD/mod_runtime"
 
-cp "$GAME_EXE" "$OUT/OldAmber"
+BOOTSTRAP="$GAME_DIR/oldamber-bootstrap"
+[ -f "$BOOTSTRAP" ] || die "no oldamber-bootstrap in $GAME_DIR -- build the release tree again"
+cp "$BOOTSTRAP" "$OUT/OldAmber"
 chmod +x "$OUT/OldAmber"
-cp -r "$REPO/shaders" "$OUT/"
+cp "$GAME_EXE" "$PAYLOAD/oldamber-game"
+chmod +x "$PAYLOAD/oldamber-game"
+printf '%s\n' "$VERSION" > "$OUT/bundled-version"
+cp -r "$REPO/shaders" "$PAYLOAD/"
 # The Steam library icon. The launcher's "add to Steam library" offer points the
 # .desktop it writes at this exact name beside the binary (icon_path() in
 # steam_shortcut.c), so renaming it here drops the shortcut back to Steam's
@@ -100,15 +108,15 @@ fi
 # Authored content only. generatedmaps/ and custom_art/ are ROM-derived and are
 # produced on the player's machine by the first run.
 for d in blocks scenes config map_edits; do
-    cp -r "$REPO/mod_runtime/$d" "$OUT/mod_runtime/"
+    cp -r "$REPO/mod_runtime/$d" "$PAYLOAD/mod_runtime/"
 done
-cp "$REPO/mod_runtime/pks_flag_registry.txt" "$OUT/mod_runtime/"
+cp "$REPO/mod_runtime/pks_flag_registry.txt" "$PAYLOAD/mod_runtime/"
 
 # Development scaffolding, see the same removal in make_release.sh: no scene
 # binds a Test*.block, and they name `subtile` art under mod_runtime/custom_art
 # which no bundle carries, so each one costs the player a "PNG not found" line
 # on first boot and gives nothing back.
-rm -f "$OUT/mod_runtime/blocks"/Test*.block
+rm -f "$PAYLOAD/mod_runtime/blocks"/Test*.block
 
 # No loose tools/ in the bundle. Every importer .py, and the symbol table they
 # read, is frozen into setup below: PyInstaller's --paths pulls them in and
@@ -161,9 +169,9 @@ python3 -m PyInstaller --noconfirm --clean --onefile \
 # internal/, not the top level. Next to the game, setup reads as the installer
 # a player is meant to run first, and it is not one: the launcher runs it. One
 # executable in the folder a player opens.
-mkdir -p "$OUT/internal"
-cp "$REPO/build/dist_tmp_linux/setup" "$OUT/internal/setup"
-chmod +x "$OUT/internal/setup"
+mkdir -p "$PAYLOAD/internal"
+cp "$REPO/build/dist_tmp_linux/setup" "$PAYLOAD/internal/setup"
+chmod +x "$PAYLOAD/internal/setup"
 
 # The repo files the extractors open by path are --add-data'd into setup above,
 # not copied loose. The same list make_release.sh freezes into setup.exe.
@@ -190,8 +198,9 @@ strays="$(find "$OUT" \( -name '*.pak' -o -name custom_art -o -name generatedmap
 [ -z "$strays" ] || { printf '%s\n' "$strays" >&2; die "content that must never ship is in the bundle"; }
 
 missing=0
-for f in OldAmber OldAmber.sh internal/setup LICENSE THIRD_PARTY.md README.txt \
-         LICENSE-Python.txt icon.png shaders/MasterShader.fsh; do
+for f in OldAmber OldAmber.sh bundled-version LICENSE THIRD_PARTY.md README.txt \
+         LICENSE-Python.txt icon.png "versions/$VERSION_DIR/oldamber-game" \
+         "versions/$VERSION_DIR/internal/setup" "versions/$VERSION_DIR/shaders/MasterShader.fsh"; do
     [ -e "$OUT/$f" ] || { echo "MISSING FROM BUNDLE: $f" >&2; missing=1; }
 done
 [ "$missing" -eq 0 ] || die "refusing to call this bundle ready"
@@ -201,12 +210,12 @@ done
 # player's machine does not have, and the game would die at exec with a linker
 # message and no log.
 if command -v ldd >/dev/null 2>&1; then
-    unresolved="$(ldd "$OUT/OldAmber" 2>/dev/null | grep -i "not found" || true)"
+    unresolved="$(ldd "$PAYLOAD/oldamber-game" 2>/dev/null | grep -i "not found" || true)"
     if [ -n "$unresolved" ]; then
         printf '%s\n' "$unresolved" >&2
         die "unresolved shared libraries -- this bundle will not start here"
     fi
-    if ldd "$OUT/OldAmber" 2>/dev/null | grep -qi "libpython"; then
+    if ldd "$PAYLOAD/oldamber-game" 2>/dev/null | grep -qi "libpython"; then
         die "the binary links libpython -- rebuild with -DAMBER_EMBED_PYTHON=OFF"
     fi
     say "shared libraries all resolve, and libpython is absent"
@@ -215,6 +224,15 @@ fi
 say "ready: $OUT  ($(du -sh "$OUT" | cut -f1))"
 say "run:   $OUT/OldAmber.sh"
 
+UPDATE_ARCHIVE="$REPO/build/OldAmber-$VERSION-linux-x64-update.tar.gz"
+say "update payload"
+rm -f "$UPDATE_ARCHIVE" "$UPDATE_ARCHIVE.sha256"
+tar -czf "$UPDATE_ARCHIVE" -C "$PAYLOAD" .
+if command -v sha256sum >/dev/null 2>&1; then
+    (cd "$(dirname "$UPDATE_ARCHIVE")" &&
+     sha256sum "$(basename "$UPDATE_ARCHIVE")" | tee "$(basename "$UPDATE_ARCHIVE").sha256")
+fi
+
 # ---- the archive that actually gets uploaded --------------------------------
 # Packaging used to stop at a folder, so every upload was archived by hand and
 # nothing afterwards could say what a given download contained.
@@ -222,7 +240,6 @@ say "run:   $OUT/OldAmber.sh"
 # tar, not zip: OldAmber, OldAmber.sh and setup all need their executable bit,
 # and zip does not carry it. A player unpacking a zip would get files that will
 # not run, on the platform least likely to forgive that.
-VERSION="${VERSION:-0.0.2}"
 ARCHIVE="$REPO/build/OldAmber-$VERSION-linux-x64.tar.gz"
 say "archiving"
 rm -f "$ARCHIVE" "$ARCHIVE.sha256"

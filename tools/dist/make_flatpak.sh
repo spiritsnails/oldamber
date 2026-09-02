@@ -21,11 +21,12 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 HERE="$REPO/tools/dist/flatpak"
 APPID="com.spiritsnails.OldAmber"
 RUNTIME_VER="24.08"
-VERSION="${VERSION:-0.0.2}"
+VERSION="${VERSION:-$(tr -d '\r\n' < "$REPO/VERSION")}"
 TARBALL="$REPO/build/OldAmber-$VERSION-linux-x64.tar.gz"
 BUILDDIR="$REPO/build/flatpak-build"
 REPODIR="$REPO/build/flatpak-repo"
 BUNDLE="$REPO/build/OldAmber-$VERSION-linux-x86_64.flatpak"
+MANIFEST_DIR="$REPO/build/flatpak-manifest"
 
 say() { printf '[flatpak] %s\n' "$*"; }
 die() { printf '[flatpak] ERROR: %s\n' "$*" >&2; exit 1; }
@@ -72,9 +73,16 @@ print("wrote icon_128.png and icon_256.png")
 PY
 
 say "building"
-rm -rf "$BUILDDIR" "$REPODIR"
+rm -rf "$BUILDDIR" "$REPODIR" "$MANIFEST_DIR"
+cp -r "$HERE" "$MANIFEST_DIR"
+sed -E -i "s/OldAmber-[0-9.]+-linux-x64/OldAmber-$VERSION-linux-x64/g" \
+    "$MANIFEST_DIR/$APPID.yml"
+sed -i 's#path: ../../../build/#path: ../#' \
+    "$MANIFEST_DIR/$APPID.yml"
+sed -E -i "0,/<release version=\"[0-9.]+\" date=\"[0-9-]+\">/s//<release version=\"$VERSION\" date=\"$(date +%F)\">/" \
+    "$MANIFEST_DIR/$APPID.metainfo.xml"
 flatpak-builder --user --force-clean --repo="$REPODIR" \
-    "$BUILDDIR" "$HERE/$APPID.yml"
+    "$BUILDDIR" "$MANIFEST_DIR/$APPID.yml"
 
 say "bundling"
 rm -f "$BUNDLE"

@@ -54,6 +54,9 @@ say rom:PewterCityYoungsterGoTakeOnBrockText
 wait_text
 queue gymguide right 5
 march
+
+place gymguide 35 16
+face gymguide down
 despawn gymguide
 show 35 16
 lock_input off

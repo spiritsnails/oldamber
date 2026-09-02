@@ -8,6 +8,7 @@
 #include "map_music.h"
 #include "npc.h"
 #include "player.h"
+#include "warp.h"
 #include "overworld.h"
 #include "../data/map_data.h"
 #include "amberscript_mapbank.h"
@@ -249,7 +250,9 @@ void Pokecenter_Tick(void) {
                 wLastHealTownMap = wLastMap;
                 {
 
-                    const char *nm = AmberScript_MapBank_NameForRealId(wLastMap);
+                    const char *nm = Warp_GetLastFromMapName();
+                    if (!nm || !nm[0])
+                        nm = AmberScript_MapBank_NameForRealId(wLastMap);
                     if (nm) {
                         strncpy(wLastHealTownName, nm, sizeof(wLastHealTownName) - 1);
                         wLastHealTownName[sizeof(wLastHealTownName) - 1] = '\0';

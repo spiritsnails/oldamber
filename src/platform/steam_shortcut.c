@@ -66,6 +66,13 @@ static int exe_dir(char *out, size_t n) {
 
 static int target_path(char *out, size_t n) {
     char dir[1024];
+    const char *bootstrap = getenv("OLDAMBER_BOOTSTRAP_DIR");
+    if (bootstrap && bootstrap[0]) {
+        char shim[1200];
+        if ((size_t)snprintf(shim, sizeof shim, "%s/OldAmber.sh", bootstrap) < sizeof shim &&
+            access(shim, X_OK) == 0)
+            return (size_t)snprintf(out, n, "%s", shim) < n;
+    }
     if (exe_dir(dir, sizeof dir)) {
         char shim[1200];
         if ((size_t)snprintf(shim, sizeof shim, "%s/OldAmber.sh", dir) < sizeof shim &&
@@ -84,6 +91,11 @@ static int target_path(char *out, size_t n) {
 
 static int icon_path(char *out, size_t n) {
     char dir[1024];
+    const char *bootstrap = getenv("OLDAMBER_BOOTSTRAP_DIR");
+    if (bootstrap && bootstrap[0]) {
+        if ((size_t)snprintf(out, n, "%s/icon.png", bootstrap) >= n) return 0;
+        return access(out, R_OK) == 0;
+    }
     if (!exe_dir(dir, sizeof dir)) return 0;
     if ((size_t)snprintf(out, n, "%s/icon.png", dir) >= n) return 0;
     return access(out, R_OK) == 0;

@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
-project(pokered C)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" OLDAMBER_VERSION LIMIT_COUNT 1)
+if(NOT OLDAMBER_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+  message(FATAL_ERROR "VERSION must contain one semantic version (got '${OLDAMBER_VERSION}')")
+endif()
+project(pokered VERSION ${OLDAMBER_VERSION} LANGUAGES C)
+
+configure_file(
+    src/platform/app_version.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/app_version.h
+    @ONLY
+)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -379,6 +389,8 @@ src/game/static_encounter.c
     # Where generated data lives, which is not always where the program
     # lives: a macOS bundle and a Flatpak both forbid writing beside it.
     src/platform/data_dir.c
+    src/platform/update.c
+    src/platform/sha256.c
 )
 
 # The launcher always ships: it is the ROM picker every player goes through.
@@ -429,6 +441,17 @@ endif()
 # dialog on top of it where one exists.
 
 add_executable(pokered ${SOURCES})
+add_executable(oldamber_bootstrap src/platform/bootstrap.c)
+set_target_properties(oldamber_bootstrap PROPERTIES
+    OUTPUT_NAME "oldamber-bootstrap"
+)
+if(WIN32 AND MINGW)
+  if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_link_options(oldamber_bootstrap PRIVATE -mwindows)
+  else()
+    target_link_options(oldamber_bootstrap PRIVATE -mconsole)
+  endif()
+endif()
 # The launcher is always compiled, so main.c's call site is always live. Only
 # the embedded interpreter's include path is conditional.
 target_compile_definitions(pokered PRIVATE HAVE_ROM_LAUNCHER)
@@ -465,6 +488,7 @@ endif()
 # still take the stub headers, or it would compile against real declarations
 # and link against the zeroed definitions.
 target_include_directories(pokered PRIVATE src)
+target_include_directories(pokered PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 target_include_directories(pokered PRIVATE ${CMAKE_SOURCE_DIR}/third_party/ntsc-crt)
 # CRT_SYSTEM_SNES (3). crt_core.h picks the signal profile from this, and a
 # wrong value quietly compiles another machine's line timing, so it is set once
@@ -1004,8 +1028,8 @@ endif()
 
 # CTest integration. pokered_tests only exists in a full build, so registering
 # it under RED_ONLY would create a test that cannot be run.
-if(NOT RED_ONLY)
 enable_testing()
+if(NOT RED_ONLY)
 add_test(NAME pokered_tests COMMAND pokered_tests)
 endif()
 

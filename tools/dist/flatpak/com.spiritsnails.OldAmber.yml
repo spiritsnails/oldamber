@@ -35,7 +35,9 @@ modules:
       - cp -r OldAmber-linux/. /app/oldamber/
       # setup lives in internal/, so the folder a player opens holds one
       # executable. See the note in make_release_linux.sh.
-      - chmod +x /app/oldamber/OldAmber /app/oldamber/internal/setup
+      - chmod +x /app/oldamber/OldAmber
+          /app/oldamber/versions/*/oldamber-game
+          /app/oldamber/versions/*/internal/setup
 
       # A launcher on PATH. The real binary stays where its own data sits
       # beside it, because it locates setup relative to itself.

@@ -79,7 +79,7 @@ cmake -S "$REPO" -B "$REPO/$BUILD_DIR" \
       -DCMAKE_PREFIX_PATH="$PREFIX" >/dev/null
 
 say "building the game"
-cmake --build "$REPO/$BUILD_DIR" --target pokered --parallel
+cmake --build "$REPO/$BUILD_DIR" --target pokered oldamber_bootstrap --parallel
 
 EXE="$REPO/$BUILD_DIR/oldamber"
 [ -f "$EXE" ] || die "build finished but no $EXE"

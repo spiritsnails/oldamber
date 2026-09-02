@@ -18,6 +18,8 @@ void Warp_Execute(void);
 
 void Warp_Reset(void);
 
+const char *Warp_GetLastFromMapName(void);
+
 int Warp_JustHappened(void);
 
 int Warp_IsPending(void);

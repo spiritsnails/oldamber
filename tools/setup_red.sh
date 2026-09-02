@@ -89,6 +89,7 @@ cmake -S . -B "$BUILD_DIR" -G "$CMAKE_GEN" -DRED_ONLY=ON -DCMAKE_BUILD_TYPE=Rele
 
 echo "==> 6/6  build"
 BUILD_DIR="$BUILD_DIR" bash tools/build.sh pokered
+BUILD_DIR="$BUILD_DIR" bash tools/build.sh oldamber_bootstrap
 
 echo ""
 echo "done -- $BUILD_DIR/oldamber$EXE_SUFFIX"

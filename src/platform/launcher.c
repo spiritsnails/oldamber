@@ -12,6 +12,8 @@
 #include "steam_shortcut.h"
 #include "hardware.h"
 #include "data_dir.h"
+#include "app_version.h"
+#include "update.h"
 
 #include <SDL.h>
 #include <stdio.h>
@@ -121,10 +123,10 @@ static const char *const kSavExts[] = { "sav", NULL };
 
 typedef enum {
     ACT_CHOOSE_ROM = 0, ACT_PLAY, ACT_SWITCH_SAVE, ACT_EDIT_SAVE,
-    ACT_ADD_TO_STEAM, ACT_QUIT
+    ACT_UPDATE, ACT_ADD_TO_STEAM, ACT_QUIT
 } action_t;
 
-#define MENU_MAX 8
+#define MENU_MAX 10
 
 #define PANEL_X       24
 #define PANEL_INSET   16
@@ -135,9 +137,6 @@ typedef enum {
 
 #define DESKTOP_VERSION_Y   (LDRAW_H - 16 - LDRAW_LINE_H(1))
 #define DESKTOP_MENU_BOTTOM (DESKTOP_VERSION_Y - 14)
-
-#define OLDAMBER_NAME    "OLDAMBER"
-#define OLDAMBER_VERSION "0.0.2"
 
 #define ROW_H_SMALL 32
 #define ROW_H_GAME  44
@@ -241,6 +240,19 @@ static void menu_build(menu_t *m, ui_state_t state,
 
     menu_add(m, ACT_SWITCH_SAVE, "SWITCH SAVE FILE", "", ROW_H_SMALL, 2);
     menu_add(m, ACT_EDIT_SAVE, "EDIT SAVE FILE", "", ROW_H_SMALL, 2);
+
+    update_snapshot_t update;
+    Update_GetSnapshot(&update);
+    if (update.state != UPDATE_DISABLED) {
+        char label[40];
+        if (update.state == UPDATE_CHECKING) snprintf(label, sizeof label, "CHECKING FOR UPDATES...");
+        else if (update.state == UPDATE_AVAILABLE) snprintf(label, sizeof label, "UPDATE TO V%s", update.version);
+        else if (update.state == UPDATE_DOWNLOADING) snprintf(label, sizeof label, "DOWNLOADING UPDATE...");
+        else if (update.state == UPDATE_READY) snprintf(label, sizeof label, "RESTART TO FINISH UPDATE");
+        else if (update.state == UPDATE_ERROR) snprintf(label, sizeof label, "RETRY UPDATE CHECK");
+        else snprintf(label, sizeof label, "CHECK FOR UPDATES");
+        menu_add(m, ACT_UPDATE, label, "", ROW_H_SMALL, 2);
+    }
 
     if (SteamShortcut_Offer())
         menu_add(m, ACT_ADD_TO_STEAM, "ADD TO STEAM", "", ROW_H_SMALL, 2);
@@ -647,6 +659,7 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
     }
 
     SDL_RenderSetLogicalSize(r, LDRAW_W, LDRAW_H);
+    Update_Init();
 
 #if SDL_VERSION_ATLEAST(2, 0, 5)
 
@@ -679,6 +692,9 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
     SDL_ShowCursor(pointer ? SDL_ENABLE : SDL_DISABLE);
     menu_build(&m, state, installed, n_installed, pointer);
     launcher_result_t result = LAUNCHER_CANCELLED;
+    update_snapshot_t update;
+    Update_GetSnapshot(&update);
+    update_state_t update_seen = update.state;
     int running = 1;
 
     save_preview_t save_preview;
@@ -713,6 +729,15 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
             preview_focus = -1;
 
             SDL_ShowCursor(pointer ? SDL_ENABLE : SDL_DISABLE);
+        }
+
+        Update_GetSnapshot(&update);
+        if (update.state != update_seen) {
+            update_seen = update.state;
+            menu_build(&m, state, installed, n_installed, pointer);
+            preview_focus = -1;
+            status_err = (update.state == UPDATE_ERROR);
+            snprintf(status, sizeof status, "%s", update.message);
         }
 
         int busy = (state == STATE_BUILDING) || notice_active;
@@ -819,6 +844,15 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
                     status_err = 1;
                     snprintf(status, sizeof(status), "COULD NOT EDIT SAVE FILE");
                 }
+            } else if (act == ACT_UPDATE) {
+                Update_GetSnapshot(&update);
+                if (update.state == UPDATE_AVAILABLE) Update_Install();
+                else if (update.state == UPDATE_READY) {
+                    result = LAUNCHER_RESTART;
+                    running = 0;
+                } else if (update.state == UPDATE_ERROR ||
+                           update.state == UPDATE_CURRENT ||
+                           update.state == UPDATE_IDLE) Update_Check();
             }
         }
 
@@ -942,6 +976,7 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
     }
 
     LauncherNav_Close(&nav);
+    Update_Shutdown();
     SDL_DestroyRenderer(r);
     SDL_DestroyWindow(win);
 

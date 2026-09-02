@@ -394,7 +394,9 @@ int main(int argc, char *argv[]) {
             GameVersion_Set(force_version);
         } else if (n_installed > 0) {
 #ifdef HAVE_ROM_LAUNCHER
-            if (boot_launcher(picked, sizeof picked) != LAUNCHER_GOT_PAK)
+            launcher_result_t launch = boot_launcher(picked, sizeof picked);
+            if (launch == LAUNCHER_RESTART) return 75;
+            if (launch != LAUNCHER_GOT_PAK)
                 return 0;
             if (picked[0]) GameVersion_Set(picked);
 #else
@@ -417,7 +419,9 @@ int main(int argc, char *argv[]) {
                 !AssetPack_Open("../" ASSETPACK_DEFAULT_PATH, err, sizeof err)) {
 #ifdef HAVE_ROM_LAUNCHER
 
-                if (boot_launcher(picked, sizeof picked) != LAUNCHER_GOT_PAK) {
+                launcher_result_t launch = boot_launcher(picked, sizeof picked);
+                if (launch == LAUNCHER_RESTART) return 75;
+                if (launch != LAUNCHER_GOT_PAK) {
                     fprintf(stderr, "%s\n%s\n", err1, err);
                     return 1;
                 }

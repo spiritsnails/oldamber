@@ -23,6 +23,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+VERSION="${VERSION:-$(tr -d '\r\n' < "$REPO/VERSION")}"
+VERSION_DIR="v${VERSION//./_}"
 WIN_REPO="$(cd "$REPO" && pwd -W 2>/dev/null || echo "$REPO")"
 # Product naming, deliberately not the original's. The engine is "Amber Engine"
 # and this build of Red is "OldAmber". Trademark is a separate exposure from the
@@ -130,14 +132,21 @@ echo "==> assembling $OUT"
 # with "Device or resource busy" even though everything inside deleted fine.
 mkdir -p "$OUT"
 find "$OUT" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
-mkdir -p "$OUT/mod_runtime"
-cp "$GAME_DIR/$GAME_EXE" "$OUT/OldAmber.exe"
-cp "$GAME_DIR/SDL2.dll"    "$OUT/"
+PAYLOAD="$OUT/versions/$VERSION_DIR"
+mkdir -p "$PAYLOAD/mod_runtime"
+[ -f "$GAME_DIR/oldamber-bootstrap.exe" ] || {
+    echo "no oldamber-bootstrap.exe in $GAME_DIR -- build the release tree again" >&2
+    exit 1
+}
+cp "$GAME_DIR/oldamber-bootstrap.exe" "$OUT/OldAmber.exe"
+cp "$GAME_DIR/$GAME_EXE" "$PAYLOAD/oldamber-game.exe"
+cp "$GAME_DIR/SDL2.dll" "$PAYLOAD/"
+printf '%s\n' "$VERSION" > "$OUT/bundled-version"
 # internal/, not the top level. Next to the game, setup.exe reads as the
 # installer a player is meant to run first, and it is not one: the launcher runs
 # it. One executable in the folder a player opens.
-mkdir -p "$OUT/internal"
-cp "$REPO/build/dist_tmp/setup.exe" "$OUT/internal/"
+mkdir -p "$PAYLOAD/internal"
+cp "$REPO/build/dist_tmp/setup.exe" "$PAYLOAD/internal/"
 cp "$REPO/tools/dist/README.txt" "$OUT/"
 
 # The project's own licence, by the same rule the block below states for
@@ -171,7 +180,7 @@ cp "$REPO/THIRD_PARTY.md" "$OUT/"
 #
 # This ships SameBoy's .fsh files verbatim, which is why the THIRD_PARTY.md copy
 # above is not optional.
-cp -r "$REPO/shaders" "$OUT/"
+cp -r "$REPO/shaders" "$PAYLOAD/"
 
 # CPython ships inside setup.exe, since PyInstaller embeds the interpreter and
 # the stdlib, so the PSF agreement travels with the bundle even though no .py
@@ -187,9 +196,9 @@ fi
 # Crystal 2bpp tile dumps, which are ROM-derived. The sanity check below has a
 # .bin rule so a copy of it cannot pass unnoticed.
 for d in blocks scenes config map_edits; do
-    cp -r "$REPO/mod_runtime/$d" "$OUT/mod_runtime/"
+    cp -r "$REPO/mod_runtime/$d" "$PAYLOAD/mod_runtime/"
 done
-cp "$REPO/mod_runtime/pks_flag_registry.txt" "$OUT/mod_runtime/"
+cp "$REPO/mod_runtime/pks_flag_registry.txt" "$PAYLOAD/mod_runtime/"
 
 # The Test*.block fixtures are development scaffolding: no scene binds them, so
 # a player cannot reach one. They ship declaring `subtile` art under
@@ -198,7 +207,7 @@ cp "$REPO/mod_runtime/pks_flag_registry.txt" "$OUT/mod_runtime/"
 # found" line for each into the player's log on first boot. Nothing was broken
 # by it, which is the problem: a log that cries wolf on a clean install is one
 # nobody reads when something does go wrong.
-rm -f "$OUT/mod_runtime/blocks"/Test*.block
+rm -f "$PAYLOAD/mod_runtime/blocks"/Test*.block
 # Presentation defaults are compile-time, not injected here: gbc_color.c and
 # gen1color_battle.c default to colour off, Gen 1 HUD and Gen 1 sprites. Setting
 # them in the binary rather than through the startup config means the package
@@ -206,7 +215,7 @@ rm -f "$OUT/mod_runtime/blocks"/Test*.block
 
 # A tester's tree must never contain ROM-derived data. Running setup here
 # during a smoke test would leave exactly that behind, so refuse to ship it.
-rm -rf "$OUT/assets.pak" "$OUT/mod_runtime/custom_art" "$OUT/bugs" \
+rm -rf "$PAYLOAD/assets.pak" "$PAYLOAD/mod_runtime/custom_art" "$PAYLOAD/bugs" \
        "$OUT/pokered.sav" "$OUT"/*.log "$OUT"/run_log.txt 2>/dev/null || true
 
 echo
@@ -225,9 +234,13 @@ echo "(nothing listed above = good)"
 # at runtime, a printf on a stdout no player reads, so it has to be caught here
 # or not at all.
 missing=0
-for f in "OldAmber.exe" "SDL2.dll" "internal/setup.exe" "README.txt" "THIRD_PARTY.md" "LICENSE" \
-         "shaders/MasterShader.fsh" "shaders/crt/tube.frag" "shaders/crt/tube.vert" \
-         "shaders/crt/blur.frag" "shaders/crt/blur.vert" "shaders/crt/final.frag"; do
+for f in "OldAmber.exe" "bundled-version" "README.txt" "THIRD_PARTY.md" "LICENSE" \
+         "versions/$VERSION_DIR/oldamber-game.exe" "versions/$VERSION_DIR/SDL2.dll" \
+         "versions/$VERSION_DIR/internal/setup.exe" \
+         "versions/$VERSION_DIR/shaders/MasterShader.fsh" \
+         "versions/$VERSION_DIR/shaders/crt/tube.frag" "versions/$VERSION_DIR/shaders/crt/tube.vert" \
+         "versions/$VERSION_DIR/shaders/crt/blur.frag" "versions/$VERSION_DIR/shaders/crt/blur.vert" \
+         "versions/$VERSION_DIR/shaders/crt/final.frag"; do
     if [ ! -e "$OUT/$f" ]; then
         echo "MISSING FROM BUNDLE: $f" >&2
         missing=1
@@ -252,11 +265,11 @@ if [ -x "$OBJDUMP" ]; then
     # Everything a stock Windows install already provides. Anything outside
     # this set has to travel with us.
     SYSTEM_DLL_RE='^(KERNEL32|USER32|GDI32|ADVAPI32|SHELL32|ole32|OLEAUT32|msvcrt|WS2_32|IMM32|WINMM|SETUPAPI|VERSION|dwmapi|UxTheme|OPENGL32|COMDLG32|SHLWAPI|bcrypt|CFGMGR32|RPCRT4|USERENV|CRYPT32|POWRPROF|HID|AVRT|DINPUT8|ntdll|api-ms-win-)'
-    for dll in $("$OBJDUMP" -p "$OUT/OldAmber.exe" 2>/dev/null \
+    for dll in $("$OBJDUMP" -p "$PAYLOAD/oldamber-game.exe" 2>/dev/null \
                  | sed -n 's/^[[:space:]]*DLL Name:[[:space:]]*//p' | sort -u); do
         echo "$dll" | grep -Eqi "$SYSTEM_DLL_RE" && continue
-        if [ ! -e "$OUT/$dll" ]; then
-            echo "MISSING RUNTIME DLL: OldAmber.exe imports $dll, not in the bundle" >&2
+        if [ ! -e "$PAYLOAD/$dll" ]; then
+            echo "MISSING RUNTIME DLL: oldamber-game.exe imports $dll, not in its version payload" >&2
             echo "  the game will fail to start in the loader, with no log" >&2
             DLL_DEPS_OK=0
         fi
@@ -271,6 +284,16 @@ else
     echo "         Set OBJDUMP=... to check that the bundle can actually start." >&2
 fi
 
+UPDATE_ARCHIVE="$REPO/build/OldAmber-$VERSION-windows-x64-update.tar.gz"
+echo "==> update payload"
+rm -f "$UPDATE_ARCHIVE" "$UPDATE_ARCHIVE.sha256"
+"/c/Windows/System32/tar.exe" -czf "$(cygpath -w "$UPDATE_ARCHIVE")" \
+    -C "$(cygpath -w "$PAYLOAD")" .
+if command -v sha256sum >/dev/null 2>&1; then
+    (cd "$(dirname "$UPDATE_ARCHIVE")" &&
+     sha256sum "$(basename "$UPDATE_ARCHIVE")" | tee "$(basename "$UPDATE_ARCHIVE").sha256")
+fi
+
 # ---- the archive that actually gets uploaded --------------------------------
 # Packaging used to stop at a folder, so every upload was zipped by hand and
 # nothing afterwards could say what a given download contained. Building the
@@ -281,7 +304,6 @@ fi
 # own tar is GNU tar and cannot, and neither powershell nor pwsh is on the PATH
 # this script runs under, so both are called by absolute path if bsdtar is
 # missing. Everything here takes Windows paths, hence cygpath.
-VERSION="${VERSION:-0.0.2}"
 ARCHIVE="$REPO/build/OldAmber-$VERSION-windows-x64.zip"
 WIN_TAR="/c/Windows/System32/tar.exe"
 WIN_PS="/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"

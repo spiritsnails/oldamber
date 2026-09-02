@@ -17,7 +17,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-VERSION="${VERSION:-0.0.2}"
+VERSION="${VERSION:-$(tr -d '\r\n' < "$REPO/VERSION")}"
+VERSION_DIR="v${VERSION//./_}"
 TARBALL="$REPO/build/OldAmber-$VERSION-linux-x64.tar.gz"
 WORK="$REPO/build/appimage"
 APPDIR="$WORK/OldAmber.AppDir"
@@ -39,6 +40,8 @@ PAY="$tmp/OldAmber-linux"
 [ -d "$PAY" ] || die "unexpected tarball layout"
 cp -r "$PAY"/. "$APPDIR/usr/bin/"
 rm -f "$APPDIR/usr/bin/OldAmber.sh"     # AppRun replaces the shim
+GAME_BIN="$APPDIR/usr/bin/versions/$VERSION_DIR/oldamber-game"
+[ -x "$GAME_BIN" ] || die "version payload has no executable game at $GAME_BIN"
 
 # ---- libraries -------------------------------------------------------------
 # Everything the binary and SDL pull in, except the pieces that have to come
@@ -55,7 +58,7 @@ while read -r name arrow path rest; do
     echo "$name" | grep -qE "$EXCLUDE" && continue
     cp -Ln "$path" "$APPDIR/usr/lib/" 2>/dev/null || true
     n=$((n + 1))
-done < <(ldd "$APPDIR/usr/bin/OldAmber" 2>/dev/null)
+done < <(ldd "$GAME_BIN" 2>/dev/null)
 say "bundled $n library(ies)"
 
 # SDL loads its video, audio and input backends by dlopen at runtime, so ldd
@@ -117,6 +120,6 @@ if command -v sha256sum >/dev/null 2>&1; then
      sha256sum "$(basename "$OUT")" | tee "$(basename "$OUT").sha256")
 fi
 
-say "glibc floor of this build: $(objdump -T "$APPDIR/usr/bin/OldAmber" \
+say "glibc floor of this build: $(objdump -T "$GAME_BIN" \
       | grep -o 'GLIBC_[0-9.]*' | sort -V -u | tail -1)"
 say "that is set by the build machine and travels with the binary."

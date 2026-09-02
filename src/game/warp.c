@@ -521,6 +521,10 @@ static void cache_pending_from_name(uint8_t from_map) {
     snprintf(gPendingFromMapName, sizeof(gPendingFromMapName), "%s", n ? n : "");
 }
 
+const char *Warp_GetLastFromMapName(void) {
+    return gPendingFromMapName;
+}
+
 int Warp_HasEventAt(int x, int y) {
     uint8_t has_debug_warp = 0;
     if (get_warp_override_at(x, y, &has_debug_warp, NULL, NULL))

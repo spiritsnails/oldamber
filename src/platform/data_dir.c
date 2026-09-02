@@ -168,7 +168,20 @@ static int copy_if_missing(const char *src, const char *dst) {
     return 1;
 }
 
-static int copy_tree(const char *src, const char *dst) {
+static int copy_replace(const char *src, const char *dst) {
+    char tmp[1280];
+    if (!exists(src)) return 1;
+    if ((size_t)snprintf(tmp, sizeof tmp, "%s.updating", dst) >= sizeof tmp) return 0;
+    remove(tmp);
+    if (!copy_file(src, tmp)) { remove(tmp); return 0; }
+#ifdef _WIN32
+    remove(dst);
+#endif
+    if (rename(tmp, dst) != 0) { remove(tmp); return 0; }
+    return 1;
+}
+
+static int copy_tree_mode(const char *src, const char *dst, int replace) {
     char sp[1200], dp[1200];
     struct stat st;
     int ok = 1;
@@ -187,8 +200,8 @@ static int copy_tree(const char *src, const char *dst) {
             if (!strcmp(fd.name, ".") || !strcmp(fd.name, "..")) continue;
             if ((size_t)snprintf(sp, sizeof sp, "%s\\%s", src, fd.name) >= sizeof sp) continue;
             if ((size_t)snprintf(dp, sizeof dp, "%s\\%s", dst, fd.name) >= sizeof dp) continue;
-            if (fd.attrib & _A_SUBDIR) { if (!copy_tree(sp, dp)) ok = 0; }
-            else if (!copy_if_missing(sp, dp)) ok = 0;
+            if (fd.attrib & _A_SUBDIR) { if (!copy_tree_mode(sp, dp, replace)) ok = 0; }
+            else if (!(replace ? copy_replace(sp, dp) : copy_if_missing(sp, dp))) ok = 0;
         } while (_findnext(h, &fd) == 0);
         _findclose(h);
     }
@@ -202,8 +215,8 @@ static int copy_tree(const char *src, const char *dst) {
             if ((size_t)snprintf(sp, sizeof sp, "%s/%s", src, e->d_name) >= sizeof sp) continue;
             if ((size_t)snprintf(dp, sizeof dp, "%s/%s", dst, e->d_name) >= sizeof dp) continue;
             if (stat(sp, &st) == 0 && S_ISDIR(st.st_mode)) {
-                if (!copy_tree(sp, dp)) ok = 0;
-            } else if (!copy_if_missing(sp, dp)) ok = 0;
+                if (!copy_tree_mode(sp, dp, replace)) ok = 0;
+            } else if (!(replace ? copy_replace(sp, dp) : copy_if_missing(sp, dp))) ok = 0;
         }
         closedir(d);
     }
@@ -211,8 +224,14 @@ static int copy_tree(const char *src, const char *dst) {
     return ok;
 }
 
+static int copy_tree(const char *src, const char *dst) {
+    return copy_tree_mode(src, dst, 0);
+}
+
 int DataDir_SeedFromInstall(void) {
-    char exe[1024], data[1024], sp[1200], dp[1200];
+    char exe[1024], data[1024], sp[1200], dp[1200], marker[1200], recorded[64] = "";
+    char running[64] = "";
+    int replace = 0, ok = 1;
     static const char *kTrees[] = {
         "mod_runtime/blocks", "mod_runtime/scenes",
         "mod_runtime/config", "mod_runtime/map_edits",
@@ -224,17 +243,48 @@ int DataDir_SeedFromInstall(void) {
     if (!s_separate) return 1;
     if (!ExeDir_Get(exe, sizeof exe)) return 0;
 
+    const char *running_env = SDL_getenv("OLDAMBER_RUNNING_VERSION");
+    if (running_env) snprintf(running, sizeof running, "%s", running_env);
+    snprintf(marker, sizeof marker, "%s.content-version", data);
+    if (running[0]) {
+        FILE *f = fopen(marker, "rb");
+        if (f) {
+            if (!fgets(recorded, sizeof recorded, f)) recorded[0] = '\0';
+            fclose(f);
+            recorded[strcspn(recorded, "\r\n")] = '\0';
+        }
+        if (!strcmp(recorded, running)) return 1;
+        replace = 1;
+    }
+
     for (int i = 0; kTrees[i]; i++) {
         if ((size_t)snprintf(sp, sizeof sp, "%s%s", exe, kTrees[i]) >= sizeof sp) continue;
         if ((size_t)snprintf(dp, sizeof dp, "%s%s", data, kTrees[i]) >= sizeof dp) continue;
-        copy_tree(sp, dp);
+        if (!copy_tree_mode(sp, dp, replace)) ok = 0;
     }
     for (int i = 0; kFiles[i]; i++) {
         if ((size_t)snprintf(sp, sizeof sp, "%s%s", exe, kFiles[i]) >= sizeof sp) continue;
         if ((size_t)snprintf(dp, sizeof dp, "%s%s", data, kFiles[i]) >= sizeof dp) continue;
-        copy_if_missing(sp, dp);
+
+        if (!copy_if_missing(sp, dp)) ok = 0;
     }
-    return 1;
+    if (ok && running[0]) {
+        char tmp[1280];
+        int wrote;
+        snprintf(tmp, sizeof tmp, "%s.updating", marker);
+        FILE *f = fopen(tmp, "wb");
+        wrote = f && fprintf(f, "%s\n", running) > 0;
+        if (f && fclose(f) != 0) wrote = 0;
+        if (!wrote) {
+            remove(tmp);
+            return 0;
+        }
+#ifdef _WIN32
+        remove(marker);
+#endif
+        if (rename(tmp, marker) != 0) { remove(tmp); return 0; }
+    }
+    return ok;
 }
 
 int UserDataDir_Get(char *out, size_t n) {
@@ -266,32 +316,57 @@ int UserDataPath(const char *relative, char *out, size_t n) {
     return (size_t)snprintf(out, n, "%s%s", dir, relative) < n;
 }
 
-int UserData_MigrateFromInstall(void) {
-#ifdef _WIN32
+static int migrate_user_data_from(const char *source, const char *data) {
     static const char *kFiles[] = {
+        "assets.pak",
         "pokered.sav", "pokered.sav.vmaps", "pokered.sav.npcrt",
         "pokeblue.sav", "pokeblue.sav.vmaps", "pokeblue.sav.npcrt",
-        "presentation.cfg", "controls.cfg", NULL
+        "presentation.cfg", "controls.cfg",
+        "mod_runtime/pks_flag_registry.txt", NULL
     };
-    static const char *kTrees[] = { "states", "saves_backup", NULL };
-    char exe[1024], data[1024], sp[1200], dp[1200];
+    static const char *kTrees[] = {
+        "packages", "states", "saves_backup",
+        "mod_runtime/custom_art", "mod_runtime/generatedmaps", NULL
+    };
+    char root[1024], sp[1200], dp[1200], parent[1200];
     int ok = 1;
-
-    if (!ExeDir_Get(exe, sizeof exe) || !UserDataDir_Get(data, sizeof data)) return 0;
-    if (strcmp(exe, data) == 0) return 1;
+    if ((size_t)snprintf(root, sizeof root, "%s", source) >= sizeof root) return 0;
+    with_sep(root, sizeof root);
 
     for (int i = 0; kFiles[i]; i++) {
-        if ((size_t)snprintf(sp, sizeof sp, "%s%s", exe, kFiles[i]) >= sizeof sp) continue;
+        if ((size_t)snprintf(sp, sizeof sp, "%s%s", root, kFiles[i]) >= sizeof sp) continue;
         if ((size_t)snprintf(dp, sizeof dp, "%s%s", data, kFiles[i]) >= sizeof dp) continue;
+        if (strchr(kFiles[i], '/')) {
+            snprintf(parent, sizeof parent, "%smod_runtime", data);
+            make_tree(parent);
+        }
         if (!copy_if_missing(sp, dp)) ok = 0;
     }
     for (int i = 0; kTrees[i]; i++) {
-        if ((size_t)snprintf(sp, sizeof sp, "%s%s", exe, kTrees[i]) >= sizeof sp) continue;
+        if ((size_t)snprintf(sp, sizeof sp, "%s%s", root, kTrees[i]) >= sizeof sp) continue;
         if ((size_t)snprintf(dp, sizeof dp, "%s%s", data, kTrees[i]) >= sizeof dp) continue;
         if (!copy_tree(sp, dp)) ok = 0;
     }
     return ok;
+}
+
+int UserData_MigrateFromInstall(void) {
+    char exe[1024], data[1024], legacy[1024] = "";
+    const char *legacy_env = SDL_getenv("OLDAMBER_LEGACY_INSTALL_DIR");
+    int ok = 1;
+
+    if (legacy_env)
+        snprintf(legacy, sizeof legacy, "%s", legacy_env);
+    if (!UserDataDir_Get(data, sizeof data)) return 0;
+    if (legacy[0] && strcmp(legacy, data) != 0)
+        if (!migrate_user_data_from(legacy, data)) ok = 0;
+
+#ifdef _WIN32
+    if (!ExeDir_Get(exe, sizeof exe)) return 0;
+    if (strcmp(exe, data) != 0)
+        if (!migrate_user_data_from(exe, data)) ok = 0;
 #else
-    return 1;
+    (void)exe;
 #endif
+    return ok;
 }

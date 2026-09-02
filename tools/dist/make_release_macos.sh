@@ -32,7 +32,8 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="${OUT:-$REPO/build/OldAmber-macos}"
 APP="$OUT/OldAmber.app"
 GAME_DIR="${GAME_DIR:-$REPO/build-macos}"
-VERSION="${VERSION:-0.0.2}"
+VERSION="${VERSION:-$(tr -d '\r\n' < "$REPO/VERSION")}"
+VERSION_DIR="v${VERSION//./_}"
 
 say() { printf '[macos] %s\n' "$*"; }
 die() { printf '[macos] ERROR: %s\n' "$*" >&2; exit 1; }
@@ -47,7 +48,9 @@ GAME_EXE="$GAME_DIR/oldamber"
           -DAMBER_DEBUG_PRINTS=OFF -DAMBER_EMBED_PYTHON=OFF \\
           -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' \\
           -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
-    cmake --build ${GAME_DIR##*/} --target pokered"
+    cmake --build ${GAME_DIR##*/} --target pokered oldamber_bootstrap"
+BOOTSTRAP="$GAME_DIR/oldamber-bootstrap"
+[ -f "$BOOTSTRAP" ] || die "no oldamber-bootstrap in $GAME_DIR -- build the release tree again"
 
 cache="$GAME_DIR/CMakeCache.txt"
 want() {
@@ -72,6 +75,11 @@ want AMBER_EMBED_PYTHON OFF \
 archs="$(lipo -archs "$GAME_EXE" 2>/dev/null || true)"
 case "$archs" in
     *arm64*) ;; *) die "no arm64 slice in $GAME_EXE (lipo says: ${archs:-nothing})" ;;
+esac
+bootstrap_archs="$(lipo -archs "$BOOTSTRAP" 2>/dev/null || true)"
+case "$bootstrap_archs" in *arm64*x86_64*|*x86_64*arm64*) ;;
+    *) [ "${ALLOW_SINGLE_ARCH:-0}" = "1" ] ||
+       die "bootstrap is not universal (lipo says: ${bootstrap_archs:-nothing})" ;;
 esac
 case "$archs" in
     *x86_64*) say "binary is universal: $archs" ;;
@@ -101,27 +109,28 @@ esac
 # Assemble the bundle.
 say "assembling $APP"
 rm -rf "$OUT"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
-cp "$GAME_EXE" "$APP/Contents/MacOS/OldAmber"
-chmod +x "$APP/Contents/MacOS/OldAmber"
-
-# Data sits beside the executable, not in Resources/, because main.c anchors the
-# working directory to Contents/MacOS/ and every path below it is relative.
 BASE="$APP/Contents/MacOS"
-cp -R "$REPO/shaders" "$BASE/"
+PAYLOAD="$BASE/versions/$VERSION_DIR"
+GAME_BUNDLE="$PAYLOAD/oldamber-game"
+mkdir -p "$PAYLOAD/mod_runtime" "$PAYLOAD/Frameworks"
+cp "$BOOTSTRAP" "$BASE/OldAmber"
+cp "$GAME_EXE" "$GAME_BUNDLE"
+chmod +x "$BASE/OldAmber" "$GAME_BUNDLE"
+printf '%s\n' "$VERSION" > "$BASE/bundled-version"
+cp -R "$REPO/shaders" "$PAYLOAD/"
 cp "$REPO/LICENSE" "$REPO/THIRD_PARTY.md" "$BASE/" 2>/dev/null || true
-mkdir -p "$BASE/mod_runtime"
 for d in blocks scenes config map_edits; do
-    cp -R "$REPO/mod_runtime/$d" "$BASE/mod_runtime/"
+    cp -R "$REPO/mod_runtime/$d" "$PAYLOAD/mod_runtime/"
 done
-cp "$REPO/mod_runtime/pks_flag_registry.txt" "$BASE/mod_runtime/"
+cp "$REPO/mod_runtime/pks_flag_registry.txt" "$PAYLOAD/mod_runtime/"
 
 # Development scaffolding, see the same removal in make_release.sh: no scene
 # binds a Test*.block, and they name `subtile` art under mod_runtime/custom_art
 # which no bundle carries, so each one costs the player a "PNG not found" line
 # on first boot and gives nothing back.
-rm -f "$BASE/mod_runtime/blocks"/Test*.block
+rm -f "$PAYLOAD/mod_runtime/blocks"/Test*.block
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -172,13 +181,13 @@ fi
 # So: resolve @rpath deps against the binary's own LC_RPATH list, bundle them,
 # and then strip every rpath that is not inside the app.
 say "bundling shared libraries"
-install_name_tool -add_rpath "@executable_path/../Frameworks" \
-    "$BASE/OldAmber" 2>/dev/null || true
+install_name_tool -add_rpath "@executable_path/Frameworks" \
+    "$GAME_BUNDLE" 2>/dev/null || true
 
 # The rpath list as the linker left it, used to find @rpath deps on disk.
-BUILD_RPATHS="$(otool -l "$BASE/OldAmber" | awk '/LC_RPATH/{f=1} f&&/ path /{print $2; f=0}' | sort -u)"
+BUILD_RPATHS="$(otool -l "$GAME_BUNDLE" | awk '/LC_RPATH/{f=1} f&&/ path /{print $2; f=0}' | sort -u)"
 
-otool -L "$BASE/OldAmber" \
+otool -L "$GAME_BUNDLE" \
     | grep -v ':$' \
     | awk '{print $1}' \
     | sort -u \
@@ -203,14 +212,14 @@ otool -L "$BASE/OldAmber" \
     Shipping without it would produce an app that launches here and nowhere
     else."
     fi
-    cp -f "$src" "$APP/Contents/Frameworks/$base"
-    chmod u+w "$APP/Contents/Frameworks/$base"
+    cp -f "$src" "$PAYLOAD/Frameworks/$base"
+    chmod u+w "$PAYLOAD/Frameworks/$base"
     # Already @rpath/NAME needs no -change; an absolute path does.
     case "$lib" in
         @rpath/*) ;;
-        *) install_name_tool -change "$lib" "@rpath/$base" "$BASE/OldAmber" ;;
+        *) install_name_tool -change "$lib" "@rpath/$base" "$GAME_BUNDLE" ;;
     esac
-    install_name_tool -id "@rpath/$base" "$APP/Contents/Frameworks/$base" 2>/dev/null || true
+    install_name_tool -id "@rpath/$base" "$PAYLOAD/Frameworks/$base" 2>/dev/null || true
     say "  bundled $base"
 done
 
@@ -218,8 +227,8 @@ done
 # means the app prefers a library from a directory only this machine has, so it
 # keeps working here while being broken everywhere else.
 for rp in $BUILD_RPATHS; do
-    [ "$rp" = "@executable_path/../Frameworks" ] && continue
-    install_name_tool -delete_rpath "$rp" "$BASE/OldAmber" 2>/dev/null \
+    [ "$rp" = "@executable_path/Frameworks" ] && continue
+    install_name_tool -delete_rpath "$rp" "$GAME_BUNDLE" 2>/dev/null \
         && say "  dropped build rpath $rp"
 done
 
@@ -261,14 +270,15 @@ python3 -m PyInstaller --noconfirm --clean --onefile \
     --hidden-import extract_audio \
     "${ADD_DATA[@]}" \
     "$REPO/tools/dist/setup_assets.py" >/dev/null
-cp "$REPO/build/dist_tmp_macos/setup" "$BASE/setup"
-chmod +x "$BASE/setup"
+mkdir -p "$PAYLOAD/internal"
+cp "$REPO/build/dist_tmp_macos/setup" "$PAYLOAD/internal/setup"
+chmod +x "$PAYLOAD/internal/setup"
 
 # The game binary is checked above, but the first-run importer is a second
 # executable and must be universal independently. An arm64-only setup inside a
 # universal app launches normally on Apple Silicon and then leaves every Intel
 # player unable to import a ROM, which makes the whole app unusable there.
-setup_archs="$(lipo -archs "$BASE/setup" 2>/dev/null || true)"
+setup_archs="$(lipo -archs "$PAYLOAD/internal/setup" 2>/dev/null || true)"
 case "$setup_archs" in
     *arm64*) ;; *) die "no arm64 slice in bundled setup (lipo says: ${setup_archs:-nothing})" ;;
 esac
@@ -286,8 +296,10 @@ strays="$(find "$OUT" \( -name '*.pak' -o -name custom_art -o -name generatedmap
 [ -z "$strays" ] || { printf '%s\n' "$strays" >&2; die "content that must never ship is in the bundle"; }
 
 missing=0
-for f in Contents/MacOS/OldAmber Contents/MacOS/setup Contents/Info.plist \
-         Contents/MacOS/shaders/MasterShader.fsh; do
+for f in Contents/MacOS/OldAmber Contents/MacOS/bundled-version Contents/Info.plist \
+         "Contents/MacOS/versions/$VERSION_DIR/oldamber-game" \
+         "Contents/MacOS/versions/$VERSION_DIR/internal/setup" \
+         "Contents/MacOS/versions/$VERSION_DIR/shaders/MasterShader.fsh"; do
     [ -e "$APP/$f" ] || { echo "MISSING FROM BUNDLE: $f" >&2; missing=1; }
 done
 [ "$missing" -eq 0 ] || die "refusing to call this bundle ready"
@@ -295,22 +307,22 @@ done
 # Ask the binary what it still needs. Any absolute path outside the app is
 # host-only, whatever directory it names, and the app would die at launch with a
 # dyld message and no log.
-outside="$(otool -L "$BASE/OldAmber" | grep -v ':$' | awk '{print $1}' \
+outside="$(otool -L "$GAME_BUNDLE" | grep -v ':$' | awk '{print $1}' \
             | grep -E '^/' | grep -vE '^(/usr/lib|/System)/' || true)"
 [ -z "$outside" ] || { printf '%s\n' "$outside" >&2
     die "the binary still references libraries from this machine only"; }
 
 # And every @rpath dependency must actually be present in the bundle.
-for dep in $(otool -L "$BASE/OldAmber" | grep -v ':$' | awk '{print $1}' \
+for dep in $(otool -L "$GAME_BUNDLE" | grep -v ':$' | awk '{print $1}' \
              | grep '^@rpath/' | sort -u); do
-    [ -f "$APP/Contents/Frameworks/$(basename "$dep")" ] \
-        || die "$dep is not in Contents/Frameworks -- the app would not launch
+    [ -f "$PAYLOAD/Frameworks/$(basename "$dep")" ] \
+        || die "$dep is not in the version payload's Frameworks -- the app would not launch
     anywhere but this machine."
 done
 
 # Nothing may point outside the bundle for libraries either.
-badrp="$(otool -l "$BASE/OldAmber" | awk '/LC_RPATH/{f=1} f&&/ path /{print $2; f=0}' \
-          | sort -u | grep -v '^@executable_path/\.\./Frameworks$' || true)"
+badrp="$(otool -l "$GAME_BUNDLE" | awk '/LC_RPATH/{f=1} f&&/ path /{print $2; f=0}' \
+          | sort -u | grep -v '^@executable_path/Frameworks$' || true)"
 [ -z "$badrp" ] || { printf '%s\n' "$badrp" >&2
     die "an rpath still points outside the app bundle"; }
 say "every library is inside the bundle, and no rpath leaves it"
@@ -325,6 +337,12 @@ codesign --verify --deep --strict "$APP" >/dev/null 2>&1 \
     && say "signature verifies" || say "WARNING: signature does not verify"
 
 say "ready: $APP  ($(du -sh "$OUT" | cut -f1))"
+
+UPDATE_ARCHIVE="$OUT/../OldAmber-$VERSION-macos-universal-update.tar.gz"
+say "update payload"
+rm -f "$UPDATE_ARCHIVE" "$UPDATE_ARCHIVE.sha256"
+tar -czf "$UPDATE_ARCHIVE" -C "$PAYLOAD" .
+shasum -a 256 "$UPDATE_ARCHIVE" | tee "$UPDATE_ARCHIVE.sha256"
 
 # ---- the archive that actually gets uploaded --------------------------------
 # Packaging used to stop at a folder, so every upload was archived by hand and
