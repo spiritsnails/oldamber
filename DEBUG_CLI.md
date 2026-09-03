@@ -51,7 +51,7 @@ hexadecimal notation.
 | `select` | Press Select. |
 | `wait [frames]` | Send no input; defaults to 60 simulation frames. |
 | `state` | Refresh the external CLI state report without acting. |
-| `options [on|off]` | Open, close or toggle the suspend menu. `presmenu` is an alias. |
+| `options [on\|off]` | Open, close or toggle the suspend menu. `presmenu` is an alias. |
 
 While dialogue or a yes/no prompt is open, normal gameplay commands are
 locked. Use `a` or `b` to advance or close it before sending another command.
@@ -63,16 +63,16 @@ locked. Use `a` or `b` to advance or close it before sending another command.
 | `teleport <place>` | Warp to a built-in named location. `tele` is an alias. |
 | `teleport <map_id> [x y]` | Warp to a numeric map and coordinates. |
 | `map_warp <vmap_name> [x y]` | Warp to an AmberScript virtual map by name. |
-| `noclip [on|off]` | Toggle or explicitly set collision-free movement. |
+| `noclip [on\|off]` | Toggle or explicitly set collision-free movement. |
 | `unstuck` | Move to a safe nearby tile, preferring the nearest warp when necessary. |
-| `nowilds on|off` | Suppress or restore random wild encounters. |
-| `sprint_holdb on|off|status` | Make holding B enable or disable sprinting. |
+| `nowilds on\|off` | Suppress or restore random wild encounters. |
+| `sprint_holdb on\|off\|status` | Make holding B enable or disable sprinting. |
 | `mapname` | Print the current real map ID and virtual-map name, when applicable. |
 | `tile_info` | Report the player position, facing tile and collision details. `tileinfo` is an alias. |
 | `tile_prop_at <x> <y>` | Report the tile properties at map coordinates. `tileprop` is an alias. |
 | `passable_at <x> <y>` | Trace why a map cell is or is not passable. |
-| `collision on|off` | Show or hide the collision overlay. |
-| `gridoverlay on|off` | Show or hide block IDs on the map. |
+| `collision on\|off` | Show or hide the collision overlay. |
+| `gridoverlay on\|off` | Show or hide block IDs on the map. |
 | `screenshot [path.bmp]` | Save the current framebuffer; defaults to `bugs/shot.bmp`. `shot` is an alias. |
 
 Named `teleport` destinations are:
@@ -122,7 +122,7 @@ Party slots are numbered 1 through 6. Move slots are numbered 1 through 4.
 | `boxswitch <box_index>` | Select a zero-based PC box and dump its contents. |
 | `boxwithdraw <slot_index>` | Move a zero-based box slot into the party. |
 | `boxrelease <slot_index>` | Permanently remove a zero-based box slot. |
-| `dex_fill [seen|owned|all]` | Fill one or both Pokédex tables; defaults to both. |
+| `dex_fill [seen\|owned\|all]` | Fill one or both Pokédex tables; defaults to both. |
 | `setmoney <0-999999>` | Set carried money. |
 | `setcoins <0-9999>` | Set the Coin Case balance. |
 
@@ -148,7 +148,7 @@ Pokémon and movesets.
 | `resetoak` | Reset the Oak intro, starter, parcel and early rival sequence. |
 | `skipoak` | Mark the Oak intro through parcel pickup complete, leaving parcel delivery ready. |
 | `trainer_reset` | Clear the defeated flags for trainers on the current map. |
-| `gym_reset <leader|all>` | Reset a gym's leader and trainer state. |
+| `gym_reset <leader\|all>` | Reset a gym's leader and trainer state. |
 | `gym_badges_clear [keep]` | Clear gym completion flags and optionally retain the first `keep` badges. |
 | `e4_reset` | Reset the Elite Four sequence. `elite4_reset` and `elitefour_reset` are aliases. |
 | `seafoam_reset` | Reset Seafoam Islands boulders and currents. |
@@ -196,13 +196,13 @@ silph_rival_ready     silph_giovanni_ready  silph_lapras_ready
 | `pkmn` or `pokemon` | Choose PKMN from the battle menu. |
 | `bag` or `item` | Choose ITEM from the battle menu. |
 | `run` | Choose RUN from the battle menu. |
-| `autowin on|off|status` | Make the first player-selected move automatically win each battle. |
+| `autowin on\|off\|status` | Make the first player-selected move automatically win each battle. |
 | `battle_seed <0-255>` | Set deterministic battle randomness. |
 | `rng_state` | Print the current battle random state. |
 | `animlab start [level]` | Start automatic move-animation testing. |
 | `animlab stop` | Stop the animation loop without ending the current battle. |
 | `animlab status` | Report animation-lab state. |
-| `hittrace on|off|reset|status` | Control move-hit diagnostic tracing. |
+| `hittrace on\|off\|reset\|status` | Control move-hit diagnostic tracing. |
 
 ## Saving, replay and time control
 
@@ -224,7 +224,7 @@ normal saved progress until the game is saved.
 | `pause` / `resume` | Freeze or resume simulation. |
 | `step [frames]` | Advance a paused game by one or more frames. |
 | `speed <percent>` | Set simulation speed; `100` is normal and `0` is unlimited. |
-| `turbo on|off` | Switch between unlimited and normal simulation speed. |
+| `turbo on\|off` | Switch between unlimited and normal simulation speed. |
 | `rewind <frames>` | Move backward through the 30-second rewind ring; a negative value moves forward. |
 | `bp_commit` | Persist the current rewind window as an automatically named breakpoint. |
 | `bp_restore <name>` | Restore a persisted breakpoint and pause at its oldest frame. |
@@ -240,11 +240,11 @@ resolved from the game working directory.
 
 | Command | Effect |
 |---|---|
-| `amberscript on|off|status` | Enable, disable or report AmberScript dispatch. |
+| `amberscript on\|off\|status` | Enable, disable or report AmberScript dispatch. |
 | `scene_run <name>` | Run `mod_runtime/scenes/<name>.scene`. |
 | `scene_stop` | Stop the active debug scene. |
-| `script_trace on|off|status` | Control scene tracing to the console. |
-| `script_trace file_on|file_off` | Control persistent scene trace output. |
+| `script_trace on\|off\|status` | Control scene tracing to the console. |
+| `script_trace file_on\|file_off` | Control persistent scene trace output. |
 | `scenedump [path]` | Disassemble the active scene; defaults to `bugs/scene_disasm.txt`. |
 | `npcdump` | Dump current NPC and scene-binding information. |
 | `npcshow <x> <y>` | Persistently show the NPC declared at those coordinates after re-entering the map. |
@@ -268,12 +268,12 @@ implementations live in the `amberscript_*` modules under `src/game/`.
 | Command | Effect |
 |---|---|
 | `capture [message]` | Create a timestamped diagnostic report. |
-| `probe player|npcs|hash|status` | Write a focused machine-readable runtime probe. |
+| `probe player\|npcs\|hash\|status` | Write a focused machine-readable runtime probe. |
 | `mapdump` | Write the current map grid. |
 | `statedump [path]` | Write a raw runtime-state snapshot; defaults to `bugs/state.bin`. |
 | `suite` | Report debug-suite status. |
-| `trace on|off <channels>` | Toggle `actor`, `ui`, `npc`, `warp` or `all` trace streams; channels may be comma-separated. |
-| `hashtrace on|off` | Toggle per-frame deterministic state hashing. |
+| `trace on\|off <channels>` | Toggle `actor`, `ui`, `npc`, `warp` or `all` trace streams; channels may be comma-separated. |
+| `hashtrace on\|off` | Toggle per-frame deterministic state hashing. |
 | `watch add flag <id>` | Pause and capture when an event becomes set. |
 | `watch add flagclear <id>` | Pause and capture when an event becomes clear. |
 | `watch add tile <map> <x> <y>` | Pause and capture on arrival at a position. |
