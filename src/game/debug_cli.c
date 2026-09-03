@@ -413,6 +413,18 @@ static int s_animlab_loops    = 0;
 static int s_animlab_level    = 50;
 static int s_autowin_enabled  = 0;
 int DebugCLI_IsAutoWinEnabled(void) { return s_autowin_enabled; }
+void DebugCLI_SetAutoWinEnabled(int enabled) { s_autowin_enabled = enabled ? 1 : 0; }
+int DebugCLI_IsNoClipEnabled(void) { return gNoClip ? 1 : 0; }
+void DebugCLI_SetNoClipEnabled(int enabled) { gNoClip = enabled ? 1 : 0; }
+
+int DebugCLI_TeleportToRealMap(uint8_t map_id, int x, int y) {
+    int ok = Game_WarpToRealMap(map_id, x, y);
+    if (!ok) return 0;
+    gMapPalOffset = (map_id == 0x52 || map_id == 0xE8 ||
+                     AmberScript_MapBank_IsDarkForRealId(map_id)) ? 6 : 0;
+    Display_LoadMapPalette();
+    return 1;
+}
 
 #define CON_TOP_ROW      16
 #define CON_IN_ROW       17
@@ -4831,13 +4843,8 @@ static void process_cmd(const char *cmd) {
               y      = (int)strtol(ys, NULL, 0); }
         }
 
-        extern void Display_LoadMapPalette(void);
-        Game_WarpToRealMap((uint8_t)map_id, x, y);
+        DebugCLI_TeleportToRealMap((uint8_t)map_id, x, y);
 
-        gMapPalOffset = (map_id == 0x52  ||
-                         map_id == 0xE8  ||
-                         AmberScript_MapBank_IsDarkForRealId(map_id)) ? 6 : 0;
-        Display_LoadMapPalette();
         printf("[cli] teleport → map %d (%d,%d)\n", map_id, x, y);
         write_state();
         return;

@@ -19,6 +19,8 @@ typedef struct {
 
 int  Save_PeekFrom(const char *path, save_peek_t *out);
 
+#define SAVE_EDITOR_VMAP_SLOT_COUNT 8
+#define SAVE_EDITOR_VMAP_NAME_LEN 32
 typedef struct {
     uint8_t player_name[NAME_LENGTH];
     uint8_t rival_name[NAME_LENGTH];
@@ -45,6 +47,8 @@ typedef struct {
     uint8_t box_nicks[NUM_BOXES][BOX_CAPACITY][NAME_LENGTH];
     uint8_t event_flags[448];
     uint8_t hand_authored_flags[4];
+    char vmap_bindings[SAVE_EDITOR_VMAP_SLOT_COUNT][SAVE_EDITOR_VMAP_NAME_LEN];
+    int location_changed;
 } save_editor_data_t;
 
 int Save_EditorRead(const char *path, save_editor_data_t *out);

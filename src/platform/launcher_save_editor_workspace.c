@@ -1,5 +1,6 @@
 #include "launcher_save_editor_internal.h"
 #include "launcher_dropdown.h"
+#include "launcher_save_editor_location.h"
 #include "hardware.h"
 #include "data_dir.h"
 #include "../data/base_stats.h"
@@ -14,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum { WDD_NONE, WDD_SPECIES, WDD_STATUS, WDD_MOVE, WDD_PARTY_SLOT, WDD_BOX, WDD_BOX_SLOT };
+enum { WDD_NONE, WDD_SPECIES, WDD_STATUS, WDD_MOVE, WDD_PARTY_SLOT, WDD_BOX, WDD_BOX_SLOT, WDD_LOCATION };
 static launcher_dropdown_t workspace_dropdown;
 static int workspace_dropdown_kind;
 static int workspace_dropdown_aux;
@@ -325,9 +326,23 @@ static void player_tab(save_editor_t*e,unsigned in){
     SE_DecodeName(e->data.rival_name,v,sizeof(v));field(e,148,"RIVAL NAME:",v,e->focus==1,0);r=(SDL_Rect){210,148,300,24};if(control(e,in,1,r))begin_inline_name(e,r,"RIVAL NAME",e->data.rival_name,commit_name);
     snprintf(v,sizeof(v),"%u",e->data.player_id);field(e,180,"TRAINER ID:",v,e->focus==2,0);r=(SDL_Rect){210,180,300,24};if(control(e,in,2,r))begin_inline_number(e,r,"TRAINER ID",e->data.player_id,0,65535,commit_u16,&e->data.player_id,NULL,0);
     snprintf(v,sizeof(v),"%u",e->data.money);field(e,212,"MONEY:",v,e->focus==3,0);r=(SDL_Rect){210,212,300,24};if(control(e,in,3,r))begin_inline_number(e,r,"MONEY",e->data.money,0,999999,commit_u32,&e->data.money,NULL,0);
-    snprintf(v,sizeof(v),"%u",e->data.cur_map);field(e,244,"CURRENT MAP ID:",v,e->focus==4,0);r=(SDL_Rect){210,244,300,24};if(control(e,in,4,r))begin_inline_number(e,r,"CURRENT MAP",e->data.cur_map,0,255,commit_u8,&e->data.cur_map,NULL,0);
-    snprintf(v,sizeof(v),"%u",e->data.x_coord);field(e,276,"X COORDINATE:",v,e->focus==5,0);r=(SDL_Rect){210,276,300,24};if(control(e,in,5,r))begin_inline_number(e,r,"X COORDINATE",e->data.x_coord,0,255,commit_u8,&e->data.x_coord,NULL,0);
-    snprintf(v,sizeof(v),"%u",e->data.y_coord);field(e,308,"Y COORDINATE:",v,e->focus==6,0);r=(SDL_Rect){210,308,300,24};if(control(e,in,6,r))begin_inline_number(e,r,"Y COORDINATE",e->data.y_coord,0,255,commit_u8,&e->data.y_coord,NULL,0);
+    {
+        const char *name=SE_LocationCurrentName(&e->data);
+        int count=SE_LocationCount();
+        int current=SE_LocationFind(name);
+        if(name)snprintf(v,sizeof(v),"%s",name);
+        else if(e->data.cur_map>=248)snprintf(v,sizeof(v),"UNBOUND VMAP SLOT %u",e->data.cur_map);
+        else snprintf(v,sizeof(v),"LEGACY MAP %u",e->data.cur_map);
+        field(e,244,"CURRENT LOCATION:",v,e->focus==4,count>0);
+        r=(SDL_Rect){210,244,300,24};
+        if(count>0&&control(e,in,4,r))open_workspace_dropdown(e,WDD_LOCATION,0,4,r,count,current,SE_LocationLabel,NULL,NULL);
+    }
+    {
+        uint32_t max_x=255,max_y=255;
+        SE_LocationCurrentBounds(&e->data,&max_x,&max_y);
+        snprintf(v,sizeof(v),"%u",e->data.x_coord);field(e,276,"X COORDINATE:",v,e->focus==5,0);r=(SDL_Rect){210,276,300,24};if(control(e,in,5,r))begin_inline_number(e,r,"X COORDINATE",e->data.x_coord,0,max_x,commit_u8,&e->data.x_coord,NULL,0);
+        snprintf(v,sizeof(v),"%u",e->data.y_coord);field(e,308,"Y COORDINATE:",v,e->focus==6,0);r=(SDL_Rect){210,308,300,24};if(control(e,in,6,r))begin_inline_number(e,r,"Y COORDINATE",e->data.y_coord,0,max_y,commit_u8,&e->data.y_coord,NULL,0);
+    }
     LauncherDraw_TextBold(e->r,42,360,1,LCOL_TEXT,"BADGES:");for(int i=0;i<8;i++){r=(SDL_Rect){130+(i%4)*155,350+(i/4)*34,145,26};checkbox(e,r,badge_names[i],(e->data.badges>>i)&1,e->focus==7+i);if(control(e,in,7+i,r)){e->data.badges^=(uint8_t)(1u<<i);e->dirty=1;}}
     LauncherDraw_TextBold(e->r,250,440,1,LCOL_TEXT_DIM,
                           "CHANGES ARE STAGED UNTIL YOU CLICK SAVE");
@@ -730,6 +745,14 @@ static void apply_dropdown_choice(save_editor_t *e, int choice) {
         e->box_slot = 0;
     } else if (workspace_dropdown_kind == WDD_BOX_SLOT) {
         e->box_slot = choice;
+    } else if (workspace_dropdown_kind == WDD_LOCATION) {
+        if (SE_LocationApply(&e->data, choice)) {
+            e->dirty = 1;
+            snprintf(e->feedback, sizeof(e->feedback),
+                     "LOCATION CHANGED; POSITION RESET");
+            e->feedback_error = 0;
+            e->feedback_until = SDL_GetTicks() + 2500;
+        }
     }
 }
 
@@ -771,7 +794,7 @@ int SE_Workspace(save_editor_t *e) {
             if(inline_edit.open)finish_inline_edit(e,1);
             if(workspace_dropdown.open){workspace_dropdown.open=0;if(workspace_dropdown.searchable)SDL_StopTextInput();workspace_dropdown_kind=WDD_NONE;}
             if(!e->dirty){snprintf(e->feedback,sizeof e->feedback,"NO CHANGES TO SAVE");e->feedback_error=0;}
-            else if(Save_EditorWrite(e->path,&e->data)==0){e->dirty=0;snprintf(e->feedback,sizeof e->feedback,"SAVE COMPLETE");e->feedback_error=0;}
+            else if(Save_EditorWrite(e->path,&e->data)==0){e->dirty=0;e->data.location_changed=0;snprintf(e->feedback,sizeof e->feedback,"SAVE COMPLETE");e->feedback_error=0;}
             else{snprintf(e->feedback,sizeof e->feedback,"SAVE FAILED");e->feedback_error=1;}
             e->feedback_until=SDL_GetTicks()+2500;
             e->save_requested=0;in=0;e->nav->ptr_pressed=0;e->nav->ptr_released=0;

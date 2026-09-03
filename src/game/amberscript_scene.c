@@ -1203,6 +1203,15 @@ static void dsl_bank_init_if_needed(void) {
 static int s_script_trace_enabled = 0;
 static int s_script_trace_to_file = 0;
 #define PKS_SCRIPT_TRACE_LOG_PATH "bugs/script_trace.log"
+static void script_trace_reset_latches(void);
+
+void AmberScript_SetScriptTrace(int on) {
+    s_script_trace_enabled = on ? 1 : 0;
+    s_script_trace_to_file = s_script_trace_enabled;
+    if (s_script_trace_enabled) script_trace_reset_latches();
+}
+
+int AmberScript_GetScriptTrace(void) { return s_script_trace_enabled; }
 
 static int s_py_law_enabled = 0;
 static int s_py_law_npc_idx = -1;

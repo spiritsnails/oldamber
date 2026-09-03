@@ -26,6 +26,7 @@ static int s_animlab_level   = 50;
 static int s_autowin_enabled = 0;
 
 int AmberScript_IsAutoWinEnabled(void) { return s_autowin_enabled; }
+void AmberScript_SetAutoWinEnabled(int enabled) { s_autowin_enabled = enabled ? 1 : 0; }
 
 static int pks_first_alive_party_slot(void) {
     for (int i = 0; i < wPartyCount && i < PARTY_LENGTH; i++) {

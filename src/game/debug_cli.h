@@ -27,6 +27,10 @@ int DebugCLI_OnNpcInteracted(int npc_idx);
 
 void DebugCLI_ClearSceneNpcBindingsForMap(uint8_t map_id);
 int DebugCLI_IsAutoWinEnabled(void);
+void DebugCLI_SetAutoWinEnabled(int enabled);
+int  DebugCLI_IsNoClipEnabled(void);
+void DebugCLI_SetNoClipEnabled(int enabled);
+int  DebugCLI_TeleportToRealMap(uint8_t map_id, int x, int y);
 
 void DebugCLI_PollExternal(void);
 

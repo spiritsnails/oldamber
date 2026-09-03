@@ -409,6 +409,7 @@ list(APPEND SOURCES
     src/platform/launcher_nav.c
     src/platform/launcher_browse.c
     src/platform/launcher_save_editor.c
+    src/platform/launcher_save_editor_location.c
     src/platform/launcher_save_editor_workspace.c
     # Only does anything on a Deck, every entry point is gated on
     # Display_IsSteamDeck, but it compiles everywhere: the file is one
@@ -981,6 +982,19 @@ add_executable(crt_renderer_tests
     tests/crt_renderer_tests.c
     src/platform/crt_renderer.c
 )
+
+add_executable(save_editor_location_tests
+    tests/save_editor_location_tests.c
+    src/platform/launcher_save_editor_location.c
+)
+target_include_directories(save_editor_location_tests PRIVATE src)
+target_compile_definitions(save_editor_location_tests PRIVATE
+    LOCATION_TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/tests/fixtures/save_editor_locations"
+)
+target_compile_options(save_editor_location_tests PRIVATE
+    $<$<C_COMPILER_ID:MSVC>:/W4 /wd4100>
+    $<$<NOT:$<C_COMPILER_ID:MSVC>>:-Wall -Wextra>
+)
 target_include_directories(crt_renderer_tests PRIVATE src)
 target_compile_options(crt_renderer_tests PRIVATE
     $<$<NOT:$<C_COMPILER_ID:MSVC>>:-Wall -Wextra>
@@ -1032,6 +1046,7 @@ enable_testing()
 if(NOT RED_ONLY)
 add_test(NAME pokered_tests COMMAND pokered_tests)
 endif()
+add_test(NAME save_editor_location_tests COMMAND save_editor_location_tests)
 
 # ui_harness, renders the settings UI to an image with no game and no window.
 #

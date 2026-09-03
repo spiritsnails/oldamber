@@ -1083,6 +1083,91 @@ static void bcd_write(uint8_t *p, size_t n, unsigned v) {
     }
 }
 
+static int editor_sidecar_path(const char *save_path, char *out, size_t out_size) {
+    int n;
+    if (!save_path || !out || out_size == 0) return 0;
+    n = snprintf(out, out_size, "%s.vmaps", save_path);
+    return n > 0 && (size_t)n < out_size;
+}
+
+static int editor_copy_file(const char *src, const char *dst) {
+    FILE *in = fopen(src, "rb");
+    FILE *out;
+    char buf[8192];
+    size_t n;
+    int rc = 0;
+    if (!in) return -1;
+    out = fopen(dst, "wb");
+    if (!out) { fclose(in); return -1; }
+    while ((n = fread(buf, 1, sizeof(buf), in)) > 0) {
+        if (fwrite(buf, 1, n, out) != n) { rc = -1; break; }
+    }
+    if (ferror(in)) rc = -1;
+    fclose(in);
+    if (fclose(out) != 0) rc = -1;
+    return rc;
+}
+
+static void editor_read_vmap_bindings(const char *save_path,
+                                      save_editor_data_t *out) {
+    char path[1280];
+    char line[128];
+    FILE *f;
+    if (!out || !editor_sidecar_path(save_path, path, sizeof(path))) return;
+    f = fopen(path, "r");
+    if (!f) return;
+    for (int i = 0; i < SAVE_EDITOR_VMAP_SLOT_COUNT &&
+                    fgets(line, sizeof(line), f); i++) {
+        line[strcspn(line, "\r\n")] = '\0';
+        snprintf(out->vmap_bindings[i], sizeof(out->vmap_bindings[i]),
+                 "%s", line);
+    }
+    fclose(f);
+    out->vmap_bindings[SAVE_EDITOR_VMAP_SLOT_COUNT - 1][0] = '\0';
+}
+
+static int editor_write_vmap_bindings(const char *save_path,
+                                      const save_editor_data_t *data,
+                                      int *had_old_sidecar) {
+    char path[1280];
+    char backup[1280];
+    char text[SAVE_EDITOR_VMAP_SLOT_COUNT * SAVE_EDITOR_VMAP_NAME_LEN];
+    size_t used = 0;
+    FILE *probe;
+    if (!data || !had_old_sidecar ||
+        !editor_sidecar_path(save_path, path, sizeof(path))) return -1;
+    *had_old_sidecar = 0;
+    probe = fopen(path, "rb");
+    if (probe) {
+        fclose(probe);
+        *had_old_sidecar = 1;
+        if (snprintf(backup, sizeof(backup), "%s.editor.bak", path) <= 0 ||
+            editor_copy_file(path, backup) != 0) return -1;
+    }
+    for (int i = 0; i < SAVE_EDITOR_VMAP_SLOT_COUNT; i++) {
+        const char *name = i == SAVE_EDITOR_VMAP_SLOT_COUNT - 1
+                         ? "" : data->vmap_bindings[i];
+        int n = snprintf(text + used, sizeof(text) - used, "%s\n", name);
+        if (n < 0 || (size_t)n >= sizeof(text) - used) return -1;
+        used += (size_t)n;
+    }
+    return write_file_atomic(path, text, used);
+}
+
+static void editor_restore_vmap_bindings(const char *save_path,
+                                         int had_old_sidecar) {
+    char path[1280];
+    char backup[1280];
+    if (!editor_sidecar_path(save_path, path, sizeof(path))) return;
+    if (!had_old_sidecar) {
+        remove(path);
+        return;
+    }
+    if (snprintf(backup, sizeof(backup), "%s.editor.bak", path) <= 0) return;
+    if (editor_copy_file(backup, path) != 0)
+        fprintf(stderr, "save editor: could not restore %s after save failure\n", path);
+}
+
 int Save_EditorRead(const char *path, save_editor_data_t *out) {
     save_block_t keep = save;
     int rc;
@@ -1123,6 +1208,8 @@ int Save_EditorRead(const char *path, save_editor_data_t *out) {
                SAVE_EVENT_FLAGS_EXT_BYTES);
         memcpy(out->hand_authored_flags, save.hand_authored_flags,
                sizeof(out->hand_authored_flags));
+        editor_read_vmap_bindings(path, out);
+        out->location_changed = 0;
     }
     save = keep;
     return rc;
@@ -1131,8 +1218,14 @@ int Save_EditorRead(const char *path, save_editor_data_t *out) {
 int Save_EditorWrite(const char *path, const save_editor_data_t *data) {
     char backup[1280];
     save_block_t keep = save;
+    int had_old_sidecar = 0;
     int rc;
     if (!path || !data || data->money > 999999u || data->coins > 9999u)
+        return -1;
+    if (data->location_changed &&
+        (data->cur_map < PKS_VIRTUAL_MAP_FIRST ||
+         data->cur_map >= PKS_VIRTUAL_MAP_LAST ||
+         !data->vmap_bindings[data->cur_map - PKS_VIRTUAL_MAP_FIRST][0]))
         return -1;
 
     s_peek_only = 1;
@@ -1186,24 +1279,15 @@ int Save_EditorWrite(const char *path, const save_editor_data_t *data) {
     save.checksum = CalcCheckSum((uint8_t *)&save, (uint16_t)(sizeof(save) - 1));
 
     snprintf(backup, sizeof(backup), "%s.editor.bak", path);
-    {
-        FILE *in = fopen(path, "rb");
-        FILE *out = in ? fopen(backup, "wb") : NULL;
-        char buf[8192];
-        size_t n;
-        if (!in || !out) {
-            if (in) fclose(in);
-            if (out) fclose(out);
-            save = keep;
-            return -1;
-        }
-        while ((n = fread(buf, 1, sizeof(buf), in)) > 0)
-            if (fwrite(buf, 1, n, out) != n) { rc = -1; break; }
-        if (ferror(in) || fclose(out) != 0) rc = -1;
-        fclose(in);
-        if (rc != 0) { save = keep; return -1; }
+    if (editor_copy_file(path, backup) != 0) { save = keep; return -1; }
+    if (data->location_changed &&
+        editor_write_vmap_bindings(path, data, &had_old_sidecar) != 0) {
+        save = keep;
+        return -1;
     }
     rc = write_file_atomic(path, &save, sizeof(save));
+    if (rc != 0 && data->location_changed)
+        editor_restore_vmap_bindings(path, had_old_sidecar);
     save = keep;
     return rc;
 }

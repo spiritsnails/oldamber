@@ -122,11 +122,11 @@ static const char *const kRomExts[] = { "gb", "gbc", NULL };
 static const char *const kSavExts[] = { "sav", NULL };
 
 typedef enum {
-    ACT_CHOOSE_ROM = 0, ACT_PLAY, ACT_SWITCH_SAVE, ACT_EDIT_SAVE,
+    ACT_CHOOSE_ROM = 0, ACT_PLAY, ACT_DEBUG_TOOLING, ACT_SWITCH_SAVE, ACT_EDIT_SAVE,
     ACT_UPDATE, ACT_ADD_TO_STEAM, ACT_QUIT
 } action_t;
 
-#define MENU_MAX 10
+#define MENU_MAX 12
 
 #define PANEL_X       24
 #define PANEL_INSET   16
@@ -144,7 +144,7 @@ typedef enum {
 
 typedef struct {
     action_t act;
-    char     label[40];
+    char     label[80];
     char     ver[16];
     int      h;
     int      scale;
@@ -210,6 +210,35 @@ static void menu_add(menu_t *m, action_t act, const char *label,
 static int s_can_import = 1;
 
 static int s_import_via_setup = 0;
+static int s_debug_tooling_enabled = 0;
+
+int Launcher_DebugToolingEnabled(void) { return s_debug_tooling_enabled; }
+
+static void launcher_load_preferences(void) {
+    char path[1200];
+    char key[64];
+    int value;
+    FILE *f;
+    s_debug_tooling_enabled = 0;
+    if (!UserDataPath("launcher.cfg", path, sizeof path)) return;
+    f = fopen(path, "r");
+    if (!f) return;
+    while (fscanf(f, "%63s %d", key, &value) == 2) {
+        if (strcmp(key, "debug_tooling") == 0)
+            s_debug_tooling_enabled = value ? 1 : 0;
+    }
+    fclose(f);
+}
+
+static void launcher_save_preferences(void) {
+    char path[1200];
+    FILE *f;
+    if (!UserDataPath("launcher.cfg", path, sizeof path)) return;
+    f = fopen(path, "w");
+    if (!f) return;
+    fprintf(f, "debug_tooling %d\n", s_debug_tooling_enabled ? 1 : 0);
+    fclose(f);
+}
 
 static void menu_build(menu_t *m, ui_state_t state,
                        const char **installed, int n_installed, int pointer) {
@@ -228,6 +257,9 @@ static void menu_build(menu_t *m, ui_state_t state,
             menu_add(m, ACT_PLAY, lbl, installed[i],
                      hero ? ROW_H_HERO : ROW_H_GAME, hero ? 3 : 2);
         }
+        menu_add(m, ACT_DEBUG_TOOLING,
+                 "ENABLE DEBUG TOOLING? (TELEPORT, NOCLIP, ETC.)",
+                 "", 28, 1);
 
         if (n_installed < GameVersion_SupportedCount() && s_can_import)
             menu_add(m, ACT_CHOOSE_ROM, "ADD ANOTHER GAME", "", ROW_H_SMALL, 2);
@@ -307,10 +339,12 @@ static void menu_build(menu_t *m, ui_state_t state,
                     m->rows[i].act == ACT_EDIT_SAVE) continue;
                 if (m->rows[i].act == ACT_PLAY) continue;
                 m->rows[i].tile = 0;
-                m->rows[i].h = row_h;
-                m->rows[i].scale = 2;
+                m->rows[i].h = (m->rows[i].act == ACT_DEBUG_TOOLING) ? 28 : row_h;
+                m->rows[i].scale = (m->rows[i].act == ACT_DEBUG_TOOLING) ? 1 : 2;
                 if (!first) y += row_gap;
-                m->rect[i] = (SDL_Rect){ x, y, bw, m->rows[i].h };
+                m->rect[i] = (m->rows[i].act == ACT_DEBUG_TOOLING)
+                    ? (SDL_Rect){ PANEL_X, y, LDRAW_W - PANEL_X * 2, m->rows[i].h }
+                    : (SDL_Rect){ x, y, bw, m->rows[i].h };
                 y += m->rows[i].h;
                 first = 0;
             }
@@ -369,9 +403,31 @@ static void draw_play_glyph(SDL_Renderer *r, int x, int cy, int h,
 }
 
 static void draw_button(SDL_Renderer *r, SDL_Rect rect, const char *label,
-                        int focused, int scale, const char *ver, int tile) {
+                        int focused, int scale, const char *ver, int tile,
+                        action_t action) {
     Uint8 fr, fg, fb;
     row_focus_rgb(ver, &fr, &fg, &fb);
+    if (action == ACT_DEBUG_TOOLING) {
+        SDL_Rect inner = { rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2 };
+        SDL_Rect box = { rect.x + 6, rect.y + (rect.h - 16) / 2, 16, 16 };
+        if (focused) LauncherDraw_FocusBarRGB(r, inner, fr, fg, fb);
+        SDL_SetRenderDrawColor(r, LCOL_LIGHT, 0xFF);
+        SDL_RenderFillRect(r, &box);
+        LauncherDraw_Bevel(r, box, 0);
+        if (s_debug_tooling_enabled) {
+            int mark_w = LauncherDraw_TextWidthBold(1, "X");
+            LauncherDraw_TextBold(r, box.x + (box.w - mark_w) / 2,
+                                  LDRAW_TEXT_Y(box.y, box.h, 1),
+                                  1, LCOL_TEXT, "X");
+        }
+        LauncherDraw_TextClipped(r, box.x + box.w + 8,
+                                 LDRAW_TEXT_Y(rect.y, rect.h, 1), 1,
+                                 focused ? 0xFF : 0x00,
+                                 focused ? 0xFF : 0x00,
+                                 focused ? 0xFF : 0x00,
+                                 label, rect.x + rect.w - box.x - box.w - 14);
+        return;
+    }
     LauncherDraw_Bevel(r, rect, 1);
     if (focused) {
         SDL_Rect inner = { rect.x + 3, rect.y + 3, rect.w - 6, rect.h - 6 };
@@ -506,7 +562,8 @@ static void draw_main(menu_t *m, ui_state_t state, const char *status,
 
     for (int i = 0; i < m->count; i++)
         draw_button(r, m->rect[i], m->rows[i].label, i == highlight,
-                    m->rows[i].scale, m->rows[i].ver, m->rows[i].tile);
+                    m->rows[i].scale, m->rows[i].ver, m->rows[i].tile,
+                    m->rows[i].act);
 
     if (!pointer) {
         LauncherDraw_PromptBar(r, "SELECT", NULL, NULL, NULL);
@@ -597,6 +654,7 @@ static void on_setup_stage(void *ctx, int stage) {
 launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
                                const char *romimport_tools_dir,
                                char *chosen_version, size_t chosen_sz) {
+    launcher_load_preferences();
 
     s_import_via_setup = (tools_dir == NULL) && RomImport_HaveBundledSetup();
     s_can_import = (tools_dir != NULL) || s_import_via_setup;
@@ -792,6 +850,9 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
                 result = LAUNCHER_GOT_PAK;
                 running = 0;
                 break;
+            } else if (act == ACT_DEBUG_TOOLING) {
+                s_debug_tooling_enabled = !s_debug_tooling_enabled;
+                launcher_save_preferences();
             } else if (act == ACT_CHOOSE_ROM) {
                 char picked[1024];
                 if (LauncherBrowse_Run(r, win, &nav, "CHOOSE YOUR ROM", kRomExts,

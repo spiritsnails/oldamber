@@ -1,4 +1,5 @@
 #include "launcher_save_editor_internal.h"
+#include "launcher_save_editor_location.h"
 #include "assetpack.h"
 #include "assetpack_bind.h"
 
@@ -471,6 +472,7 @@ int LauncherSaveEditor_Run(SDL_Renderer *r, SDL_Window *win,
     if (Save_EditorRead(path, &e.data) != 0) return -1;
     if (!mount_editor_assets(version_label && strcmp(version_label, "BLUE") == 0 ? "blue" : "red"))
         return -1;
+    SE_LocationLoad(version_label);
     SDL_GetWindowSize(win, &old_ww, &old_wh);
     if (!(SDL_GetWindowFlags(win) & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) &&
         (old_ww < 800 || old_wh < 520)) {

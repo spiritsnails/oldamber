@@ -9,6 +9,8 @@ int AmberScript_SceneWantsFullRate(void);
 
 void AmberScript_SetMarchDebug(int on);
 int  AmberScript_GetMarchDebug(void);
+void AmberScript_SetScriptTrace(int on);
+int  AmberScript_GetScriptTrace(void);
 
 int AmberScript_GetMarchActorLabelForNpcIdx(int npc_idx, char *out_ch);
 

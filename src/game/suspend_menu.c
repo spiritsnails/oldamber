@@ -37,6 +37,7 @@ static int sm_ensure_surface(int w, int h) {
 }
 
 static int             s_open;
+static int             s_debug_tooling_enabled;
 static launcher_nav_t  s_nav;
 static int             s_nav_ready;
 static int             s_focus;
@@ -71,11 +72,24 @@ static const sm_row_t kRows[] = {
     { "DISPLAY",  "Renderer, size, filter",           4 },
     { "PALETTE",  "Colour palettes",                  5 },
     { "GAMEPLAY", "Rules and conveniences",           6 },
+    { "DEBUG TOOLS", "Beta testing shortcuts",        7 },
     { "CONTROLS", "Keyboard and gamepad", SM_PAGE_CONTROLS },
     { "SAVE STATE", "Suspend and restore",  SM_PAGE_STATES },
     { "EXIT TO LAUNCHER", "Pick a game or a ROM", SM_PAGE_EXIT },
 };
 #define SM_ROWS ((int)(sizeof kRows / sizeof kRows[0]))
+
+static int sm_hub_rows_now(void) {
+    return SM_ROWS - (s_debug_tooling_enabled ? 0 : 1);
+}
+
+static const sm_row_t *sm_hub_row(int visible_index) {
+    for (int i = 0; i < SM_ROWS; i++) {
+        if (!s_debug_tooling_enabled && kRows[i].page == 7) continue;
+        if (visible_index-- == 0) return &kRows[i];
+    }
+    return &kRows[0];
+}
 
 static int s_page = SM_PAGE_HUB;
 
@@ -115,7 +129,7 @@ static int s_wheel;
 static int sm_rows_now(void) {
     if (s_page == SM_PAGE_CONTROLS) return INPUT_BIND_COUNT;
     if (s_page == SM_PAGE_STATES) return SAVE_SLOT_COUNT;
-    return (s_page == SM_PAGE_HUB) ? SM_ROWS : PresentationMenu_PageRowCount(s_page);
+    return (s_page == SM_PAGE_HUB) ? sm_hub_rows_now() : PresentationMenu_PageRowCount(s_page);
 }
 
 #define SM_SCALE(v)   ((int)((v) * LDRAW_H / LDRAW_H_BASE))
@@ -747,7 +761,7 @@ static void sm_draw(SDL_Renderer *r) {
         } else if (s_page == SM_PAGE_CONTROLS) {
             label = Input_BindName(kBindOrder[i]);
         } else {
-            label = (s_page == SM_PAGE_HUB) ? kRows[i].label
+            label = (s_page == SM_PAGE_HUB) ? sm_hub_row(i)->label
                                  : PresentationMenu_RowLabel(s_page, i);
         }
 
@@ -833,13 +847,14 @@ static void sm_draw(SDL_Renderer *r) {
             }
         } else if (s_page == SM_PAGE_HUB) {
 
-            int lw = LauncherDraw_TextWidthBold(SM_TXT_LABEL, kRows[i].label);
-            if (kRows[i].detail) {
-                int dw = LauncherDraw_TextWidth(1, kRows[i].detail);
+            const sm_row_t *hub = sm_hub_row(i);
+            int lw = LauncherDraw_TextWidthBold(SM_TXT_LABEL, hub->label);
+            if (hub->detail) {
+                int dw = LauncherDraw_TextWidth(1, hub->detail);
                 if (lw + dw + 34 <= rr.w)
                     LauncherDraw_TextClipped(r, rr.x + rr.w - 10 - dw,
                                              rr.y + SM_ROW_TEXT + 4, 1,
-                                             dr, dg, db, kRows[i].detail,
+                                             dr, dg, db, hub->detail,
                                              rr.w - lw - 24);
             }
         } else {
@@ -1141,6 +1156,10 @@ void SuspendMenu_Close(void) {
 
 void SuspendMenu_Toggle(void) { if (s_open) SuspendMenu_Close(); else SuspendMenu_Open(); }
 int  SuspendMenu_IsOpen(void) { return s_open; }
+void SuspendMenu_SetDebugToolingEnabled(int enabled) {
+    s_debug_tooling_enabled = enabled ? 1 : 0;
+}
+int SuspendMenu_DebugToolingEnabled(void) { return s_debug_tooling_enabled; }
 int  SuspendMenu_ExitToLauncherRequested(void) { return s_exit_requested; }
 
 int SuspendMenu_IsCapturing(void) { return s_cap_row >= 0; }
@@ -1527,16 +1546,17 @@ static void sm_tick_inner(void) {
 
     if (in & LNAV_ACCEPT) {
         if (s_page == SM_PAGE_HUB) {
+            const sm_row_t *hub = sm_hub_row(s_focus);
 
-            if (kRows[s_focus].page == SM_PAGE_HUB) { SuspendMenu_Close(); return; }
-            if (kRows[s_focus].page == SM_PAGE_EXIT) {
+            if (hub->page == SM_PAGE_HUB) { SuspendMenu_Close(); return; }
+            if (hub->page == SM_PAGE_EXIT) {
 
                 s_confirm_kind = SM_ASK_EXIT;
                 s_confirm_slot = 0;
                 s_confirm_yes  = 0;
                 return;
             }
-            s_page       = kRows[s_focus].page;
+            s_page       = hub->page;
             s_focus      = 0;
             s_row_scroll = 0;
             s_state_msg[0] = 0;

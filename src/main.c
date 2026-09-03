@@ -259,7 +259,10 @@ static launcher_result_t boot_launcher(char *picked, size_t picked_sz) {
         (tools_dir && tools_dir[0] == '.') ? "../" ASSETPACK_DEFAULT_PATH
                                            : ASSETPACK_DEFAULT_PATH;
 
-    return Launcher_Run(tools_dir, out_pak, romimport_tools_dir, picked, picked_sz);
+    launcher_result_t result = Launcher_Run(tools_dir, out_pak, romimport_tools_dir,
+                                            picked, picked_sz);
+    SuspendMenu_SetDebugToolingEnabled(Launcher_DebugToolingEnabled());
+    return result;
 }
 #endif
 

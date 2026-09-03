@@ -11,3 +11,5 @@ typedef enum {
 launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
                                const char *romimport_tools_dir,
                                char *chosen_version, size_t chosen_sz);
+
+int Launcher_DebugToolingEnabled(void);

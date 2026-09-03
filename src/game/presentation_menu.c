@@ -4,6 +4,9 @@
 #include "gbc_color.h"
 #include "speed_settings.h"
 #include "battle/battle_exp.h"
+#include "debug_cli.h"
+#include "amberscript_battle_debug.h"
+#include "amberscript_scene.h"
 #include "gen1color/gen1color_battle.h"
 #include "battle/move_anim.h"
 #include "overworld.h"
@@ -239,6 +242,60 @@ static const choice_t kFastBootChoices[] = {
     {"OFF", 0}, {"ON", 1},
 };
 
+static const choice_t kDebugToggleChoices[] = {
+    {"OFF", 0}, {"ON", 1},
+};
+
+typedef struct {
+    uint8_t map;
+    int x;
+    int y;
+} debug_place_t;
+
+static const choice_t kTeleportChoices[] = {
+    {"CURRENT MAP", 0},
+    {"PALLET TOWN", 1},
+    {"VIRIDIAN CITY", 2},
+    {"PEWTER CITY", 3},
+    {"CERULEAN CITY", 4},
+    {"VERMILION CITY", 5},
+    {"LAVENDER TOWN", 6},
+    {"CELADON CITY", 7},
+    {"FUCHSIA CITY", 8},
+    {"CINNABAR ISLAND", 9},
+    {"SAFFRON CITY", 10},
+    {"INDIGO PLATEAU", 11},
+    {"OAK'S LAB", 12},
+    {"VIRIDIAN FOREST", 13},
+    {"MT MOON", 14},
+    {"ROCK TUNNEL", 15},
+    {"POKEMON TOWER", 16},
+    {"SILPH CO", 17},
+    {"SAFARI ZONE", 18},
+};
+
+static const debug_place_t kDebugPlaces[] = {
+    { 0,   0,  0},
+    { 0,   5,  6},
+    { 1,  23, 26},
+    { 2,  13, 26},
+    { 3,  19, 18},
+    { 5,  11,  4},
+    { 4,   3,  6},
+    { 6,  41, 10},
+    { 7,  19, 28},
+    { 8,  11, 12},
+    {10,   9, 30},
+    { 9,   9,  6},
+    {37,  12, 11},
+    {51,  14, 40},
+    {59,  14, 10},
+    {155, 14, 10},
+    {142,  8,  9},
+    {200,  8,  9},
+    {217, 28, 20},
+};
+
 static const choice_t kWinScaleChoices[] = {
     {"2X",  2}, {"3X",  3}, {"4X",  4}, {"5X",  5},
     {"6X",  6}, {"7X",  7}, {"8X",  8},
@@ -355,6 +412,10 @@ static int filter_blocked(int index) {
 #define N_SCALE   ((int)(sizeof kScaleChoices   / sizeof kScaleChoices[0]))
 #define N_EXPSHARE ((int)(sizeof kExpShareChoices / sizeof kExpShareChoices[0]))
 #define N_FASTBOOT ((int)(sizeof kFastBootChoices / sizeof kFastBootChoices[0]))
+#define N_DEBUG_TOGGLE ((int)(sizeof kDebugToggleChoices / sizeof kDebugToggleChoices[0]))
+#define N_TELEPORT ((int)(sizeof kTeleportChoices / sizeof kTeleportChoices[0]))
+typedef char debug_places_match_choices[
+    ((int)(sizeof kDebugPlaces / sizeof kDebugPlaces[0]) == N_TELEPORT) ? 1 : -1];
 #define N_WINSCALE ((int)(sizeof kWinScaleChoices / sizeof kWinScaleChoices[0]))
 #define N_VOLUME  ((int)(sizeof kVolumeChoices  / sizeof kVolumeChoices[0]))
 #define N_ANIMSPD ((int)(sizeof kAnimSpeedChoices / sizeof kAnimSpeedChoices[0]))
@@ -383,7 +444,12 @@ enum {
     ROW_PAL_S3R, ROW_PAL_S3G, ROW_PAL_S3B,
     ROW_PAL_LAST = ROW_PAL_S3B,
 
-    ROW_RENDERFPS
+    ROW_RENDERFPS,
+    ROW_DEBUG_TELEPORT,
+    ROW_DEBUG_NOCLIP,
+    ROW_DEBUG_AUTOWIN,
+    ROW_DEBUG_SCRIPT_TRACE,
+    ROW_DEBUG_MARCH_TRACE
 };
 
 typedef enum { RK_VALUE, RK_SUBMENU, RK_BACK } rowkind_t;
@@ -447,6 +513,7 @@ static int inner_r_of_page(void);
 #define PAGE_PALETTE  5
 
 #define PAGE_GAMEPLAY 6
+#define PAGE_DEBUG    7
 
 static const menu_row_t kMainRows[] = {
     { RK_SUBMENU, PAGE_GRAPHICS, "GRAPHICS", NULL, MAIN_ITEM_ROW_1 + 0 * MAIN_ITEM_STEP, 0, 0, 0 },
@@ -550,6 +617,20 @@ static const menu_row_t kGameplayRows[] = {
 };
 #define GAMEPLAY_BOX_BOTTOM 4
 
+static const menu_row_t kDebugRows[] = {
+    { RK_VALUE, ROW_DEBUG_TELEPORT,     "TELEPORT",     kTeleportChoices,    1, 0, 0, 10 },
+    { RK_VALUE, ROW_DEBUG_NOCLIP,       "NOCLIP",       kDebugToggleChoices, 3, 0, 0, 10 },
+    { RK_VALUE, ROW_DEBUG_AUTOWIN,      "AUTO WIN",     kDebugToggleChoices, 4, 0, 0, 10 },
+    { RK_VALUE, ROW_DEBUG_SCRIPT_TRACE, "SCRIPT TRACE", kDebugToggleChoices, 7, 0, 0, 10 },
+    { RK_VALUE, ROW_DEBUG_MARCH_TRACE,  "MARCH TRACE",  kDebugToggleChoices, 8, 0, 0, 10 },
+    { RK_BACK,  0,                     "BACK",          NULL,               10, 0, 0, 0 },
+};
+static const menu_header_t kDebugHeaders[] = {
+    { 2, "GAMEPLAY" },
+    { 6, "DIAGNOSTICS" },
+};
+#define DEBUG_BOX_BOTTOM 9
+
 static const menu_page_t kPages[] = {
     { kMainRows,     (int)(sizeof kMainRows     / sizeof kMainRows[0]),
       NULL, 0, MAIN_BOX_BOTTOM, MAIN_BOX_L, MAIN_BOX_R },
@@ -566,10 +647,12 @@ static const menu_page_t kPages[] = {
 
     { kGameplayRows, (int)(sizeof kGameplayRows / sizeof kGameplayRows[0]),
       NULL, 0, GAMEPLAY_BOX_BOTTOM, COL_L, COL_R },
+    { kDebugRows, (int)(sizeof kDebugRows / sizeof kDebugRows[0]),
+      kDebugHeaders, (int)(sizeof kDebugHeaders / sizeof kDebugHeaders[0]), DEBUG_BOX_BOTTOM, COL_L, COL_R },
 };
 
 typedef char pages_cover_every_page_id[
-    ((int)(sizeof kPages / sizeof kPages[0]) == PAGE_GAMEPLAY + 1) ? 1 : -1];
+    ((int)(sizeof kPages / sizeof kPages[0]) == PAGE_DEBUG + 1) ? 1 : -1];
 
 static int s_page;
 
@@ -583,6 +666,7 @@ static void apply(int row, int index);
 static void PresentationMenu_SaveSettings(void);
 
 static int s_fast_boot = 0;
+static int s_debug_teleport_index = 0;
 
 int PresentationMenu_FastBoot(void) { return s_fast_boot; }
 
@@ -643,6 +727,17 @@ static int current_index(int row) {
             if (cur && strcmp(cur, kFilterFiles[i]) == 0) return i;
         return 0;
     }
+    case ROW_DEBUG_TELEPORT:
+        return s_debug_teleport_index;
+    case ROW_DEBUG_NOCLIP:
+        v = DebugCLI_IsNoClipEnabled(); tbl = kDebugToggleChoices; n = N_DEBUG_TOGGLE; break;
+    case ROW_DEBUG_AUTOWIN:
+        v = DebugCLI_IsAutoWinEnabled() || AmberScript_IsAutoWinEnabled();
+        tbl = kDebugToggleChoices; n = N_DEBUG_TOGGLE; break;
+    case ROW_DEBUG_SCRIPT_TRACE:
+        v = AmberScript_GetScriptTrace(); tbl = kDebugToggleChoices; n = N_DEBUG_TOGGLE; break;
+    case ROW_DEBUG_MARCH_TRACE:
+        v = AmberScript_GetMarchDebug(); tbl = kDebugToggleChoices; n = N_DEBUG_TOGGLE; break;
     default: return 0;
     }
     for (int i = 0; i < n; i++) if (tbl[i].value == v) return i;
@@ -832,6 +927,26 @@ static void apply(int row, int index) {
     case ROW_LTEMP:
         Display_SetLightTemperature(kLightTempChoices[index].value / 10.0f);
         break;
+    case ROW_DEBUG_TELEPORT:
+        s_debug_teleport_index = index;
+        if (index > 0 && index < N_TELEPORT)
+            DebugCLI_TeleportToRealMap(kDebugPlaces[index].map,
+                                       kDebugPlaces[index].x,
+                                       kDebugPlaces[index].y);
+        break;
+    case ROW_DEBUG_NOCLIP:
+        DebugCLI_SetNoClipEnabled(kDebugToggleChoices[index].value);
+        break;
+    case ROW_DEBUG_AUTOWIN:
+        DebugCLI_SetAutoWinEnabled(kDebugToggleChoices[index].value);
+        AmberScript_SetAutoWinEnabled(kDebugToggleChoices[index].value);
+        break;
+    case ROW_DEBUG_SCRIPT_TRACE:
+        AmberScript_SetScriptTrace(kDebugToggleChoices[index].value);
+        break;
+    case ROW_DEBUG_MARCH_TRACE:
+        AmberScript_SetMarchDebug(kDebugToggleChoices[index].value);
+        break;
     default:
         break;
     }
@@ -876,6 +991,11 @@ static const choice_t *row_table(int row) {
     case ROW_PAL_S0R ... ROW_PAL_S3B: return kHexChoices;
     case ROW_WINSCALE:  return kWinScaleChoices;
     case ROW_LTEMP:     return kLightTempChoices;
+    case ROW_DEBUG_TELEPORT:     return kTeleportChoices;
+    case ROW_DEBUG_NOCLIP:
+    case ROW_DEBUG_AUTOWIN:
+    case ROW_DEBUG_SCRIPT_TRACE:
+    case ROW_DEBUG_MARCH_TRACE:  return kDebugToggleChoices;
     default:            return kColorChoices;
     }
 }
@@ -917,6 +1037,11 @@ static int row_count(int row) {
     case ROW_PAL_S0R ... ROW_PAL_S3B: return N_HEX;
     case ROW_WINSCALE: return N_WINSCALE;
     case ROW_LTEMP:    return N_LTEMP;
+    case ROW_DEBUG_TELEPORT: return N_TELEPORT;
+    case ROW_DEBUG_NOCLIP:
+    case ROW_DEBUG_AUTOWIN:
+    case ROW_DEBUG_SCRIPT_TRACE:
+    case ROW_DEBUG_MARCH_TRACE: return N_DEBUG_TOGGLE;
     default:          return 1;
     }
 }
@@ -1263,10 +1388,10 @@ void PresentationMenu_Tick(void) {
 }
 
 static const char *kPageNames[] = {
-    "OPTIONS", "GRAPHICS", "SPEED", "AUDIO", "DISPLAY", "PALETTE", "GAMEPLAY",
+    "OPTIONS", "GRAPHICS", "SPEED", "AUDIO", "DISPLAY", "PALETTE", "GAMEPLAY", "DEBUG TOOLS",
 };
 typedef char page_names_cover_every_page[
-    ((int)(sizeof kPageNames / sizeof kPageNames[0]) == PAGE_GAMEPLAY + 1) ? 1 : -1];
+    ((int)(sizeof kPageNames / sizeof kPageNames[0]) == PAGE_DEBUG + 1) ? 1 : -1];
 
 int PresentationMenu_PageCount(void) {
     return (int)(sizeof kPages / sizeof kPages[0]);
