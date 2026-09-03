@@ -250,6 +250,12 @@ keyboard alone. Bindings are swapped rather than duplicated, so no two actions
 can end up on one button and nothing gets stranded. The reset hold is there if
 a remap leaves you unable to reach the menu.
 
+## Debug tools
+
+The launcher can expose controller-friendly debug pages in the suspend menu.
+For direct control over game state, battles, maps and scripted test setups, see
+the [Debug CLI command guide](DEBUG_CLI.md).
+
 ## Presentation
 
 The game can be played in a myriad of different presentation styles. You can
