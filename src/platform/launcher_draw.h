@@ -17,6 +17,11 @@ void LauncherDraw_SetWidth(int w);
 
 void LauncherDraw_SetSize(int w, int h);
 
+void LauncherDraw_SetChromeColors(Uint8 panel_r, Uint8 panel_g, Uint8 panel_b,
+                                  Uint8 light_r, Uint8 light_g, Uint8 light_b,
+                                  Uint8 dark_r, Uint8 dark_g, Uint8 dark_b);
+void LauncherDraw_ResetChromeColors(void);
+
 #define LCOL_BG        0xC0, 0xC0, 0xC0
 #define LCOL_PANEL     0xD4, 0xD4, 0xD4
 #define LCOL_LIGHT     0xFF, 0xFF, 0xFF

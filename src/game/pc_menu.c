@@ -10,6 +10,7 @@
 #include "text.h"
 #include "rom_text.h"
 #include "dex_rating.h"
+#include "hall_of_fame_scripts.h"
 #include "yesno.h"
 #include "../data/base_stats.h"
 #include "../data/event_constants.h"
@@ -43,6 +44,7 @@ typedef enum {
     PCM_OAK_CONFIRM,
     PCM_OAK_RATING,
     PCM_OAK_CLOSING,
+    PCM_LEAGUE_VIEWER,
 } pc_mode_t;
 
 typedef enum {
@@ -50,6 +52,7 @@ typedef enum {
     BRANCH_BILLS,
     BRANCH_PLAYER,
     BRANCH_OAK,
+    BRANCH_LEAGUE,
 } pc_branch_t;
 
 typedef enum {
@@ -189,7 +192,18 @@ static void pc_restore_overworld(void) {
     hWY = SCREEN_HEIGHT_PX;
 }
 
+static void pc_restore_background_under_menu(void) {
+    Display_LoadMapPalette();
+    Map_ReloadGfx();
+    Font_Load();
+    NPC_ReloadTiles();
+    Map_BuildScrollView();
+    NPC_BuildView(gScrollPxX, gScrollPxY);
+    hWY = 0;
+}
+
 static int pc_top_count(void) {
+    if (wNumHoFTeams != 0) return 5;
     return CheckEvent(EVENT_GOT_POKEDEX) ? 4 : 3;
 }
 
@@ -207,10 +221,13 @@ static void pc_draw_top_menu(void) {
     static const uint8_t kOaksPc[] = {
         0x8F,0x91,0x8E,0x85,0xE8,0x8E,0x80,0x8A, CHAR_POSSESSIVE_S, CHAR_SPACE, 0x8F,0x82, CHAR_TERM
     };
+    static const uint8_t kLeaguePc[] = {
+        CHAR_PK, CHAR_MN, 0x8B,0x84,0x80,0x86,0x94,0x84, CHAR_TERM
+    };
 
     pc_clear_overlay();
     hWY = 0;
-    pc_textboxborder_from_asm(0, 0, count == 4 ? 8 : 6, 14);
+    pc_textboxborder_from_asm(0, 0, count == 5 ? 10 : (count == 4 ? 8 : 6), 14);
     if (CheckEvent(EVENT_MET_BILL))
         pc_str_encoded(2, 2, kBillsPc);
     else
@@ -218,7 +235,12 @@ static void pc_draw_top_menu(void) {
     pc_str_encoded(pc_print_poke_name(2, 4, wPlayerName), 4, kPlayersPcSuffix);
     if (CheckEvent(EVENT_GOT_POKEDEX)) {
         pc_str_encoded(2, 6, kOaksPc);
-        pc_str(2, 8, "LOG OFF");
+        if (wNumHoFTeams != 0) {
+            pc_str_encoded(2, 8, kLeaguePc);
+            pc_str(2, 10, "LOG OFF");
+        } else {
+            pc_str(2, 8, "LOG OFF");
+        }
     } else {
         pc_str(2, 6, "LOG OFF");
     }
@@ -413,6 +435,8 @@ static void pc_open_branch_text(pc_branch_t branch) {
     } else if (branch == BRANCH_OAK) {
 
         pc_show_text(RomText("_AccessedOaksPCText"));
+    } else if (branch == BRANCH_LEAGUE) {
+        pc_show_text(RomText("_AccessedHoFPCText"));
     }
     s_mode = PCM_WAIT_BRANCH_TEXT;
 }
@@ -434,6 +458,9 @@ static void pc_finish_branch_text(void) {
 
         pc_show_yesno(RomText("_GetDexRatedText"));
         s_mode = PCM_OAK_CONFIRM;
+    } else if (s_branch_after_text == BRANCH_LEAGUE) {
+        HallOfFameViewer_Open();
+        s_mode = PCM_LEAGUE_VIEWER;
     } else {
         s_mode = PCM_TOP_MENU;
         pc_draw_top_menu();
@@ -515,6 +542,16 @@ void PCMenu_Tick(void) {
     if (s_mode == PCM_PLAYER_PC) {
         PlayersPC_Tick();
         if (!PlayersPC_IsOpen()) {
+            s_mode = PCM_TOP_MENU;
+            pc_draw_top_menu();
+        }
+        return;
+    }
+
+    if (s_mode == PCM_LEAGUE_VIEWER) {
+        HallOfFameViewer_Tick();
+        if (!HallOfFameViewer_IsOpen()) {
+            pc_restore_background_under_menu();
             s_mode = PCM_TOP_MENU;
             pc_draw_top_menu();
         }
@@ -674,6 +711,9 @@ void PCMenu_Tick(void) {
                 Audio_PlaySFX_EnterPC();
 
                 pc_open_branch_text(BRANCH_OAK);
+            } else if (wNumHoFTeams != 0 && s_top_cursor == 3) {
+                Audio_PlaySFX_EnterPC();
+                pc_open_branch_text(BRANCH_LEAGUE);
             }
             else {
                 Audio_PlaySFX_TurnOffPC();

@@ -38,6 +38,7 @@
 #include "game/party_menu.h"
 #include "game/trainer_card.h"
 #include "game/town_map.h"
+#include "game/credits_scripts.h"
 #include "game/battle/battle_ui.h"
 #include "assetpack_bind.h"
 #include "game/constants.h"
@@ -840,6 +841,14 @@ int main(int argc, char *argv[]) {
             running = 0;
             continue;
         }
+        {
+            int unfocused = !Display_HasInputFocus();
+            int pause_unfocused = unfocused &&
+                                  PresentationMenu_PauseWhenUnfocused();
+            Audio_SetFocusMuted(unfocused &&
+                (PresentationMenu_MuteWhenUnfocused() || pause_unfocused));
+        }
+
         DebugSuite_TopOfFrame();
         if (!DebugSuite_FrameGate()) {
 
@@ -849,6 +858,28 @@ int main(int argc, char *argv[]) {
                                    gScrollTileMap, SCROLL_MAP_W);
             SDL_Delay(8);
             continue;
+        }
+
+        {
+            int unfocused = !Display_HasInputFocus();
+            int pause_unfocused = unfocused &&
+                                  PresentationMenu_PauseWhenUnfocused();
+            if (pause_unfocused && !SuspendMenu_IsOpen() &&
+                !PresentationMenu_IsOpen()) {
+
+                Input_Update();
+                DebugCLI_PollExternal();
+                DebugCLI_PumpButtons();
+                DebugCLI_ConsoleRender();
+                Display_RenderScrolled(gScrollPxX, gScrollPxY,
+                                       gScrollTileMap, SCROLL_MAP_W);
+                music_base_ctr = SDL_GetPerformanceCounter();
+                music_ticks = 0;
+                sfx_base_ctr = 0;
+                video_deadline = SDL_GetPerformanceCounter();
+                SDL_Delay(16);
+                continue;
+            }
         }
 
         Display_SetFrameWidth(Display_WantFrameWidth(
@@ -874,7 +905,8 @@ int main(int argc, char *argv[]) {
         Display_SetAuthoredFrame(TitleScreen_IsOpen() || Intro_IsActive());
 
         Display_SetLetterboxFrame(Pokedex_IsOpen() || PartyMenu_IsOpen() ||
-                                  TrainerCard_IsOpen() || TownMap_IsOpen(),
+                                  TrainerCard_IsOpen() || TownMap_IsOpen() ||
+                                  CreditsScripts_IsActive(),
                                   (TrainerCard_IsOpen() || TownMap_IsOpen())
                                       ? DISPLAY_BOX_BLACK
                                       : DISPLAY_BOX_EXTEND);

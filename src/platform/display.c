@@ -29,10 +29,11 @@ static SDL_Texture  *fb_tex   = NULL;
 static SDL_Texture  *sgb_tex  = NULL;
 static int g_debug_render_mode = 0;
 
-#define FB_MAX_W 256
+#define FB_MAX_W SCREEN_WIDTH_MAX_PX
 
 int g_fb_w = SCREEN_WIDTH_PX;
 int g_content_ox = 0;
+static int g_tile_content_ox = 0;
 
 static int g_blit_ox = 0;
 
@@ -57,7 +58,7 @@ void Display_SetAuthoredBleedRows(int tile_row, int num_rows) {
 static int row_bleeds(int dy) { return dy >= g_bleed_y0 && dy < g_bleed_y1; }
 
 int Display_AuthoredRightEdgeCol(void) {
-    return (g_fb_w - g_content_ox) / TILE_PX;
+    return (g_fb_w - g_content_ox + TILE_PX - 1) / TILE_PX;
 }
 
 static int authored_clip_lo(void) { return g_content_ox; }
@@ -671,17 +672,11 @@ static int fit_window_scale(int rw, int rh, int scale) {
     return scale > max ? max : scale;
 }
 
-void Display_SetWindowScale(int scale) {
-    if (scale < 1) scale = 1;
-    if (scale > 8) scale = 8;
-    s_win_scale = scale;
-    if (!window || !Display_WindowScaleApplies()) return;
-
-    if (s_suspend_overlay) { s_deferred_win_scale = scale; return; }
+static int resize_window_for_scale(int scale, int update_preference) {
 
     {
 
-        int rw = Display_Widescreen() ? FB_MAX_W : SCREEN_WIDTH_PX;
+        int rw = Display_PreferredFrameWidth();
         int rh = SCREEN_HEIGHT_PX;
         if (SgbBorder_IsEnabled() && SgbBorder_Available()) {
             rw = SGB_FRAME_W;
@@ -695,12 +690,30 @@ void Display_SetWindowScale(int scale) {
                 fprintf(stderr, "[display] window scale %dx does not fit this "
                                 "display; using %dx\n", scale, fitted);
                 scale = fitted;
-                s_win_scale = fitted;
+                if (update_preference) s_win_scale = fitted;
             }
         }
         SDL_SetWindowSize(window, rw * scale, rh * scale);
         SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     }
+    return scale;
+}
+
+void Display_SetWindowScale(int scale) {
+    if (scale < 1) scale = 1;
+    if (scale > 8) scale = 8;
+    s_win_scale = scale;
+    if (!window || !Display_WindowScaleApplies()) return;
+
+    if (s_suspend_overlay) { s_deferred_win_scale = scale; return; }
+    resize_window_for_scale(scale, 1);
+}
+
+void Display_SetTemporaryWindowScale(int scale) {
+    if (scale < 1) scale = 1;
+    if (scale > 8) scale = 8;
+    if (!window || !Display_WindowScaleApplies() || s_suspend_overlay) return;
+    resize_window_for_scale(scale, 0);
 }
 
 void Display_RefreshWindowScale(void) {
@@ -1625,7 +1638,6 @@ static void note_backdrop_edge(int dx, int dy, uint32_t px) {
 static void blit_tile(int px, int py, uint8_t tile_id,
                       const SDL_Color pal[4], int flip_x, int flip_y,
                       int behind_bg) {
-    px += g_blit_ox;
     const uint8_t *t = tile_gfx[tile_id & 0xFF];
     int prio = 0;
 
@@ -1660,7 +1672,7 @@ static void blit_tile(int px, int py, uint8_t tile_id,
         for (int col = 0; col < 8; col++) {
             int sx    = flip_x ? col : (7 - col);
             int color = ((hi >> sx) & 1) << 1 | ((lo >> sx) & 1);
-            int dx    = px + col;
+            int dx    = px + col + g_blit_ox;
             if (dx < 0 || dx >= g_fb_w) continue;
             if (boxed && !bleed && (dx < clip_lo || dx >= clip_hi)) continue;
             SDL_Color c = pal[color];
@@ -1795,9 +1807,12 @@ void Display_Render(void) {
 void Display_RenderScrolled(int px, int py, const uint8_t *tile_map, int stride) {
     begin_source_frame();
 
-    const int frame_ox = g_authored_frame ? g_content_ox : 0;
+    const int grid_phase = g_content_ox - g_tile_content_ox;
+    const int frame_ox = g_authored_frame ? g_content_ox
+                       : grid_phase;
 
-    const int sprite_ox = frame_is_boxed() ? g_content_ox : 0;
+    const int sprite_ox = frame_is_boxed() ? g_content_ox
+                        : grid_phase;
 
     SDL_Color c0;
     uint32_t clear_px;
@@ -1867,11 +1882,12 @@ void Display_RenderScrolled(int px, int py, const uint8_t *tile_map, int stride)
 }
 
 void Display_SetFrameWidth(int px) {
-    if (px != SCREEN_WIDTH_PX && px != FB_MAX_W) return;
+    if (px < SCREEN_WIDTH_PX || px > FB_MAX_W || (px % TILE_PX) != 0) return;
     if (px == g_fb_w) return;
 
     g_fb_w = px;
     g_content_ox = (g_fb_w - SCREEN_WIDTH_PX) / 2;
+    g_tile_content_ox = ((g_fb_w / TILE_PX - SCREEN_WIDTH) / 2) * TILE_PX;
 
     g_lcd_previous_valid = 0;
     s_present_previous_valid = 0;
@@ -1946,15 +1962,63 @@ void Display_RestoreLogicalSize(void) {
     Display_ApplyScalingMode();
 }
 
-static int g_widescreen_pref = 0;
-void Display_SetWidescreen(int on) { g_widescreen_pref = on ? 1 : 0; }
-int  Display_Widescreen(void)      { return g_widescreen_pref; }
+static int g_aspect_mode = DISPLAY_ASPECT_NATIVE;
+
+static const struct { int mode, num, den; } kAspectRatios[] = {
+    { DISPLAY_ASPECT_NATIVE, 10, 9 },
+    { DISPLAY_ASPECT_5_4,     5, 4 },
+    { DISPLAY_ASPECT_4_3,     4, 3 },
+    { DISPLAY_ASPECT_3_2,     3, 2 },
+    { DISPLAY_ASPECT_16_10,  16, 10 },
+    { DISPLAY_ASPECT_16_9,   16, 9 },
+    { DISPLAY_ASPECT_18_9,   18, 9 },
+    { DISPLAY_ASPECT_18_5_9, 37, 18 },
+    { DISPLAY_ASPECT_19_9,   19, 9 },
+    { DISPLAY_ASPECT_19_5_9, 13, 6 },
+    { DISPLAY_ASPECT_20_9,   20, 9 },
+    { DISPLAY_ASPECT_21_9,   21, 9 },
+};
+
+static int aspect_ratio_index(int mode) {
+    for (int i = 0; i < (int)(sizeof kAspectRatios / sizeof kAspectRatios[0]); i++)
+        if (kAspectRatios[i].mode == mode) return i;
+    return -1;
+}
+
+static int aspect_width(int mode) {
+    int rows = SCREEN_HEIGHT_PX / TILE_PX;
+    int index = aspect_ratio_index(mode);
+    int cols;
+
+    if (index < 0 || mode == DISPLAY_ASPECT_NATIVE) return SCREEN_WIDTH_PX;
+
+    cols = (rows * kAspectRatios[index].num + kAspectRatios[index].den / 2) /
+           kAspectRatios[index].den;
+    if (cols < SCREEN_WIDTH) cols = SCREEN_WIDTH;
+    if (cols > FB_MAX_W / TILE_PX) cols = FB_MAX_W / TILE_PX;
+    return cols * TILE_PX;
+}
+
+void Display_SetAspectMode(int mode) {
+    if (aspect_ratio_index(mode) < 0) return;
+    g_aspect_mode = mode;
+}
+
+int Display_AspectMode(void) { return g_aspect_mode; }
+int Display_PreferredFrameWidth(void) { return aspect_width(g_aspect_mode); }
+
+void Display_SetWidescreen(int on) {
+    Display_SetAspectMode(on ? DISPLAY_ASPECT_16_9 : DISPLAY_ASPECT_NATIVE);
+}
+
+int Display_Widescreen(void) { return g_aspect_mode != DISPLAY_ASPECT_NATIVE; }
 
 int Display_WantFrameWidth(int content_supports_wide) {
 
     if (SgbBorder_IsEnabled() && SgbBorder_Available()) return SCREEN_WIDTH_PX;
-    return (g_widescreen_pref && content_supports_wide) ? FB_MAX_W
-                                                        : SCREEN_WIDTH_PX;
+    return (g_aspect_mode != DISPLAY_ASPECT_NATIVE && content_supports_wide)
+         ? Display_PreferredFrameWidth()
+         : SCREEN_WIDTH_PX;
 }
 int Display_ContentOriginX(void) { return g_content_ox; }
 

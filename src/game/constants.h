@@ -10,6 +10,8 @@
 #define TILEMAP_HEIGHT      32
 #define TILE_SIZE           16
 #define TILE_PX             8
+#define SCREEN_WIDTH_MAX    42
+#define SCREEN_WIDTH_MAX_PX (SCREEN_WIDTH_MAX * TILE_PX)
 #define OAM_Y_OFS           16
 #define OAM_X_OFS           8
 #define MAX_SPRITES         114
@@ -404,6 +406,8 @@ static const uint16_t STAT_MOD_DEN[13] = {100,100,100,100,100,100,100,100,100,10
 #define MOD_ACCURACY 4
 #define MOD_EVASION  5
 
+#define HOF_MON_SIZE        16
+#define HOF_TEAM_SIZE       (PARTY_LENGTH * HOF_MON_SIZE)
 #define HOF_TEAM_CAPACITY   50
 
 #define TX_START            0x00

@@ -67,6 +67,12 @@ static int g_hof_player_timer = 0;
 #define HOF_TEXT_DELAY_TICKS 120
 static int g_hof_text_delay = 0;
 
+static int s_viewer_open = 0;
+static int s_viewer_team_index = 0;
+static int s_viewer_team_count = 0;
+static int s_viewer_mon_index = 0;
+static unsigned s_viewer_team_number = 0;
+
 #define HOF_BG_PIC_BASE  0x20
 #define HOF_PIC_COL      12
 #define HOF_PIC_ROW      5
@@ -237,6 +243,19 @@ static void bg_nickname_or_species(int col, int row, int slot) {
     }
 }
 
+static void bg_hof_nickname_or_species(int col, int row,
+                                       const hall_of_fame_mon_t *mon) {
+    if (mon->nickname[0] != 0 && mon->nickname[0] != 0x50) {
+        for (int i = 0; i < NAME_LENGTH; i++) {
+            uint8_t ch = mon->nickname[i];
+            if (ch == 0 || ch == 0x50) break;
+            bg_put(col + i, row, Font_CharToTile(ch));
+        }
+        return;
+    }
+    bg_ascii(col, row, Pokemon_GetName(Species_Dex(mon->species)));
+}
+
 static void clear_bg_screen(void) {
     for (int r = 0; r < SCROLL_MAP_H; r++) {
         for (int c = 0; c < SCROLL_MAP_W; c++) {
@@ -302,6 +321,117 @@ static void draw_mon_info_box(int slot) {
     } else {
         bg_ascii(3, 10, t1);
     }
+}
+
+static void draw_hof_record_info(const hall_of_fame_mon_t *mon,
+                                 unsigned team_number) {
+    uint8_t dex = Species_Dex(mon->species);
+    const base_stats_t *stats = (dex && dex < gBaseStats_count)
+                              ? &gBaseStats[dex] : NULL;
+    char lvl[4];
+
+    snprintf(lvl, sizeof(lvl), "%02u", (unsigned)mon->level);
+    bg_box(0, 2, 9, 10);
+    bg_hof_nickname_or_species(1, 4, mon);
+    bg_ascii(2, 6, "LEVEL/");
+    bg_ascii(2, 7, "TYPE1/");
+    bg_ascii(2, 9, "TYPE2/");
+    bg_ascii(8, 6, lvl);
+    if (stats) {
+        bg_ascii(3, 8, type_name(stats->type1));
+        bg_ascii(3, 10, type_name(stats->type2));
+    }
+
+    bg_box(0, 13, 2, 18);
+    bg_ascii(1, 15, "HALL OF FAME No");
+    bg_num(16, 15, team_number, 3);
+}
+
+void HallOfFame_RecordParty(void) {
+    hall_of_fame_team_t team;
+    unsigned target;
+    unsigned count = wPartyCount;
+
+    if (count > PARTY_LENGTH) count = PARTY_LENGTH;
+    memset(&team, 0, sizeof(team));
+    for (unsigned i = 0; i < count; i++) {
+        team.mons[i].species = wPartyMons[i].base.species;
+        team.mons[i].level = wPartyMons[i].level;
+        memcpy(team.mons[i].nickname, wPartyMonNicks[i], NAME_LENGTH);
+    }
+    if (count < PARTY_LENGTH)
+        team.mons[count].species = 0xFF;
+
+    if (wNumHoFTeams != 0xFF)
+        wNumHoFTeams++;
+
+    if ((unsigned)(wNumHoFTeams - 1u) < HOF_TEAM_CAPACITY) {
+        target = (unsigned)(wNumHoFTeams - 1u);
+    } else {
+        memmove(&wHallOfFameTeams[0], &wHallOfFameTeams[1],
+                sizeof(wHallOfFameTeams[0]) * (HOF_TEAM_CAPACITY - 1));
+        target = HOF_TEAM_CAPACITY - 1;
+    }
+    wHallOfFameTeams[target] = team;
+}
+
+static void hall_of_fame_viewer_draw(void) {
+    const hall_of_fame_mon_t *mon =
+        &wHallOfFameTeams[s_viewer_team_index].mons[s_viewer_mon_index];
+    uint8_t dex = Species_Dex(mon->species);
+
+    Display_SetPalette(0xE4, 0xE4, 0xE4);
+    hof_apply_mon_palette(dex);
+    hWY = SCREEN_HEIGHT_PX;
+    hide_all_sprites();
+    clear_bg_screen();
+    load_bg_pic_tiles(dex, 1);
+    stamp_bg_pic();
+    draw_hof_record_info(mon, s_viewer_team_number);
+    Audio_PlayCry(mon->species);
+}
+
+void HallOfFameViewer_Open(void) {
+    if (wNumHoFTeams == 0) return;
+    s_viewer_team_count = wNumHoFTeams;
+    if (s_viewer_team_count > HOF_TEAM_CAPACITY)
+        s_viewer_team_count = HOF_TEAM_CAPACITY;
+    s_viewer_team_index = 0;
+    s_viewer_mon_index = 0;
+    s_viewer_team_number = (wNumHoFTeams > HOF_TEAM_CAPACITY)
+                         ? (unsigned)(wNumHoFTeams - HOF_TEAM_CAPACITY + 1u)
+                         : 1u;
+    s_viewer_open = 1;
+    hall_of_fame_viewer_draw();
+}
+
+void HallOfFameViewer_Tick(void) {
+    const hall_of_fame_team_t *team;
+
+    if (!s_viewer_open) return;
+    if (hJoyPressed & PAD_B) {
+        s_viewer_open = 0;
+        return;
+    }
+    if (!(hJoyPressed & PAD_A)) return;
+
+    team = &wHallOfFameTeams[s_viewer_team_index];
+    s_viewer_mon_index++;
+    if (s_viewer_mon_index >= PARTY_LENGTH ||
+        team->mons[s_viewer_mon_index].species == 0xFF) {
+        s_viewer_team_index++;
+        s_viewer_team_number++;
+        s_viewer_mon_index = 0;
+        if (s_viewer_team_index >= s_viewer_team_count) {
+            s_viewer_open = 0;
+            return;
+        }
+    }
+    hall_of_fame_viewer_draw();
+}
+
+int HallOfFameViewer_IsOpen(void) {
+    return s_viewer_open;
 }
 
 static void draw_hof_box(void) {
@@ -535,6 +665,8 @@ void HallOfFameScripts_Tick(void) {
             if (g_hof_slot >= 0) {
                 g_state = HOF_MON_PREP;
             } else {
+
+                HallOfFame_RecordParty();
                 g_state = HOF_PLAYER_PREP;
             }
         }

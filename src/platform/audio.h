@@ -45,6 +45,11 @@ int  Audio_GetMasterVolume(void);
 int  Audio_GetMusicVolume(void);
 int  Audio_GetSfxVolume(void);
 
+void Audio_SetOutputMono(int enabled);
+int  Audio_GetOutputMono(void);
+void Audio_SetFocusMuted(int muted);
+int  Audio_GetFocusMuted(void);
+
 void Audio_ApplyChannelVolumes(void);
 
 void Audio_PlaySFX_StartMenu(void);

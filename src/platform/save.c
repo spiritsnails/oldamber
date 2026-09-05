@@ -713,13 +713,23 @@ typedef struct PACKED {
     uint8_t     last_heal_town_map;
     char        last_heal_town_name[24];
 
+    uint8_t     num_hof_teams;
+    hall_of_fame_team_t hall_of_fame_teams[HOF_TEAM_CAPACITY];
+
     uint8_t     checksum;
 } save_block_t;
+
+#define SAVE_V18_PAYLOAD  offsetof(save_block_t, num_hof_teams)
+#define SAVE_V18_SIZE     (SAVE_V18_PAYLOAD + 1u)
+typedef char save_v18_appends_hall_of_fame_and_nothing_else[
+    (offsetof(save_block_t, checksum)
+        == offsetof(save_block_t, num_hof_teams) + 1u
+           + sizeof(((save_block_t *)0)->hall_of_fame_teams)) ? 1 : -1];
 
 #define SAVE_V17_PAYLOAD  offsetof(save_block_t, last_blackout_map)
 #define SAVE_V17_SIZE     (SAVE_V17_PAYLOAD + 1u)
 typedef char save_v17_appends_blackout_town_and_nothing_else[
-    (offsetof(save_block_t, checksum)
+    (offsetof(save_block_t, num_hof_teams)
         == offsetof(save_block_t, last_blackout_map) + 2u
            + sizeof(((save_block_t *)0)->last_heal_town_name)) ? 1 : -1];
 
@@ -846,6 +856,9 @@ static void pack_save(void) {
     save.last_heal_town_map = wLastHealTownMap;
     snprintf(save.last_heal_town_name, sizeof(save.last_heal_town_name),
              "%s", wLastHealTownName);
+    save.num_hof_teams = wNumHoFTeams;
+    memcpy(save.hall_of_fame_teams, wHallOfFameTeams,
+           sizeof(wHallOfFameTeams));
     }
     save.safari_balls = wNumSafariBalls;
     save.daycare_in_use = wDayCareInUse;
@@ -937,6 +950,9 @@ static void unpack_save(void) {
     wLastHealTownMap  = save.last_heal_town_map;
     snprintf(wLastHealTownName, sizeof(wLastHealTownName),
              "%s", save.last_heal_town_name);
+    wNumHoFTeams = save.num_hof_teams;
+    memcpy(wHallOfFameTeams, save.hall_of_fame_teams,
+           sizeof(wHallOfFameTeams));
     }
     wNumSafariBalls = save.safari_balls;
     wDayCareInUse = save.daycare_in_use;
@@ -1307,6 +1323,21 @@ int Save_LoadFrom(const char *path) {
         fclose(f);
         if (n != sizeof(save)) return -1;
         if (Save_ValidateChecksum() != 0) return -1;
+        unpack_save();
+        return 0;
+    }
+
+    if ((size_t)sz == SAVE_V18_SIZE) {
+        uint8_t v18[SAVE_V18_SIZE];
+        uint8_t calc18;
+        n = fread(v18, 1, sizeof(v18), f);
+        fclose(f);
+        if (n != sizeof(v18)) return -1;
+        calc18 = CalcCheckSum(v18, (uint16_t)SAVE_V18_PAYLOAD);
+        if (calc18 != v18[SAVE_V18_PAYLOAD]) return -1;
+
+        memset(&save, 0, sizeof(save));
+        memcpy(&save, v18, SAVE_V18_PAYLOAD);
         unpack_save();
         return 0;
     }
@@ -1691,7 +1722,7 @@ int Save_Write(void) {
 
 #define STATE_MAGIC   0x504B5354u
 
-#define STATE_VERSION 7u
+#define STATE_VERSION 8u
 
 typedef struct PACKED {
     uint32_t magic;
@@ -1729,6 +1760,8 @@ typedef struct PACKED {
     uint8_t     wPartyMonOT[PARTY_LENGTH][NAME_LENGTH];
     uint8_t     wPartyMonNicks[PARTY_LENGTH][NAME_LENGTH];
     uint8_t     wPartySpecies[PARTY_LENGTH + 1];
+    uint8_t     wNumHoFTeams;
+    hall_of_fame_team_t wHallOfFameTeams[HOF_TEAM_CAPACITY];
 
     uint8_t  wPokedexOwned[19];
     uint8_t  wPokedexSeen[19];
@@ -1845,6 +1878,8 @@ static void pack_state(void) {
     memcpy(st.wPartyMonOT,   wPartyMonOT,   sizeof(wPartyMonOT));
     memcpy(st.wPartyMonNicks,wPartyMonNicks,sizeof(wPartyMonNicks));
     memcpy(st.wPartySpecies, wPartySpecies, sizeof(wPartySpecies));
+    st.wNumHoFTeams = wNumHoFTeams;
+    memcpy(st.wHallOfFameTeams, wHallOfFameTeams, sizeof(wHallOfFameTeams));
 
     memcpy(st.wPokedexOwned, wPokedexOwned, sizeof(wPokedexOwned));
     memcpy(st.wPokedexSeen,  wPokedexSeen,  sizeof(wPokedexSeen));
@@ -1992,6 +2027,8 @@ static void unpack_state(void) {
     memcpy(wPartyMonOT,   st.wPartyMonOT,   sizeof(wPartyMonOT));
     memcpy(wPartyMonNicks,st.wPartyMonNicks,sizeof(wPartyMonNicks));
     memcpy(wPartySpecies, st.wPartySpecies, sizeof(wPartySpecies));
+    wNumHoFTeams = st.wNumHoFTeams;
+    memcpy(wHallOfFameTeams, st.wHallOfFameTeams, sizeof(wHallOfFameTeams));
 
     memcpy(wPokedexOwned, st.wPokedexOwned, sizeof(wPokedexOwned));
     memcpy(wPokedexSeen,  st.wPokedexSeen,  sizeof(wPokedexSeen));

@@ -33,6 +33,8 @@ int         PresentationMenu_CurrentIndex(int row_id);
 void        PresentationMenu_RefreshNow(void);
 
 int         PresentationMenu_FastBoot(void);
+int         PresentationMenu_PauseWhenUnfocused(void);
+int         PresentationMenu_MuteWhenUnfocused(void);
 
 void        PresentationMenu_SetIndex(int row_id, int index);
 

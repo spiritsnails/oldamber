@@ -133,6 +133,11 @@ typedef enum {
 } GameScene;
 
 static GameScene gScene = SCENE_OVERWORLD;
+static int gCreditsDebugPreview = 0;
+static char gCreditsDebugReturnMap[96];
+static int gCreditsDebugReturnX = 0;
+static int gCreditsDebugReturnY = 0;
+static uint8_t gCreditsDebugReturnDirection = 0;
 static uint8_t sBattleResultLatched = BATTLE_OUTCOME_NONE;
 
 int  Game_GetScene(void)   { return (int)gScene; }
@@ -210,6 +215,32 @@ int Game_BeginTradeAnim(void) {
     if (gScene != SCENE_OVERWORLD) return 0;
     TradeAnim_Begin();
     gScene = SCENE_TRADE;
+    return 1;
+}
+
+int Game_StartCreditsDebugPreview(void) {
+    const char *map_name;
+    int real_id;
+
+    if (gScene != SCENE_OVERWORLD || CreditsScripts_IsActive() ||
+        HallOfFameScripts_IsActive() || Menu_IsOpen() || Text_IsOpen() ||
+        Trainer_IsEngaging() || AmberScript_Scene_IsActive() ||
+        Player_IsSimulatingMovement())
+        return 0;
+
+    map_name = AmberScript_MapBank_NameForRealId((int)wCurMap);
+    if (!map_name || !*map_name) {
+        real_id = Map_CurrentRealId();
+        if (real_id < 0 || real_id >= NUM_MAPS) return 0;
+        map_name = gMapTable[real_id].name;
+    }
+
+    snprintf(gCreditsDebugReturnMap, sizeof(gCreditsDebugReturnMap), "%s", map_name);
+    gCreditsDebugReturnX = wXCoord;
+    gCreditsDebugReturnY = wYCoord;
+    gCreditsDebugReturnDirection = wPlayerDirection;
+    gCreditsDebugPreview = 1;
+    CreditsScripts_StartImmediate();
     return 1;
 }
 
@@ -2155,6 +2186,21 @@ void GameTick(void) {
     {
         CreditsScripts_Tick();
         if (CreditsScripts_ConsumeRestartRequest()) {
+            if (gCreditsDebugPreview) {
+                gCreditsDebugPreview = 0;
+                if (AmberScript_MapWarp(gCreditsDebugReturnMap,
+                                        gCreditsDebugReturnX,
+                                        gCreditsDebugReturnY)) {
+                    fire_map_onload_callbacks();
+                    wPlayerDirection = gCreditsDebugReturnDirection;
+                    Map_BuildScrollView();
+                    NPC_BuildView(0, 0);
+                    gScene = SCENE_OVERWORLD;
+                    return;
+                }
+                GameInit();
+                return;
+            }
 
             Game_WarpToRealMap(0x00, 5, 6);
             wLastMap = 0x00;

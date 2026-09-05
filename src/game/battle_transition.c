@@ -130,18 +130,20 @@ static const HC kHC2[10] = {
     { 1, kCData1, 18, 11 },
 };
 
-static int bt_cols(void) { return Map_ViewTilesW(); }
+static int bt_phase_x(void) { return Display_ContentOriginX() % TILE_PX; }
+static int bt_col0(void) { return bt_phase_x() ? -1 : 0; }
+static int bt_cols(void) { return Map_ViewTilesW() + (bt_phase_x() ? 1 : 0); }
 static int bt_rows(void) { return SCREEN_HEIGHT; }
 static int bt_is_wide(void) { return bt_cols() != SCREEN_WIDTH; }
 
 static void set_stile(int tx, int ty, uint8_t tile) {
     if ((unsigned)tx >= (unsigned)bt_cols() || (unsigned)ty >= (unsigned)bt_rows()) return;
-    gScrollTileMap[(ty + 2) * SCROLL_MAP_W + (tx + 2)] = tile;
+    gScrollTileMap[(ty + 2) * SCROLL_MAP_W + (tx + bt_col0() + 2)] = tile;
 }
 
 static uint8_t get_stile(int tx, int ty) {
     if ((unsigned)tx >= (unsigned)bt_cols() || (unsigned)ty >= (unsigned)bt_rows()) return 0xFF;
-    return gScrollTileMap[(ty + 2) * SCROLL_MAP_W + (tx + 2)];
+    return gScrollTileMap[(ty + 2) * SCROLL_MAP_W + (tx + bt_col0() + 2)];
 }
 
 #define BT_ORDER_MAX (SCREEN_WIDTH_MAX * (SCREEN_HEIGHT + 1))
@@ -361,7 +363,7 @@ void BattleTransition_SetZoomMode(int on) { g_zoom_mode = on ? 1 : 0; }
 int  BattleTransition_GetZoomMode(void)   { return g_zoom_mode; }
 
 static void zoom_pick_focus(int *fx, int *fy) {
-    int px = (int)wShadowOAM[0].x - OAM_X_OFS;
+    int px = (int)wShadowOAM[0].x - OAM_X_OFS + bt_phase_x();
     int py = (int)wShadowOAM[0].y - OAM_Y_OFS;
     if (!Display_FindDarkestPixel(px, py, 16, 16, fx, fy)) {
 

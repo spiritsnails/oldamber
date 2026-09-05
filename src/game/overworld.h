@@ -52,7 +52,6 @@ int     Connection_Check(int dx, int dy);
 void    Map_PreBuildScrollStep(int dx, int dy);
 void    Map_ResetScrollState(void);
 
-#define SCREEN_WIDTH_MAX 32
 #define SCROLL_MAP_W  (SCREEN_WIDTH_MAX + 4)
 #define SCROLL_MAP_H  (SCREEN_HEIGHT + 4)
 extern uint8_t gScrollTileMap[SCROLL_MAP_W * SCROLL_MAP_H];

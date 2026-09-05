@@ -14,8 +14,10 @@
 #include "gen2_species.h"
 #include "../data/splash_screen_data.h"
 #include "../platform/display.h"
+#include "../platform/game_version.h"
 #include "../platform/hardware.h"
 #include <stdint.h>
+#include <string.h>
 
 typedef enum {
     CREDITS_IDLE = 0,
@@ -131,8 +133,6 @@ static int g_row = 6;
 static int g_fade_step = 0;
 static int g_mon_index = 0;
 static int g_mon_step = 0;
-static int g_mon_tile_x = 8;
-static int g_mon_band_px = 0;
 static uint8_t g_mon_text_band[10][SCREEN_WIDTH];
 static int g_restart_requested = 0;
 static int g_done_wait_timer = 0;
@@ -171,6 +171,12 @@ static const uint8_t kTheEndRow2[] = { 0x61,' ',0x63,' ',0x65,' ',' ',0x65,' ',0
 static void credits_put(int col, int row, uint8_t tile) {
     if ((unsigned)col >= SCREEN_WIDTH || (unsigned)row >= SCREEN_HEIGHT) return;
     gScrollTileMap[(row + 2) * SCROLL_MAP_W + (col + 2) + Map_UiColOfs()] = tile;
+}
+
+static void credits_put_view(int col, int row, uint8_t tile) {
+    int view_w = Display_FrameWidth() / TILE_PX;
+    if ((unsigned)col >= (unsigned)view_w || (unsigned)row >= SCREEN_HEIGHT) return;
+    gScrollTileMap[(row + 2) * SCROLL_MAP_W + col + 2] = tile;
 }
 
 static int ascii_to_tile(unsigned char c) {
@@ -231,7 +237,7 @@ static void credits_draw_text_line(int col, int row, const char *s) {
 static void credits_draw_tile_row(int col, int row, const uint8_t *tiles, int len) {
     for (int i = 0; i < len; i++) {
         uint8_t t = tiles[i];
-        if (t == ' ') t = BLANK_TILE_SLOT;
+        if (t == ' ' || t == 0x7F) t = BLANK_TILE_SLOT;
         credits_put(col + i, row, t);
     }
 }
@@ -279,19 +285,10 @@ static void credits_shift_font_color_index(void) {
 
 static void credits_queue_fade(void) {
 
-    g_fade_step = 0;
+    Display_SetPalette(kCreditsFadeBGP[0], kCreditsFadeBGP[0], kCreditsFadeBGP[0]);
+    g_fade_step = 1;
     g_timer = CREDITS_FADE_STEP_TICKS;
     g_state = CREDITS_FADE_WAIT;
-}
-
-static void credits_mask_right_cols(int cols) {
-    if (cols <= 0) return;
-    if (cols > SCREEN_WIDTH) cols = SCREEN_WIDTH;
-    for (int r = 4; r < 14; r++) {
-        for (int c = SCREEN_WIDTH - cols; c < SCREEN_WIDTH; c++) {
-            credits_put(c, r, BLANK_TILE_SLOT);
-        }
-    }
 }
 
 static void credits_capture_middle_band(void) {
@@ -303,12 +300,40 @@ static void credits_capture_middle_band(void) {
     }
 }
 
-static void credits_draw_shifted_middle_band(int shift_tiles) {
+static void credits_draw_mon_frame(int step) {
+    int view_w = Display_FrameWidth() / TILE_PX;
+    int content_x = (view_w - SCREEN_WIDTH) / 2;
+    int mon_x = (view_w > SCREEN_WIDTH) ? view_w : SCREEN_WIDTH;
+
+    if (view_w > SCREEN_WIDTH) {
+        for (int r = 0; r < 10; r++) {
+            for (int c = 0; c < view_w; c++) {
+                int src = c + step;
+                uint8_t t = BLANK_TILE_SLOT;
+                if (src >= content_x && src < content_x + SCREEN_WIDTH) {
+                    t = g_mon_text_band[r][src - content_x];
+                } else if (src >= mon_x && src < mon_x + 7 && r >= 2 && r < 9) {
+                    t = (uint8_t)(0x20 + (r - 2) * 7 + (src - mon_x));
+                }
+                credits_put_view(c, r + 4, t);
+            }
+        }
+        return;
+    }
+
+    int window_x = SCREEN_WIDTH;
+    if (step >= 8) window_x = 27 - step;
+
     for (int r = 0; r < 10; r++) {
         for (int c = 0; c < SCREEN_WIDTH; c++) {
-            int src = c + shift_tiles;
+            int src = (c + step) & 31;
             uint8_t t = BLANK_TILE_SLOT;
-            if (src >= 0 && src < SCREEN_WIDTH) t = g_mon_text_band[r][src];
+            if (src < SCREEN_WIDTH) {
+                t = g_mon_text_band[r][src];
+            } else if (src < SCREEN_WIDTH + 7 && r >= 2 && r < 9) {
+                t = (uint8_t)(0x20 + (r - 2) * 7 + (src - SCREEN_WIDTH));
+            }
+            if (c >= window_x) t = BLANK_TILE_SLOT;
             credits_put(c, r + 4, t);
         }
     }
@@ -317,50 +342,6 @@ static void credits_draw_shifted_middle_band(int shift_tiles) {
 static void credits_clear_window_layer(void) {
     for (int r = 0; r < SCREEN_HEIGHT; r++) {
         for (int c = 0; c < SCREEN_WIDTH; c++) gWindowTileMap[r][c] = 0;
-    }
-}
-
-static void credits_draw_shifted_text_to_window(int shift_tiles, int mon_x) {
-    for (int r = 0; r < 10; r++) {
-        for (int c = 0; c < SCREEN_WIDTH; c++) {
-            int src = c + shift_tiles;
-            uint8_t t = 0;
-            if (src >= 0 && src < SCREEN_WIDTH) {
-                t = g_mon_text_band[r][src];
-                if (t == BLANK_TILE_SLOT) t = 0;
-            }
-            gWindowTileMap[r + 4][c] = t;
-        }
-    }
-
-    for (int ty = 0; ty < 7; ty++) {
-        int wr = 6 + ty;
-        if ((unsigned)wr >= SCREEN_HEIGHT) continue;
-        for (int tx = 0; tx < 7; tx++) {
-            int wc = mon_x + tx;
-            if ((unsigned)wc >= SCREEN_WIDTH) continue;
-            gWindowTileMap[wr][wc] = 0;
-        }
-    }
-}
-
-static void credits_draw_mon_separate_at(int tile_x, int tile_y) {
-
-    for (int ty = 0; ty < 7; ty++) {
-        for (int tx = 0; tx < 7; tx++) {
-            int x = tile_x + tx;
-            int y = tile_y + ty;
-            if ((unsigned)x >= SCREEN_WIDTH || (unsigned)y >= SCREEN_HEIGHT) continue;
-            credits_put(x, y, BLANK_TILE_SLOT);
-        }
-    }
-    for (int ty = 0; ty < 7; ty++) {
-        for (int tx = 0; tx < 7; tx++) {
-            int x = tile_x + tx;
-            int y = tile_y + ty;
-            if ((unsigned)x >= SCREEN_WIDTH || (unsigned)y >= SCREEN_HEIGHT) continue;
-            credits_put(x, y, (uint8_t)(0x20 + ty * 7 + tx));
-        }
     }
 }
 
@@ -381,10 +362,10 @@ static void credits_begin_mon_anim(void) {
     credits_capture_middle_band();
     credits_load_mon_tiles(species);
     g_mon_step = 0;
-    g_mon_tile_x = SCREEN_WIDTH - 7;
-    g_mon_band_px = 0;
-    credits_draw_shifted_middle_band(0);
-    credits_draw_mon_separate_at(g_mon_tile_x, 6);
+    credits_clear_window_layer();
+    hWY = SCREEN_HEIGHT_PX;
+    Display_SetAuthoredBleedRows(4, 10);
+    credits_draw_mon_frame(0);
 
     Display_SetPalette(0xFC, 0xFC, 0xFC);
     g_timer = 0;
@@ -400,10 +381,9 @@ void CreditsScripts_OnMapLoad(void) {
     g_row = 6;
     g_mon_index = 0;
     g_mon_step = 0;
-    g_mon_tile_x = 8;
-    g_mon_band_px = 0;
     g_restart_requested = 0;
     g_done_wait_timer = 0;
+    Display_SetAuthoredBleedRows(0, 0);
 }
 
 static void credits_start_common(int start_delay) {
@@ -414,13 +394,12 @@ static void credits_start_common(int start_delay) {
     g_post_wait = 0;
     g_mon_index = 0;
     g_mon_step = 0;
-    g_mon_tile_x = 8;
-    g_mon_band_px = 0;
     g_restart_requested = 0;
     g_done_wait_timer = 0;
     gScrollPxX = 0;
     gScrollPxY = 0;
     Display_SetBandXPx(-1, 0, 0);
+    Display_SetAuthoredBleedRows(0, 0);
     credits_clear_window_layer();
     credits_shift_font_color_index();
     Display_LoadTile(CREDITS_BLACK_TILE, kSolidBlackTile);
@@ -462,6 +441,11 @@ void CreditsScripts_StartImmediate(void) {
 
 void CreditsScripts_Tick(void) {
     int token;
+    int mon_last_step = (Display_FrameWidth() / TILE_PX > SCREEN_WIDTH)
+                      ? Display_FrameWidth() / TILE_PX + 7
+                      : 27;
+    Display_SetAuthoredBleedRows(g_state == CREDITS_MON_ANIM_WAIT ? 4 : 0,
+                                 g_state == CREDITS_MON_ANIM_WAIT ? 10 : 0);
     if (g_state != CREDITS_IDLE && g_state != CREDITS_DONE) {
         gScrollPxX = 0;
         gScrollPxY = 0;
@@ -485,14 +469,16 @@ void CreditsScripts_Tick(void) {
         credits_clear_middle_white();
         g_row = 6;
         g_state = CREDITS_PAGE_PARSE;
-        return;
 
     case CREDITS_PAGE_PARSE:
         while (g_order_pos < (int)(sizeof(kCreditsOrder) / sizeof(kCreditsOrder[0]))) {
             token = kCreditsOrder[g_order_pos++];
             if (token >= 0 && token < (int)(sizeof(kCredText) / sizeof(kCredText[0]))) {
                 int col = 9 + kCredText[token].x_off;
-                credits_draw_text_line(col, g_row, kCredText[token].text);
+                const char *line = kCredText[token].text;
+                if (token == TXT_VERSION && strcmp(GameVersion_Current(), "blue") == 0)
+                    line = "BLUE VERSION STAFF";
+                credits_draw_text_line(col, g_row, line);
                 g_row += 2;
                 continue;
             }
@@ -520,8 +506,8 @@ void CreditsScripts_Tick(void) {
                 credits_load_copyright_tiles();
                 credits_draw_tile_row(2, 7, kCopyrightRow1, (int)sizeof(kCopyrightRow1));
 
-                credits_draw_tile_row(2, 8, kCopyrightRow2, (int)kCopyrightRow2_count);
-                credits_draw_tile_row(2, 9, kCopyrightRow3, (int)kCopyrightRow3_count);
+                credits_draw_tile_row(2, 9, kCopyrightRow2, (int)kCopyrightRow2_count);
+                credits_draw_tile_row(2, 11, kCopyrightRow3, (int)kCopyrightRow3_count);
                 continue;
             }
             if (token == CMD_THE_END) {
@@ -570,23 +556,13 @@ void CreditsScripts_Tick(void) {
             return;
         }
         g_mon_step++;
-
-        credits_clear_middle_white();
-        credits_draw_mon_separate_at((SCREEN_WIDTH - 7) - g_mon_step, 6);
-        credits_clear_window_layer();
-        credits_draw_shifted_text_to_window(g_mon_step, (SCREEN_WIDTH - 7) - g_mon_step);
-        hWY = 0;
-        hWX = 7;
-        Display_SetWindowOverSprites(0);
-        if (g_mon_step > 7) {
-
-            credits_mask_right_cols(g_mon_step - 7);
-        }
-        if (g_mon_step < 27) {
+        credits_draw_mon_frame(g_mon_step);
+        if (g_mon_step < mon_last_step) {
             g_timer = 0;
             return;
         }
         Display_SetBandXPx(-1, 0, 0);
+        Display_SetAuthoredBleedRows(0, 0);
         credits_clear_window_layer();
         hWY = SCREEN_HEIGHT_PX;
         hWX = 7;
@@ -605,7 +581,8 @@ void CreditsScripts_Tick(void) {
         credits_draw_tile_row(4, 8, kTheEndRow1, (int)sizeof(kTheEndRow1));
         credits_draw_tile_row(4, 9, kTheEndRow2, (int)sizeof(kTheEndRow2));
 
-        g_fade_step = 0;
+        Display_SetPalette(kCreditsFadeBGP[0], kCreditsFadeBGP[0], kCreditsFadeBGP[0]);
+        g_fade_step = 1;
         g_timer = CREDITS_FADE_STEP_TICKS;
         g_state = CREDITS_THE_END_FADE_WAIT;
         return;

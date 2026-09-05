@@ -93,6 +93,8 @@ extern uint8_t    wPartyCount;
 extern party_mon_t wPartyMons[PARTY_LENGTH];
 extern uint8_t    wPartyMonOT[PARTY_LENGTH][NAME_LENGTH];
 extern uint8_t    wPartyMonNicks[PARTY_LENGTH][NAME_LENGTH];
+extern uint8_t    wNumHoFTeams;
+extern hall_of_fame_team_t wHallOfFameTeams[HOF_TEAM_CAPACITY];
 extern uint8_t    wCurrentBoxNum;
 extern uint8_t    wBoxCount[NUM_BOXES];
 extern uint8_t    wBoxSpecies[NUM_BOXES][BOX_CAPACITY + 1];

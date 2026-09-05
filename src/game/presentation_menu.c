@@ -5,6 +5,7 @@
 #include "speed_settings.h"
 #include "battle/battle_exp.h"
 #include "debug_cli.h"
+#include "debug_suite.h"
 #include "amberscript_battle_debug.h"
 #include "amberscript_scene.h"
 #include "gen1color/gen1color_battle.h"
@@ -197,6 +198,14 @@ static const choice_t kOverworldSpeedChoices[] = {
     {"4X",     4},
     {"TURBO",  SPEED_UNCAPPED},
 };
+static const choice_t kGlobalSpeedChoices[] = {
+    {"0.5X",    50},
+    {"NORMAL", 100},
+    {"2X",     200},
+    {"3X",     300},
+    {"4X",     400},
+    {"TURBO",    0},
+};
 
 static const choice_t kCriesChoices[] = {
     {"GEN 1",   AUDIO_CRIES_GEN1},
@@ -240,6 +249,10 @@ static const choice_t kRendererChoices[] = {
 
 static const choice_t kFastBootChoices[] = {
     {"OFF", 0}, {"ON", 1},
+};
+
+static const choice_t kAudioOutputChoices[] = {
+    {"STEREO", 0}, {"MONO", 1},
 };
 
 static const choice_t kDebugToggleChoices[] = {
@@ -297,7 +310,7 @@ static const debug_place_t kDebugPlaces[] = {
 };
 
 static const choice_t kWinScaleChoices[] = {
-    {"2X",  2}, {"3X",  3}, {"4X",  4}, {"5X",  5},
+    {"1X",  1}, {"2X",  2}, {"3X",  3}, {"4X",  4}, {"5X",  5},
     {"6X",  6}, {"7X",  7}, {"8X",  8},
     {"FULLSCREEN", WINSCALE_FULLSCREEN},
 };
@@ -389,8 +402,18 @@ static const choice_t kLightTempChoices[] = {
 #define N_RENDERFPS ((int)(sizeof kRenderFpsChoices / sizeof kRenderFpsChoices[0]))
 
 static const choice_t kAspectChoices[] = {
-    { "NATIVE", 0 },
-    { "16:9",   1 },
+    { "NATIVE", DISPLAY_ASPECT_NATIVE },
+    { "5:4",    DISPLAY_ASPECT_5_4 },
+    { "4:3",    DISPLAY_ASPECT_4_3 },
+    { "3:2",    DISPLAY_ASPECT_3_2 },
+    { "16:10",  DISPLAY_ASPECT_16_10 },
+    { "16:9",   DISPLAY_ASPECT_16_9 },
+    { "18:9",   DISPLAY_ASPECT_18_9 },
+    { "18.5:9", DISPLAY_ASPECT_18_5_9 },
+    { "19:9",   DISPLAY_ASPECT_19_9 },
+    { "19.5:9", DISPLAY_ASPECT_19_5_9 },
+    { "20:9",   DISPLAY_ASPECT_20_9 },
+    { "21:9",   DISPLAY_ASPECT_21_9 },
 };
 #define N_ASPECT  ((int)(sizeof kAspectChoices  / sizeof kAspectChoices[0]))
 #define N_SGBBORDER ((int)(sizeof kSgbBorderChoices / sizeof kSgbBorderChoices[0]))
@@ -412,6 +435,8 @@ static int filter_blocked(int index) {
 #define N_SCALE   ((int)(sizeof kScaleChoices   / sizeof kScaleChoices[0]))
 #define N_EXPSHARE ((int)(sizeof kExpShareChoices / sizeof kExpShareChoices[0]))
 #define N_FASTBOOT ((int)(sizeof kFastBootChoices / sizeof kFastBootChoices[0]))
+#define N_GLOBALSPD ((int)(sizeof kGlobalSpeedChoices / sizeof kGlobalSpeedChoices[0]))
+#define N_AUDIOOUTPUT ((int)(sizeof kAudioOutputChoices / sizeof kAudioOutputChoices[0]))
 #define N_DEBUG_TOGGLE ((int)(sizeof kDebugToggleChoices / sizeof kDebugToggleChoices[0]))
 #define N_TELEPORT ((int)(sizeof kTeleportChoices / sizeof kTeleportChoices[0]))
 typedef char debug_places_match_choices[
@@ -449,7 +474,11 @@ enum {
     ROW_DEBUG_NOCLIP,
     ROW_DEBUG_AUTOWIN,
     ROW_DEBUG_SCRIPT_TRACE,
-    ROW_DEBUG_MARCH_TRACE
+    ROW_DEBUG_MARCH_TRACE,
+    ROW_GLOBALSPD,
+    ROW_PAUSE_UNFOCUSED,
+    ROW_MUTE_UNFOCUSED,
+    ROW_AUDIO_OUTPUT
 };
 
 typedef enum { RK_VALUE, RK_SUBMENU, RK_BACK } rowkind_t;
@@ -515,6 +544,8 @@ static int inner_r_of_page(void);
 #define PAGE_GAMEPLAY 6
 #define PAGE_DEBUG    7
 
+#define PAGE_VIDEO    8
+
 static const menu_row_t kMainRows[] = {
     { RK_SUBMENU, PAGE_GRAPHICS, "GRAPHICS", NULL, MAIN_ITEM_ROW_1 + 0 * MAIN_ITEM_STEP, 0, 0, 0 },
     { RK_SUBMENU, PAGE_SPEED,    "SPEED",    NULL, MAIN_ITEM_ROW_1 + 1 * MAIN_ITEM_STEP, 0, 0, 0 },
@@ -524,14 +555,18 @@ static const menu_row_t kMainRows[] = {
     { RK_BACK,    0,             "CANCEL",   NULL, MAIN_CANCEL_ROW, 0, 0, 0 },
 };
 
-#define AUDIO_BOX_BOTTOM 6
+#define AUDIO_BOX_BOTTOM 7
 static const menu_row_t kAudioRows[] = {
     { RK_VALUE, ROW_VOLMASTER, "MASTER", kVolumeChoices, 1, 0, 0, LABEL_W },
     { RK_VALUE, ROW_VOLMUSIC,  "MUSIC",  kVolumeChoices, 2, 1, 0, LABEL_W },
     { RK_VALUE, ROW_VOLSFX,    "SFX",    kVolumeChoices, 3, 1, 0, LABEL_W },
-    { RK_VALUE, ROW_CRIES,     "CRIES",  kCriesChoices,  5, 0, 0, LABEL_W },
+    { RK_VALUE, ROW_AUDIO_OUTPUT, "OUTPUT", kAudioOutputChoices, 6, 0, 0, LABEL_W },
 
     { RK_BACK,  0,             "BACK",   NULL, AUDIO_BOX_BOTTOM + 2, 0, 0, 0 },
+};
+static const menu_header_t kAudioHeaders[] = {
+    { 0, "VOLUME" },
+    { 5, "PLAYBACK" },
 };
 
 static const menu_row_t kGraphicsRows[] = {
@@ -549,20 +584,23 @@ static const menu_header_t kGraphicsHeaders[] = {
 };
 
 static const menu_row_t kSpeedRows[] = {
-    { RK_VALUE, ROW_OWSPD,     "OVERWORLD",       kOverworldSpeedChoices, 1, 0, 0, 10 },
-    { RK_VALUE, ROW_TEXTSPD,   "TEXT",            kTextSpeedChoices,      2, 0, 0, 10 },
+    { RK_VALUE, ROW_GLOBALSPD, "GLOBAL SPEED",    kGlobalSpeedChoices,    1, 0, 0, 10 },
+    { RK_VALUE, ROW_OWSPD,     "OVERWORLD",       kOverworldSpeedChoices, 3, 0, 0, 10 },
+    { RK_VALUE, ROW_TEXTSPD,   "TEXT",            kTextSpeedChoices,      4, 0, 0, 10 },
 
-    { RK_VALUE, ROW_ROMSCROLL, "GB SCROLL",       kRomScrollChoices,      3, 0, 0, 10 },
-    { RK_VALUE, ROW_BATTLEALL, "ALL",             kBattleAllChoices,      5, 0, 0, 10 },
+    { RK_VALUE, ROW_ROMSCROLL, "GB TEXT SCROLL",  kRomScrollChoices,      5, 0, 0, 10 },
+    { RK_VALUE, ROW_BATTLEALL, "ALL",             kBattleAllChoices,      7, 0, 0, 10 },
 
-    { RK_VALUE, ROW_ANIMSPD,   "MOVE ANIMATIONS", kAnimSpeedChoices,      6, 1, 0, 10 },
-    { RK_VALUE, ROW_HPBAR,     "HP BAR",          kHpBarChoices,          7, 1, 0, 10 },
-    { RK_VALUE, ROW_MISCSPD,   "MISC ANIMATIONS", kMiscAnimChoices,       8, 1, 1, 0 },
-    { RK_VALUE, ROW_TRANSSPD,  "TRANSITIONS",     kTransitionChoices,    10, 1, 1, 0 },
-    { RK_BACK,  0,             "BACK",            NULL,                  14, 0, 0, 0 },
+    { RK_VALUE, ROW_ANIMSPD,   "MOVE ANIMATIONS", kAnimSpeedChoices,      8, 1, 0, 10 },
+    { RK_VALUE, ROW_HPBAR,     "HP BAR",          kHpBarChoices,          9, 1, 0, 10 },
+    { RK_VALUE, ROW_MISCSPD,   "MISC ANIMATIONS", kMiscAnimChoices,      10, 1, 1, 0 },
+    { RK_VALUE, ROW_TRANSSPD,  "TRANSITIONS",     kTransitionChoices,    12, 1, 1, 0 },
+    { RK_BACK,  0,             "BACK",            NULL,                  16, 0, 0, 0 },
 };
 static const menu_header_t kSpeedHeaders[] = {
-    { 4, "BATTLE" },
+    { 0, "GENERAL" },
+    { 2, "OVERWORLD" },
+    { 6, "BATTLE" },
 };
 
 #define DISPLAY_LABEL_W    8
@@ -611,11 +649,18 @@ static const menu_row_t kPaletteRows[] = {
 };
 
 static const menu_row_t kGameplayRows[] = {
-    { RK_VALUE, ROW_EXPSHARE, "EXP SHARE", kExpShareChoices, 1, 0, 0, 10 },
-    { RK_VALUE, ROW_FASTBOOT, "FAST BOOT", kFastBootChoices, 3, 0, 0, 10 },
-    { RK_BACK,  0,            "BACK",      NULL,             5, 0, 0, 0 },
+    { RK_VALUE, ROW_EXPSHARE, "GEN 6 EXP SHARE", kExpShareChoices, 1, 0, 0, 10 },
+    { RK_VALUE, ROW_FASTBOOT, "FAST BOOT", kFastBootChoices, 4, 0, 0, 10 },
+    { RK_VALUE, ROW_PAUSE_UNFOCUSED, "PAUSE UNFOCUSED", kDebugToggleChoices, 7, 0, 0, 10 },
+    { RK_VALUE, ROW_MUTE_UNFOCUSED, "MUTE UNFOCUSED", kDebugToggleChoices, 8, 0, 0, 10 },
+    { RK_BACK,  0,            "BACK",      NULL,             11, 0, 0, 0 },
 };
-#define GAMEPLAY_BOX_BOTTOM 4
+#define GAMEPLAY_BOX_BOTTOM 9
+static const menu_header_t kGameplayHeaders[] = {
+    { 0, "RULES" },
+    { 3, "STARTUP" },
+    { 6, "BACKGROUND" },
+};
 
 static const menu_row_t kDebugRows[] = {
     { RK_VALUE, ROW_DEBUG_TELEPORT,     "TELEPORT",     kTeleportChoices,    1, 0, 0, 10 },
@@ -631,6 +676,36 @@ static const menu_header_t kDebugHeaders[] = {
 };
 #define DEBUG_BOX_BOTTOM 9
 
+static const menu_row_t kVideoRows[] = {
+    { RK_VALUE, ROW_ASPECT,    "ASPECT",            kAspectChoices,   1, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_WINSCALE,  "SIZE",              kWinScaleChoices, 2, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_SCALE,     "SCALING",           kScaleChoices,    3, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_RENDERFPS, "FPS",               kRenderFpsChoices,4, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_VSYNC,     "VSYNC",             kVSyncChoices,    5, 0, 0, DISPLAY_LABEL_W },
+
+    { RK_VALUE, ROW_COLOR,     "COLOR",             kColorChoices,    7, 0, 0, LABEL_W },
+    { RK_VALUE, ROW_CURVE,     "CURVE",             kCurveChoices,    8, 0, 0, LABEL_W },
+    { RK_VALUE, ROW_UI,        "UI",                kUiChoices,       9, 0, 0, LABEL_W },
+    { RK_VALUE, ROW_SPRITES,   "BATTLE SPRITES",    kSpriteChoices,  10, 0, 0, 0 },
+    { RK_VALUE, ROW_PALETTE,   "BATTLE PALETTES",   kPaletteChoices, 11, 0, 0, 0 },
+    { RK_VALUE, ROW_FIELD,     "OVERWORLD PALETTE", kFieldChoices,   12, 0, 0, 0 },
+    { RK_VALUE, ROW_MONOPAL,   "MONO PALETTE",      kMonoPalChoices, 13, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_LTEMP,     "LIGHT",             kLightTempChoices,14,0, 0, DISPLAY_LABEL_W },
+
+    { RK_VALUE, ROW_RENDERER,  "RENDERER",          kRendererChoices,16,0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_FILTER,    "FILTER",            kFilterChoices,  17, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_BLEND,     "GHOSTING",          kBlendChoices,   18, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_SGBBORDER, "SGB BORDER",        kSgbBorderChoices,19,0,0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_NTSC,      "COMPOSITE",         kNtscChoices,    20, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_CRT,       "CRT PROFILE",       kCrtChoices,     21, 0, 0, DISPLAY_LABEL_W },
+    { RK_VALUE, ROW_CRTCURVE,  "CRT CURVE",         kCrtCurveChoices,22,0, 0, DISPLAY_LABEL_W },
+};
+static const menu_header_t kVideoHeaders[] = {
+    { 0,  "SCREEN" },
+    { 6,  "GAME LOOK" },
+    { 15, "FILTERS" },
+};
+
 static const menu_page_t kPages[] = {
     { kMainRows,     (int)(sizeof kMainRows     / sizeof kMainRows[0]),
       NULL, 0, MAIN_BOX_BOTTOM, MAIN_BOX_L, MAIN_BOX_R },
@@ -639,20 +714,22 @@ static const menu_page_t kPages[] = {
     { kSpeedRows,    (int)(sizeof kSpeedRows    / sizeof kSpeedRows[0]),
       kSpeedHeaders,    (int)(sizeof kSpeedHeaders    / sizeof kSpeedHeaders[0]),    12, COL_L, COL_R },
     { kAudioRows,    (int)(sizeof kAudioRows    / sizeof kAudioRows[0]),
-      NULL, 0, AUDIO_BOX_BOTTOM, COL_L, COL_R },
+      kAudioHeaders, (int)(sizeof kAudioHeaders / sizeof kAudioHeaders[0]), AUDIO_BOX_BOTTOM, COL_L, COL_R },
     { kDisplayRows,  (int)(sizeof kDisplayRows  / sizeof kDisplayRows[0]),
       NULL, 0, DISPLAY_BOX_BOTTOM, COL_L, COL_R },
     { kPaletteRows,  (int)(sizeof kPaletteRows  / sizeof kPaletteRows[0]),
       kPaletteHeaders, (int)(sizeof kPaletteHeaders / sizeof kPaletteHeaders[0]), 13, COL_L, COL_R },
 
     { kGameplayRows, (int)(sizeof kGameplayRows / sizeof kGameplayRows[0]),
-      NULL, 0, GAMEPLAY_BOX_BOTTOM, COL_L, COL_R },
+      kGameplayHeaders, (int)(sizeof kGameplayHeaders / sizeof kGameplayHeaders[0]), GAMEPLAY_BOX_BOTTOM, COL_L, COL_R },
     { kDebugRows, (int)(sizeof kDebugRows / sizeof kDebugRows[0]),
       kDebugHeaders, (int)(sizeof kDebugHeaders / sizeof kDebugHeaders[0]), DEBUG_BOX_BOTTOM, COL_L, COL_R },
+    { kVideoRows, (int)(sizeof kVideoRows / sizeof kVideoRows[0]),
+      kVideoHeaders, (int)(sizeof kVideoHeaders / sizeof kVideoHeaders[0]), 17, COL_L, COL_R },
 };
 
 typedef char pages_cover_every_page_id[
-    ((int)(sizeof kPages / sizeof kPages[0]) == PAGE_DEBUG + 1) ? 1 : -1];
+    ((int)(sizeof kPages / sizeof kPages[0]) == PAGE_VIDEO + 1) ? 1 : -1];
 
 static int s_page;
 
@@ -666,9 +743,13 @@ static void apply(int row, int index);
 static void PresentationMenu_SaveSettings(void);
 
 static int s_fast_boot = 0;
+static int s_pause_unfocused;
+static int s_mute_unfocused;
 static int s_debug_teleport_index = 0;
 
 int PresentationMenu_FastBoot(void) { return s_fast_boot; }
+int PresentationMenu_PauseWhenUnfocused(void) { return s_pause_unfocused; }
+int PresentationMenu_MuteWhenUnfocused(void) { return s_mute_unfocused; }
 
 static int current_index(int row) {
     int v;
@@ -688,6 +769,10 @@ static int current_index(int row) {
     case ROW_HPBAR:   v = SpeedSettings_HpBar();       tbl = kHpBarChoices;     n = N_HPBAR;   break;
     case ROW_EXPSHARE: v = BattleExp_ModernShare();    tbl = kExpShareChoices;       n = N_EXPSHARE; break;
     case ROW_FASTBOOT: v = s_fast_boot;                tbl = kFastBootChoices;       n = N_FASTBOOT; break;
+    case ROW_GLOBALSPD: v = DebugSuite_SpeedPct();      tbl = kGlobalSpeedChoices;    n = N_GLOBALSPD; break;
+    case ROW_PAUSE_UNFOCUSED: v = s_pause_unfocused;   tbl = kDebugToggleChoices;    n = N_DEBUG_TOGGLE; break;
+    case ROW_MUTE_UNFOCUSED: v = s_mute_unfocused;     tbl = kDebugToggleChoices;    n = N_DEBUG_TOGGLE; break;
+    case ROW_AUDIO_OUTPUT: v = Audio_GetOutputMono();  tbl = kAudioOutputChoices;    n = N_AUDIOOUTPUT; break;
     case ROW_OWSPD:   v = SpeedSettings_Overworld();   tbl = kOverworldSpeedChoices; n = N_OWSPD; break;
     case ROW_TEXTSPD: v = SpeedSettings_Text();        tbl = kTextSpeedChoices;      n = N_TEXTSPD; break;
     case ROW_ROMSCROLL: v = SpeedSettings_RomTextScroll(); tbl = kRomScrollChoices;  n = N_ROMSCROLL; break;
@@ -703,7 +788,7 @@ static int current_index(int row) {
     case ROW_SCALE:     v = (int)DisplayGL_Scaling(); tbl = kScaleChoices;  n = N_SCALE;   break;
     case ROW_VSYNC:     v = (int)DisplayGL_VSync();   tbl = kVSyncChoices;  n = N_VSYNC;   break;
     case ROW_RENDERFPS: v = Display_RenderFPS();      tbl = kRenderFpsChoices; n = N_RENDERFPS; break;
-    case ROW_ASPECT:    v = Display_Widescreen();     tbl = kAspectChoices; n = N_ASPECT;  break;
+    case ROW_ASPECT:    v = Display_AspectMode();      tbl = kAspectChoices; n = N_ASPECT;  break;
     case ROW_SGBBORDER: v = SgbBorder_IsEnabled();    tbl = kSgbBorderChoices; n = N_SGBBORDER; break;
     case ROW_NTSC:      v = NtscFilter_IsEnabled();   tbl = kNtscChoices;      n = N_NTSC;      break;
     case ROW_CRT:       v = (int)CrtRenderer_Profile(); tbl = kCrtChoices;       n = N_CRT;       break;
@@ -825,6 +910,18 @@ static void apply(int row, int index) {
     case ROW_FASTBOOT:
         s_fast_boot = kFastBootChoices[index].value;
         break;
+    case ROW_GLOBALSPD:
+        DebugSuite_SetSpeedPct(kGlobalSpeedChoices[index].value);
+        break;
+    case ROW_PAUSE_UNFOCUSED:
+        s_pause_unfocused = kDebugToggleChoices[index].value;
+        break;
+    case ROW_MUTE_UNFOCUSED:
+        s_mute_unfocused = kDebugToggleChoices[index].value;
+        break;
+    case ROW_AUDIO_OUTPUT:
+        Audio_SetOutputMono(kAudioOutputChoices[index].value);
+        break;
     case ROW_OWSPD:
         SpeedSettings_SetOverworld(kOverworldSpeedChoices[index].value);
         break;
@@ -874,7 +971,7 @@ static void apply(int row, int index) {
         break;
     case ROW_ASPECT:
 
-        Display_SetWidescreen(kAspectChoices[index].value);
+        Display_SetAspectMode(kAspectChoices[index].value);
 
         if (!s_loading && kAspectChoices[index].value != 0 && !s_wide_notice_seen)
             s_notice = NOTICE_WIDESCREEN;
@@ -961,6 +1058,10 @@ static const choice_t *row_table(int row) {
     case ROW_UI:        return kUiChoices;
     case ROW_EXPSHARE:  return kExpShareChoices;
     case ROW_FASTBOOT:  return kFastBootChoices;
+    case ROW_GLOBALSPD: return kGlobalSpeedChoices;
+    case ROW_PAUSE_UNFOCUSED:
+    case ROW_MUTE_UNFOCUSED: return kDebugToggleChoices;
+    case ROW_AUDIO_OUTPUT: return kAudioOutputChoices;
     case ROW_SPRITES:   return kSpriteChoices;
     case ROW_PALETTE:   return kPaletteChoices;
     case ROW_FIELD:     return kFieldChoices;
@@ -1007,6 +1108,10 @@ static int row_count(int row) {
     case ROW_UI:      return N_UI;
     case ROW_EXPSHARE: return N_EXPSHARE;
     case ROW_FASTBOOT: return N_FASTBOOT;
+    case ROW_GLOBALSPD: return N_GLOBALSPD;
+    case ROW_PAUSE_UNFOCUSED:
+    case ROW_MUTE_UNFOCUSED: return N_DEBUG_TOGGLE;
+    case ROW_AUDIO_OUTPUT: return N_AUDIOOUTPUT;
     case ROW_SPRITES: return N_SPRITE;
     case ROW_PALETTE: return N_PALETTE;
     case ROW_FIELD:   return N_FIELD;
@@ -1066,6 +1171,10 @@ static const struct { int row; const char *key; } kPersistRows[] = {
     { ROW_OWSPD,    "ow_speed"    },
     { ROW_EXPSHARE, "exp_share"   },
     { ROW_FASTBOOT, "fast_boot"   },
+    { ROW_GLOBALSPD, "global_speed" },
+    { ROW_PAUSE_UNFOCUSED, "pause_unfocused" },
+    { ROW_MUTE_UNFOCUSED, "mute_unfocused" },
+    { ROW_AUDIO_OUTPUT, "audio_mono" },
     { ROW_TEXTSPD,  "text_speed"  },
     { ROW_ROMSCROLL, "rom_text_scroll" },
     { ROW_MISCSPD,  "misc_speed"  },
@@ -1388,10 +1497,10 @@ void PresentationMenu_Tick(void) {
 }
 
 static const char *kPageNames[] = {
-    "OPTIONS", "GRAPHICS", "SPEED", "AUDIO", "DISPLAY", "PALETTE", "GAMEPLAY", "DEBUG TOOLS",
+    "OPTIONS", "GRAPHICS", "SPEED", "AUDIO", "DISPLAY", "CUSTOM PALETTE", "GAMEPLAY", "DEBUG TOOLS", "VIDEO",
 };
 typedef char page_names_cover_every_page[
-    ((int)(sizeof kPageNames / sizeof kPageNames[0]) == PAGE_DEBUG + 1) ? 1 : -1];
+    ((int)(sizeof kPageNames / sizeof kPageNames[0]) == PAGE_VIDEO + 1) ? 1 : -1];
 
 int PresentationMenu_PageCount(void) {
     return (int)(sizeof kPages / sizeof kPages[0]);

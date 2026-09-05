@@ -138,8 +138,8 @@ typedef enum {
 #define DESKTOP_VERSION_Y   (LDRAW_H - 16 - LDRAW_LINE_H(1))
 #define DESKTOP_MENU_BOTTOM (DESKTOP_VERSION_Y - 14)
 
-#define ROW_H_SMALL 32
-#define ROW_H_GAME  44
+#define ROW_H_SMALL 22
+#define ROW_H_GAME  56
 #define ROW_H_HERO  56
 
 typedef struct {
@@ -158,6 +158,7 @@ typedef struct {
     SDL_Rect      rect[MENU_MAX];
 
     SDL_Rect      save_box;
+    SDL_Rect      status_box;
     int           count;
     int           focus;
 } menu_t;
@@ -258,7 +259,7 @@ static void menu_build(menu_t *m, ui_state_t state,
                      hero ? ROW_H_HERO : ROW_H_GAME, hero ? 3 : 2);
         }
         menu_add(m, ACT_DEBUG_TOOLING,
-                 "ENABLE DEBUG TOOLING? (TELEPORT, NOCLIP, ETC.)",
+                 "ENABLE DEBUG TOOLING",
                  "", 28, 1);
 
         if (n_installed < GameVersion_SupportedCount() && s_can_import)
@@ -292,77 +293,165 @@ static void menu_build(menu_t *m, ui_state_t state,
     if (!pointer)
         menu_add(m, ACT_QUIT, "QUIT", "", ROW_H_SMALL, 2);
 
-    const int bw = 240, gap = 8, bottom = LDRAW_H - 26 - 16;
-
-    const int menu_top = 178 + LDRAW_LINE_H(1) + 8;
-
+    const int gap = 4;
     m->save_box = (SDL_Rect){ 0, 0, 0, 0 };
+    m->status_box = (SDL_Rect){ PANEL_X, 76, LDRAW_W - PANEL_X * 2, 50 };
 
     {
 
-        int x = (LDRAW_W - bw) / 2;
+        int play_w = 380 * LDRAW_W / LDRAW_W_DESKTOP;
+        int util_w = 280 * LDRAW_W / LDRAW_W_DESKTOP;
+        int play_x, util_x, util_cell_w;
+        int n_game = 0, n_tools = 0, tool_rows, primary_rom = -1;
+        int featured_rom = -1;
+        int y;
 
-        for (int attempt = 0; ; attempt++) {
-            int row_gap = (attempt >= 3) ? 2 : (attempt >= 2) ? 4 : gap;
-            int box_gap = (attempt >= 3) ? 4 : (attempt >= 2) ? 6 : SAVE_LINE_GAP;
+        if (play_w > LDRAW_W - PANEL_X * 2) play_w = LDRAW_W - PANEL_X * 2;
+        if (util_w > play_w - 24) util_w = play_w - 24;
+        play_x = PANEL_X + PANEL_INSET;
+        util_x = play_x;
+        util_cell_w = (util_w - gap) / 2;
 
-            int row_h = (attempt >= 4) ? 26 : ROW_H_SMALL;
-
-            const int tile_gap = 28;
-            int y = DESKTOP_MENU_TOP;
-            int first = 1;
-            int n_game = 0;
-
+        for (int i = 0; i < m->count; i++)
+            if (m->rows[i].act == ACT_PLAY) n_game++;
+        if (n_game > 0)
             for (int i = 0; i < m->count; i++)
-                if (m->rows[i].act == ACT_PLAY) n_game++;
-
-            int base = (n_game <= 1 ? 150 : 108) * LDRAW_W / LDRAW_W_DESKTOP;
-            int side = (attempt >= 3) ? base * 63 / 100
-                     : (attempt >= 2) ? base * 78 / 100
-                     : (attempt >= 1) ? base * 89 / 100 : base;
-
-            if (n_game > 0) {
-                int total = n_game * side + (n_game - 1) * tile_gap;
-                int tx = (LDRAW_W - total) / 2;
-                for (int i = 0; i < m->count; i++) {
-                    if (m->rows[i].act != ACT_PLAY) continue;
-                    m->rows[i].tile = 1;
-                    m->rect[i] = (SDL_Rect){ tx, y, side, side };
-                    tx += side + tile_gap;
+                if (m->rows[i].act == ACT_CHOOSE_ROM &&
+                    strcmp(m->rows[i].label, "RE-IMPORT A ROM") == 0) {
+                    featured_rom = i;
+                    break;
                 }
-                y += side;
-                first = 0;
-            }
+        if (n_game == 0)
+            for (int i = 0; i < m->count; i++)
+                if (m->rows[i].act == ACT_CHOOSE_ROM) { primary_rom = i; break; }
 
+        for (int i = 0; i < m->count; i++) {
+            action_t a = m->rows[i].act;
+            if (a == ACT_PLAY || a == ACT_DEBUG_TOOLING ||
+                a == ACT_SWITCH_SAVE || a == ACT_EDIT_SAVE ||
+                i == primary_rom || i == featured_rom)
+                continue;
+            n_tools++;
+        }
+        tool_rows = (n_tools + 1) / 2;
+
+        if (n_game > 0) {
+
+            const int cart_w = 172;
+            const int cart_h = 150;
+            const int cart_gap = 8;
+            const int cart_group_x = (LDRAW_W - (cart_w * 2 + cart_gap)) / 2;
+            int fallback_x = cart_group_x;
+            y = 64;
             for (int i = 0; i < m->count; i++) {
-                if (m->rows[i].act == ACT_SWITCH_SAVE ||
-                    m->rows[i].act == ACT_EDIT_SAVE) continue;
-                if (m->rows[i].act == ACT_PLAY) continue;
-                m->rows[i].tile = 0;
-                m->rows[i].h = (m->rows[i].act == ACT_DEBUG_TOOLING) ? 28 : row_h;
-                m->rows[i].scale = (m->rows[i].act == ACT_DEBUG_TOOLING) ? 1 : 2;
-                if (!first) y += row_gap;
-                m->rect[i] = (m->rows[i].act == ACT_DEBUG_TOOLING)
-                    ? (SDL_Rect){ PANEL_X, y, LDRAW_W - PANEL_X * 2, m->rows[i].h }
-                    : (SDL_Rect){ x, y, bw, m->rows[i].h };
-                y += m->rows[i].h;
-                first = 0;
+                if (m->rows[i].act != ACT_PLAY) continue;
+                int x;
+                if (strcmp(m->rows[i].ver, "red") == 0)
+                    x = cart_group_x;
+                else if (strcmp(m->rows[i].ver, "blue") == 0)
+                    x = cart_group_x + cart_w + cart_gap;
+                else {
+                    x = fallback_x;
+                    fallback_x += cart_w + cart_gap;
+                }
+                m->rows[i].tile = 1;
+                m->rows[i].h = cart_h;
+                m->rect[i] = (SDL_Rect){ x, y, cart_w, cart_h };
             }
+            y += cart_h;
+            if (featured_rom >= 0) {
+                y += gap;
+                m->rows[featured_rom].tile = 0;
+                m->rows[featured_rom].h = ROW_H_SMALL;
+                m->rows[featured_rom].scale = 1;
+                m->rect[featured_rom] = (SDL_Rect){ (LDRAW_W - util_cell_w) / 2, y,
+                                                    util_cell_w, ROW_H_SMALL };
+                y += ROW_H_SMALL;
+            }
+            y += 6;
+            m->status_box = (SDL_Rect){ (LDRAW_W - util_w) / 2, y,
+                                        util_w, 24 };
+            y = m->status_box.y + m->status_box.h + 8;
+        } else if (primary_rom >= 0) {
+            y = 136;
+            m->rows[primary_rom].tile = 0;
+            m->rows[primary_rom].h = 44;
+            m->rows[primary_rom].scale = 2;
+            m->rect[primary_rom] = (SDL_Rect){ play_x, y, play_w, 44 };
+            y += 52;
+        } else {
+            y = DESKTOP_MENU_TOP;
+        }
 
-            y += box_gap;
-            m->save_box = (SDL_Rect){ PANEL_X, y, LDRAW_W - PANEL_X * 2, SAVE_BOX_H };
-            y += SAVE_BOX_H + box_gap;
+        for (int i = 0; i < m->count; i++) {
+            if (m->rows[i].act != ACT_DEBUG_TOOLING) continue;
+            y += gap;
+            m->rows[i].tile = 0;
+            m->rows[i].h = 24;
+            m->rows[i].scale = 1;
+            m->rect[i] = (SDL_Rect){ play_x, y, play_w, 24 };
+            y += 24;
+        }
 
+        if (n_tools > 0) y += gap;
+        {
+            int k = 0;
+            for (int i = 0; i < m->count; i++) {
+                action_t a = m->rows[i].act;
+                if (a == ACT_PLAY || a == ACT_DEBUG_TOOLING ||
+                    a == ACT_SWITCH_SAVE || a == ACT_EDIT_SAVE ||
+                    i == primary_rom || i == featured_rom)
+                    continue;
+                int col = k & 1, row = k >> 1;
+                int lone = (n_tools & 1) && k == n_tools - 1;
+                m->rows[i].tile = 0;
+                m->rows[i].h = ROW_H_SMALL;
+                m->rows[i].scale = 1;
+                m->rect[i] = (SDL_Rect){ lone ? util_x
+                                              : util_x + col * (util_cell_w + gap),
+                                         y + row * (ROW_H_SMALL + gap),
+                                         util_cell_w, ROW_H_SMALL };
+                k++;
+            }
+        }
+        y += tool_rows * ROW_H_SMALL + (tool_rows > 0 ? (tool_rows - 1) * gap : 0);
+
+        y += 6;
+        m->save_box = (SDL_Rect){ play_x, y, play_w, 24 };
+        y += 24 + gap;
+
+        {
+            int k = 0;
             for (int i = 0; i < m->count; i++) {
                 if (m->rows[i].act != ACT_SWITCH_SAVE &&
                     m->rows[i].act != ACT_EDIT_SAVE) continue;
                 m->rows[i].tile = 0;
-                m->rows[i].h = row_h;
-                m->rect[i] = (SDL_Rect){ x, y, bw, m->rows[i].h };
-                y += m->rows[i].h;
+                m->rows[i].h = ROW_H_SMALL;
+                m->rows[i].scale = 1;
+                m->rect[i] = (SDL_Rect){ util_x + k * (util_cell_w + gap), y,
+                                         util_cell_w, ROW_H_SMALL };
+                k++;
             }
+        }
 
-            if (y <= DESKTOP_MENU_BOTTOM || attempt >= 4) break;
+        {
+            int lowest = m->save_box.y + m->save_box.h;
+            int target = pointer ? DESKTOP_VERSION_Y - 8
+                                 : LDRAW_H - LDRAW_FOOTER_H - 6;
+            for (int i = 0; i < m->count; i++) {
+                int bottom = m->rect[i].y + m->rect[i].h;
+                if (bottom > lowest) lowest = bottom;
+            }
+            if (lowest < target) {
+                int dy = target - lowest;
+                m->save_box.y += dy;
+                for (int i = 0; i < m->count; i++) {
+                    if (n_game > 0 &&
+                        (m->rows[i].act == ACT_PLAY || i == featured_rom))
+                        continue;
+                    m->rect[i].y += dy;
+                }
+            }
         }
     }
 
@@ -383,6 +472,32 @@ static void draw_centred(SDL_Renderer *r, int x, int span, int y, int scale,
         LauncherDraw_TextBold(r, x + (span - w) / 2, y, scale, cr, cg, cb, s);
     else
         LauncherDraw_TextClippedBold(r, x, y, scale, cr, cg, cb, s, span);
+}
+
+static void draw_brand_icon(SDL_Renderer *r, int x, int y) {
+    static const char *const rows[16] = {
+        "................", "................", ".......BBBB.....", ".....BBBBBBB....",
+        "....BBGGGGGDB...", "...BBGWPPGGGBB..", "..BBGGWPPGGGGB..", ".BBGGPPPBGGGGB..",
+        ".BGGPPPBBGGGGB..", ".BGYHPBBGGGGGB..", ".BGGGGJGGGGGBB..", ".BGGGGGGGGGBB...",
+        ".BBGGGGGGBB....", "..BBGGGGGBB.....", "...BBBBBBB......", "................"
+    };
+    for (int py = 0; py < 16; py++) {
+        for (int px = 0; px < 16; px++) {
+            switch (rows[py][px]) {
+            case 'B': SDL_SetRenderDrawColor(r, 0xB3, 0x6B, 0x01, 0xFF); break;
+            case 'D': SDL_SetRenderDrawColor(r, 0xB3, 0x71, 0x01, 0xFF); break;
+            case 'G': SDL_SetRenderDrawColor(r, 0xF6, 0xC1, 0x2F, 0xFF); break;
+            case 'W': SDL_SetRenderDrawColor(r, 0xF8, 0xF8, 0xF8, 0xFF); break;
+            case 'P': SDL_SetRenderDrawColor(r, 0xF6, 0xF6, 0xAD, 0xFF); break;
+            case 'Y': SDL_SetRenderDrawColor(r, 0xF5, 0xBB, 0x1B, 0xFF); break;
+            case 'H': SDL_SetRenderDrawColor(r, 0xF8, 0xC2, 0x30, 0xFF); break;
+            case 'J': SDL_SetRenderDrawColor(r, 0xF8, 0xC0, 0x2F, 0xFF); break;
+            default: continue;
+            }
+            SDL_Rect p = { x + px * 2, y + py * 2, 2, 2 };
+            SDL_RenderFillRect(r, &p);
+        }
+    }
 }
 
 static void row_focus_rgb(const char *ver, Uint8 *cr, Uint8 *cg, Uint8 *cb) {
@@ -429,6 +544,16 @@ static void draw_button(SDL_Renderer *r, SDL_Rect rect, const char *label,
         return;
     }
     LauncherDraw_Bevel(r, rect, 1);
+    if (action == ACT_PLAY && !focused) {
+        SDL_Rect inner = { rect.x + 2, rect.y + 2, rect.w - 4, rect.h - 4 };
+        if (ver && strcmp(ver, "red") == 0)
+            SDL_SetRenderDrawColor(r, 0xF0, 0xC2, 0xBC, 0xFF);
+        else if (ver && strcmp(ver, "blue") == 0)
+            SDL_SetRenderDrawColor(r, 0xD0, 0xDC, 0xE8, 0xFF);
+        else
+            SDL_SetRenderDrawColor(r, LCOL_PANEL, 0xFF);
+        SDL_RenderFillRect(r, &inner);
+    }
     if (focused) {
         SDL_Rect inner = { rect.x + 3, rect.y + 3, rect.w - 6, rect.h - 6 };
         LauncherDraw_FocusBarRGB(r, inner, fr, fg, fb);
@@ -504,12 +629,26 @@ static void draw_main(menu_t *m, ui_state_t state, const char *status,
     SDL_SetRenderDrawColor(r, LCOL_BG, 0xFF);
     SDL_RenderClear(r);
 
-    draw_centred(r, 24, LDRAW_W - 48, 26, 3, LCOL_TEXT, "OLDAMBER");
+    {
+        int tw = LauncherDraw_TextWidthBold(3, "OLDAMBER");
+        int group_w = 32 + 4 + tw;
+        int x = (LDRAW_W - group_w) / 2;
+        int iy = 24 + (LDRAW_INK_H(3) - 32) / 2;
+        draw_brand_icon(r, x, iy);
+        LauncherDraw_TextBold(r, x + 36, 26, 3, LCOL_TEXT, "OLDAMBER");
+    }
 
-    SDL_Rect zone = { 24, 76, LDRAW_W - 48, 62 };
+    SDL_Rect zone = m->status_box;
     LauncherDraw_Bevel(r, zone, 0);
 
-    if (state == STATE_READY) {
+    if (status && status[0]) {
+        Uint8 cr = 0x00, cg = 0x00, cb = 0x00;
+        if (status_err)                { cr = 0x80; cg = 0x00; cb = 0x00; }
+        else if (state == STATE_READY) { cr = 0x00; cg = 0x60; cb = 0x00; }
+        draw_centred(r, zone.x + PANEL_INSET, zone.w - PANEL_INSET * 2,
+                     LDRAW_TEXT_Y(zone.y, zone.h, 1), 1,
+                     cr, cg, cb, status);
+    } else if (state == STATE_READY) {
 
         char line[128];
         size_t used = 0;
@@ -517,28 +656,30 @@ static void draw_main(menu_t *m, ui_state_t state, const char *status,
         for (int i = 0; i < n_installed; i++)
             used += (size_t)snprintf(line + used, sizeof(line) - used, "%s%s",
                                      i ? " AND " : "", GameVersion_Label(installed[i]));
-        draw_centred(r, zone.x + 16, zone.w - 32, zone.y + 14, 2, 0x00, 0x60, 0x00,
-                     n_installed > 1 ? "GAMES READY" : "GAME DATA READY");
-        draw_centred(r, zone.x + 16, zone.w - 32, zone.y + 38, 1, LCOL_TEXT_DIM,
-                     line);
+        char ready[160];
+        snprintf(ready, sizeof ready, "%s - %s",
+                 n_installed > 1 ? "GAMES READY" : "GAME DATA READY", line);
+        draw_centred(r, zone.x + PANEL_INSET, zone.w - PANEL_INSET * 2,
+                     LDRAW_TEXT_Y(zone.y, zone.h, 1), 1,
+                     0x00, 0x60, 0x00, ready);
     } else if (has_pad) {
 
-        draw_centred(r, zone.x + 16, zone.w - 32, zone.y + 14, 2, LCOL_TEXT_DIM,
-                     "NO GAME DATA YET");
-        draw_centred(r, zone.x + 16, zone.w - 32, zone.y + 38, 1, LCOL_TEXT_DIM,
-                     "CHOOSE YOUR ROM BELOW TO GET STARTED.");
+        LauncherDraw_TextClippedBold(r, zone.x + PANEL_INSET, zone.y + 14,
+                                     2, LCOL_TEXT_DIM, "NO GAME DATA YET",
+                                     zone.w - PANEL_INSET * 2);
+        LauncherDraw_TextClippedBold(r, zone.x + PANEL_INSET, zone.y + 38,
+                                     1, LCOL_TEXT_DIM,
+                                     "CHOOSE YOUR ROM BELOW TO GET STARTED.",
+                                     zone.w - PANEL_INSET * 2);
     } else {
-        draw_centred(r, zone.x + 16, zone.w - 32, zone.y + 14, 2, LCOL_TEXT_DIM,
-                     "DROP YOUR ROM IN THIS WINDOW");
-        draw_centred(r, zone.x + 16, zone.w - 32, zone.y + 38, 1, LCOL_TEXT_DIM,
-                     "OR USE THE BUTTON BELOW.");
-    }
-
-    if (status && status[0]) {
-        Uint8 cr = 0x00, cg = 0x00, cb = 0x00;
-        if (status_err)                { cr = 0x80; cg = 0x00; cb = 0x00; }
-        else if (state == STATE_READY) { cr = 0x00; cg = 0x60; cb = 0x00; }
-        draw_centred(r, 24, LDRAW_W - 48, 150, 2, cr, cg, cb, status);
+        LauncherDraw_TextClippedBold(r, zone.x + PANEL_INSET, zone.y + 14,
+                                     2, LCOL_TEXT_DIM,
+                                     "DROP YOUR ROM IN THIS WINDOW",
+                                     zone.w - PANEL_INSET * 2);
+        LauncherDraw_TextClippedBold(r, zone.x + PANEL_INSET, zone.y + 38,
+                                     1, LCOL_TEXT_DIM,
+                                     "OR USE THE BUTTON BELOW.",
+                                     zone.w - PANEL_INSET * 2);
     }
 
     int save_x = PANEL_X, save_y = 178;
@@ -552,9 +693,7 @@ static void draw_main(menu_t *m, ui_state_t state, const char *status,
         int span  = (m->save_box.w > 0) ? m->save_box.w - PANEL_INSET * 2
                                         : LDRAW_W - PANEL_X * 2;
         int lw    = LauncherDraw_TextWidthBold(1, "CURRENT SAVE: ");
-        int vw    = LauncherDraw_TextWidthBold(1, save_summary ? save_summary : "");
-        int total = lw + vw;
-        int lx    = save_x + (total < span ? (span - total) / 2 : 0);
+        int lx    = save_x;
         LauncherDraw_TextBold(r, lx, save_y, 1, LCOL_TEXT_DIM, "CURRENT SAVE:");
         LauncherDraw_TextClippedBold(r, lx + lw, save_y, 1, LCOL_TEXT,
                                      save_summary, save_x + span - (lx + lw));
@@ -583,8 +722,9 @@ static void draw_main(menu_t *m, ui_state_t state, const char *status,
         }
         if (lowest <= DESKTOP_VERSION_Y - 4) {
             snprintf(ver, sizeof(ver), "%s - V%s", OLDAMBER_NAME, OLDAMBER_VERSION);
-            draw_centred(r, PANEL_X, LDRAW_W - PANEL_X * 2, DESKTOP_VERSION_Y, 1,
-                         LCOL_TEXT_DIM, ver);
+            LauncherDraw_Text(r,
+                              LDRAW_W - PANEL_X - LauncherDraw_TextWidth(1, ver),
+                              DESKTOP_VERSION_Y, 1, LCOL_TEXT_DIM, ver);
         }
     }
     SDL_RenderPresent(r);

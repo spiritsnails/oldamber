@@ -15,6 +15,7 @@ extern int Game_GetScene(void);
 
 extern void Game_StartWildBattleScripted(uint8_t species, uint8_t level);
 extern int Game_WarpToRealMap(uint8_t real_id, int x, int y);
+extern int Game_StartCreditsDebugPreview(void);
 #include "player.h"
 #include "warp.h"
 #include "text.h"
@@ -4077,6 +4078,17 @@ static void process_cmd(const char *cmd) {
         printf("[cli] btrans_zoom: %s\n",
                BattleTransition_GetZoomMode() ? "ON (cinematic zoom)"
                                               : "OFF (ROM flash/wipe)");
+        write_state();
+        return;
+    }
+
+    if (strcmp(verb, "credits") == 0) {
+        if (Game_StartCreditsDebugPreview()) {
+            printf("[cli] credits: preview started; save data will not be changed\n");
+        } else {
+            printf("[cli] credits: unavailable until the overworld is idle\n");
+            s_last_cmd_valid = 0;
+        }
         write_state();
         return;
     }

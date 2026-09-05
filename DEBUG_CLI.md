@@ -211,6 +211,7 @@ normal saved progress until the game is saved.
 
 | Command | Effect |
 |---|---|
+| `credits` | Play the credits immediately, then return to the same map without changing the save. |
 | `savemenu` | Drive the real Start → Save → Yes flow; refuses places where the player cannot normally save. |
 | `gamesave` or `savegame` | Write progress directly, bypassing the normal menu restrictions. |
 | `quicksave [name]` | Create a named debug save state; defaults to `1`. |

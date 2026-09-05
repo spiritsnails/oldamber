@@ -23,6 +23,29 @@ static int           s_scale = 1;
 static SDL_Rect      s_slot;
 
 static char          s_saved_filter[64];
+enum { SM_THEME_GREY, SM_THEME_BLUE, SM_THEME_RED };
+static int           s_chrome_theme;
+
+enum { SM_CLR_BG, SM_CLR_PANEL, SM_CLR_LIGHT, SM_CLR_RULE };
+
+static void sm_set_chrome_color(SDL_Renderer *r, int role) {
+    static const Uint8 grey[4][3] = {
+        { 0xC0, 0xC0, 0xC0 }, { 0xD4, 0xD4, 0xD4 },
+        { 0xFF, 0xFF, 0xFF }, { 0x90, 0x90, 0x90 },
+    };
+    static const Uint8 blue[4][3] = {
+        { 0xB8, 0xC8, 0xD8 }, { 0xD0, 0xDC, 0xE8 },
+        { 0xF4, 0xF8, 0xFC }, { 0x78, 0x8C, 0xA0 },
+    };
+    static const Uint8 red[4][3] = {
+        { 0xE4, 0xA8, 0xA0 }, { 0xF0, 0xC2, 0xBC },
+        { 0xFF, 0xF0, 0xEC }, { 0xB8, 0x68, 0x62 },
+    };
+    const Uint8 (*pal)[3] = s_chrome_theme == SM_THEME_BLUE ? blue
+                                : s_chrome_theme == SM_THEME_RED ? red
+                                : grey;
+    SDL_SetRenderDrawColor(r, pal[role][0], pal[role][1], pal[role][2], 0xFF);
+}
 
 static int sm_ensure_surface(int w, int h) {
     if (s_surf && s_surf_w == w && s_surf_h == h) return 1;
@@ -48,6 +71,7 @@ static int             s_close_armed;
 static int             s_dock;
 
 static int             s_closing;
+static int             s_temp_window_boost;
 #define SM_DOCK_FRAMES 12
 
 #define SM_MIN_W 480
@@ -55,7 +79,6 @@ static int             s_closing;
 
 typedef struct {
     const char *label;
-    const char *detail;
     int         page;
 } sm_row_t;
 
@@ -63,19 +86,19 @@ typedef struct {
 #define SM_PAGE_STATES (-2)
 #define SM_PAGE_EXIT   (-3)
 #define SM_PAGE_CONTROLS (-4)
+#define SM_SETTINGS_DEBUG 7
+#define SM_SETTINGS_VIDEO 8
 
 static const sm_row_t kRows[] = {
-    { "RESUME",   "Return to the game",  SM_PAGE_HUB },
-    { "GRAPHICS", "Colour, curve, sprites, HUD",      1 },
-    { "SPEED",    "Overworld and battle pacing",      2 },
-    { "AUDIO",    "Volume and cries",                 3 },
-    { "DISPLAY",  "Renderer, size, filter",           4 },
-    { "PALETTE",  "Colour palettes",                  5 },
-    { "GAMEPLAY", "Rules and conveniences",           6 },
-    { "DEBUG TOOLS", "Beta testing shortcuts",        7 },
-    { "CONTROLS", "Keyboard and gamepad", SM_PAGE_CONTROLS },
-    { "SAVE STATE", "Suspend and restore",  SM_PAGE_STATES },
-    { "EXIT TO LAUNCHER", "Pick a game or a ROM", SM_PAGE_EXIT },
+    { "RESUME",           SM_PAGE_HUB },
+    { "SAVE STATE",       SM_PAGE_STATES },
+    { "VIDEO",            SM_SETTINGS_VIDEO },
+    { "AUDIO",            3 },
+    { "CONTROLS",         SM_PAGE_CONTROLS },
+    { "GAMEPLAY",         6 },
+    { "SPEED",            2 },
+    { "DEBUG TOOLS",      SM_SETTINGS_DEBUG },
+    { "EXIT TO LAUNCHER", SM_PAGE_EXIT },
 };
 #define SM_ROWS ((int)(sizeof kRows / sizeof kRows[0]))
 
@@ -85,13 +108,15 @@ static int sm_hub_rows_now(void) {
 
 static const sm_row_t *sm_hub_row(int visible_index) {
     for (int i = 0; i < SM_ROWS; i++) {
-        if (!s_debug_tooling_enabled && kRows[i].page == 7) continue;
+        if (!s_debug_tooling_enabled && kRows[i].page == SM_SETTINGS_DEBUG) continue;
         if (visible_index-- == 0) return &kRows[i];
     }
     return &kRows[0];
 }
 
 static int s_page = SM_PAGE_HUB;
+
+static int s_last_page = SM_PAGE_HUB;
 
 static int  s_btn_focus;
 
@@ -312,7 +337,8 @@ static void sm_focus_rgb(Uint8 *cr, Uint8 *cg, Uint8 *cb) {
 
 static int sm_row_extra(int i) {
     if (s_page < 0) return 0;
-    return PresentationMenu_RowHeader(s_page, i) ? SM_SCALE(15) : 0;
+    if (!PresentationMenu_RowHeader(s_page, i)) return 0;
+    return LDRAW_INK_H(s_page == SM_SETTINGS_VIDEO ? 2 : 1) + SM_SCALE(8);
 }
 
 static int sm_row_h(void) {
@@ -511,6 +537,20 @@ static void sm_draw_caret(SDL_Renderer *r, SDL_Rect box, int up) {
     LauncherDropdown_DrawCaret(r, box, up);
 }
 
+static void sm_text_centered(SDL_Renderer *r, SDL_Rect box, int scale,
+                             Uint8 cr, Uint8 cg, Uint8 cb,
+                             const char *text, int bold) {
+    int tw = bold ? LauncherDraw_TextWidthBold(scale, text)
+                  : LauncherDraw_TextWidth(scale, text);
+    int x = box.x + (box.w - tw) / 2;
+    int y = LDRAW_TEXT_Y(box.y, box.h, scale);
+    if (x < box.x) x = box.x;
+    if (bold)
+        LauncherDraw_TextClippedBold(r, x, y, scale, cr, cg, cb, text, box.w);
+    else
+        LauncherDraw_TextClipped(r, x, y, scale, cr, cg, cb, text, box.w);
+}
+
 static void sm_dd_clamp_scroll(const SDL_Rect *d, int n) {
     int vis = sm_dd_visible(d);
     int max = n - vis;
@@ -567,6 +607,20 @@ static SDL_Rect sm_thumb_rect(const save_slot_info_t *in, SDL_Rect g,
 }
 
 static void sm_draw(SDL_Renderer *r) {
+    const char *game = GameVersion_Current();
+    s_chrome_theme = game && strcmp(game, "blue") == 0 ? SM_THEME_BLUE
+                   : game && strcmp(game, "red") == 0  ? SM_THEME_RED
+                                                       : SM_THEME_GREY;
+    if (s_chrome_theme == SM_THEME_BLUE)
+        LauncherDraw_SetChromeColors(0xD0, 0xDC, 0xE8,
+                                     0xF4, 0xF8, 0xFC,
+                                     0x48, 0x58, 0x68);
+    else if (s_chrome_theme == SM_THEME_RED)
+        LauncherDraw_SetChromeColors(0xF0, 0xC2, 0xBC,
+                                     0xFF, 0xF0, 0xEC,
+                                     0x70, 0x38, 0x36);
+    else
+        LauncherDraw_ResetChromeColors();
 
     {
 
@@ -644,15 +698,21 @@ static void sm_draw(SDL_Renderer *r) {
     SDL_Rect panel = { SM_PAD - 12, SM_PAD - 12,
                        sm_panel_w() - (SM_PAD - 12),
                        LDRAW_H - (SM_PAD - 12) * 2 - 28 };
-    SDL_SetRenderDrawColor(r, LCOL_BG, 0xFF);
+    sm_set_chrome_color(r, SM_CLR_BG);
     SDL_RenderFillRect(r, &panel);
     LauncherDraw_Bevel(r, panel, 1);
 
-    LauncherDraw_TextBold(r, SM_PAD, SM_TITLE_Y, SM_TXT_LABEL, LCOL_TEXT,
-                      (s_page == SM_PAGE_STATES)   ? "SAVE STATE"
-                      : (s_page == SM_PAGE_CONTROLS) ? "CONTROLS"
-                      : (s_page == SM_PAGE_HUB)      ? "OPTIONS"
-                      : PresentationMenu_PageName(s_page));
+    if (s_page == SM_PAGE_HUB) {
+        SDL_Rect title_box = { panel.x, SM_TITLE_Y - SM_SCALE(5),
+                               panel.w, LDRAW_INK_H(SM_TXT_LABEL + 1) + SM_SCALE(10) };
+        sm_text_centered(r, title_box, SM_TXT_LABEL + 1,
+                         LCOL_TEXT, "SUSPEND OPTIONS", 1);
+    } else {
+        LauncherDraw_TextBold(r, SM_PAD, SM_TITLE_Y, SM_TXT_LABEL, LCOL_TEXT,
+                          (s_page == SM_PAGE_STATES)     ? "SAVE STATE"
+                          : (s_page == SM_PAGE_CONTROLS) ? "CONTROLS"
+                          : PresentationMenu_PageName(s_page));
+    }
 
     if (s_page == SM_PAGE_CONTROLS) {
         int kx, px, w, hy = SM_LIST_TOP - SM_SCALE(13);
@@ -738,17 +798,21 @@ static void sm_draw(SDL_Renderer *r) {
         if (s_page >= 0) {
             const char *hdr = PresentationMenu_RowHeader(s_page, i);
             if (hdr && sm_row_extra(i) > 0) {
-                int hy = rr.y - sm_row_extra(i) + SM_SCALE(3);
-                LauncherDraw_TextBold(r, rr.x + 10, hy, 1, 0x00, 0x00, 0x00, hdr);
-
+                int hs = (s_page == SM_SETTINGS_VIDEO) ? 2 : 1;
+                SDL_Rect hb = { rr.x, rr.y - sm_row_extra(i),
+                                rr.w, sm_row_extra(i) };
+                int tw = LauncherDraw_TextWidthBold(hs, hdr);
+                int hx = hb.x + (hb.w - tw) / 2;
+                int hy = LDRAW_TEXT_Y(hb.y, hb.h, hs);
+                sm_text_centered(r, hb, hs, 0x00, 0x00, 0x00, hdr, 1);
                 {
-                    int lx = rr.x + 14 + LauncherDraw_TextWidthBold(1, hdr);
-                    SDL_Rect rule = { lx, hy + LDRAW_INK_H(1) / 2,
-                                      rr.x + rr.w - lx, 1 };
-                    if (rule.w > 8) {
-                        SDL_SetRenderDrawColor(r, 0x90, 0x90, 0x90, 0xFF);
-                        SDL_RenderFillRect(r, &rule);
-                    }
+                    int cy = hy + LDRAW_INK_H(hs) / 2;
+                    SDL_Rect left  = { hb.x + 4, cy, hx - hb.x - 12, 1 };
+                    SDL_Rect right = { hx + tw + 8, cy,
+                                       hb.x + hb.w - (hx + tw) - 12, 1 };
+                    sm_set_chrome_color(r, SM_CLR_RULE);
+                    if (left.w > 0) SDL_RenderFillRect(r, &left);
+                    if (right.w > 0) SDL_RenderFillRect(r, &right);
                 }
             }
         }
@@ -767,12 +831,20 @@ static void sm_draw(SDL_Renderer *r) {
 
         {
             const int is_set = (s_page >= 0);
-
-            LauncherDraw_TextClippedBold(r, rr.x + 10, rr.y + SM_ROW_TEXT,
-                                         is_set ? sm_page_txt() : SM_TXT_LABEL,
-                                         tr, tg, tb, label,
-                                         is_set ? sm_combo_rect(i).x - (rr.x + 10) - 8
-                                                : rr.w - 20);
+            if (is_set) {
+                SDL_Rect combo = sm_combo_rect(i);
+                SDL_Rect label_box = { rr.x + 6, rr.y,
+                                       combo.x - rr.x - 18, rr.h };
+                sm_text_centered(r, label_box, sm_page_txt(),
+                                 tr, tg, tb, label, 1);
+            } else {
+                int ly = (s_page == SM_PAGE_STATES && !SM_COMPACT)
+                       ? rr.y + SM_ROW_TEXT
+                       : LDRAW_TEXT_Y(rr.y, rr.h, SM_TXT_LABEL);
+                LauncherDraw_TextClippedBold(r, rr.x + 10, ly,
+                                             SM_TXT_LABEL, tr, tg, tb,
+                                             label, rr.w - 20);
+            }
         }
 
         Uint8 dr = 0x40, dg = 0x40, db = 0x40;
@@ -788,7 +860,7 @@ static void sm_draw(SDL_Renderer *r) {
                              i == s_focus && k == s_btn_focus;
                 int listening = (s_cap_row == i && s_cap_kind ==
                                  (k == SM_BIND_KEY ? SM_CAP_KEY : SM_CAP_PAD));
-                SDL_SetRenderDrawColor(r, LCOL_PANEL, 0xFF);
+                sm_set_chrome_color(r, SM_CLR_PANEL);
                 SDL_RenderFillRect(r, &br[k]);
 
                 LauncherDraw_Bevel(r, br[k], (hot || padsel || listening) ? 0 : 1);
@@ -835,7 +907,7 @@ static void sm_draw(SDL_Renderer *r) {
 
                     int padsel = !LauncherNav_HoverHighlight(&s_nav) &&
                                  i == s_focus && k == s_btn_focus;
-                    SDL_SetRenderDrawColor(r, LCOL_PANEL, 0xFF);
+                    sm_set_chrome_color(r, SM_CLR_PANEL);
                     SDL_RenderFillRect(r, &br[k]);
                     LauncherDraw_Bevel(r, br[k], (hot || padsel) ? 0 : 1);
                     int tw = LauncherDraw_TextWidth(1, bl[k]);
@@ -845,19 +917,7 @@ static void sm_draw(SDL_Renderer *r) {
                                       1, LCOL_TEXT, bl[k]);
                 }
             }
-        } else if (s_page == SM_PAGE_HUB) {
-
-            const sm_row_t *hub = sm_hub_row(i);
-            int lw = LauncherDraw_TextWidthBold(SM_TXT_LABEL, hub->label);
-            if (hub->detail) {
-                int dw = LauncherDraw_TextWidth(1, hub->detail);
-                if (lw + dw + 34 <= rr.w)
-                    LauncherDraw_TextClipped(r, rr.x + rr.w - 10 - dw,
-                                             rr.y + SM_ROW_TEXT + 4, 1,
-                                             dr, dg, db, hub->detail,
-                                             rr.w - lw - 24);
-            }
-        } else {
+        } else if (s_page != SM_PAGE_HUB) {
             int id  = PresentationMenu_RowId(s_page, i);
             int idx = PresentationMenu_CurrentIndex(id);
 
@@ -868,7 +928,7 @@ static void sm_draw(SDL_Renderer *r) {
             SDL_Rect cr = sm_caret_rect(i);
             int mine = (s_dd_row == i);
 
-            SDL_SetRenderDrawColor(r, LCOL_LIGHT, 0xFF);
+            sm_set_chrome_color(r, SM_CLR_LIGHT);
             SDL_RenderFillRect(r, &fr);
             LauncherDraw_Bevel(r, fr, 0);
             {
@@ -876,13 +936,12 @@ static void sm_draw(SDL_Renderer *r) {
 
                 Uint8 vr = 0x00, vg = 0x00, vb = 0x00;
                 if (!avail) { vr = 0x60; vg = 0x60; vb = 0x60; }
-                LauncherDraw_TextClipped(r, fr.x + 6,
-                                         LDRAW_TEXT_Y(fr.y, fr.h, vt),
-                                         vt, vr, vg, vb,
-                                         val, fr.w - SM_CARET_W - 14);
+                SDL_Rect value_box = { fr.x + 4, fr.y,
+                                       cr.x - fr.x - 8, fr.h };
+                sm_text_centered(r, value_box, vt, vr, vg, vb, val, 0);
             }
 
-            SDL_SetRenderDrawColor(r, LCOL_PANEL, 0xFF);
+            sm_set_chrome_color(r, SM_CLR_PANEL);
             SDL_RenderFillRect(r, &cr);
             LauncherDraw_Bevel(r, cr, mine ? 0 : 1);
             {
@@ -892,7 +951,8 @@ static void sm_draw(SDL_Renderer *r) {
             }
 
             if (focused && !dd_open)
-                LauncherDraw_Text(r, fr.x - 12, rr.y + SM_ROW_TEXT, 2,
+                LauncherDraw_Text(r, fr.x - 12,
+                                  LDRAW_TEXT_Y(rr.y, rr.h, 2), 2,
                                   dr, dg, db, "<");
         }
     }
@@ -903,7 +963,7 @@ static void sm_draw(SDL_Renderer *r) {
         int cur = PresentationMenu_CurrentIndex(id);
         SDL_Rect d = sm_dd_rect(s_dd_row, n);
         sm_dd_clamp_scroll(&d, n);
-        SDL_SetRenderDrawColor(r, LCOL_LIGHT, 0xFF);
+        sm_set_chrome_color(r, SM_CLR_LIGHT);
         SDL_RenderFillRect(r, &d);
         LauncherDraw_Bevel(r, d, 1);
 
@@ -935,11 +995,11 @@ static void sm_draw(SDL_Renderer *r) {
                 if (i == cur)
                     LauncherDraw_Text(r, ir.x + 4, LDRAW_TEXT_Y(ir.y, ir.h, 1),
                                       1, cr2, cg2, cb2, ">");
-                LauncherDraw_TextClipped(r, ir.x + 16,
-                                         LDRAW_TEXT_Y(ir.y, ir.h, it),
-                                         it, cr2, cg2, cb2,
-                                         PresentationMenu_ChoiceLabel(id, i),
-                                         ir.w - 22);
+                {
+                    SDL_Rect item_text = { ir.x + 14, ir.y, ir.w - 20, ir.h };
+                    sm_text_centered(r, item_text, it, cr2, cg2, cb2,
+                                     PresentationMenu_ChoiceLabel(id, i), 0);
+                }
             }
         }
     }
@@ -956,7 +1016,7 @@ static void sm_draw(SDL_Renderer *r) {
         else
             snprintf(q, sizeof q, "OVERWRITE SLOT %d?", s_confirm_slot + 1);
 
-        SDL_SetRenderDrawColor(r, LCOL_BG, 0xFF);
+        sm_set_chrome_color(r, SM_CLR_BG);
         SDL_RenderFillRect(r, &box);
         LauncherDraw_Bevel(r, box, 1);
 
@@ -992,7 +1052,7 @@ static void sm_draw(SDL_Renderer *r) {
             int hot = LauncherNav_HoverHighlight(&s_nav)
                         ? LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, b)
                         : (k == !s_confirm_yes);
-            SDL_SetRenderDrawColor(r, LCOL_PANEL, 0xFF);
+            sm_set_chrome_color(r, SM_CLR_PANEL);
             SDL_RenderFillRect(r, &b);
             LauncherDraw_Bevel(r, b, hot ? 0 : 1);
             if (tick) {
@@ -1036,6 +1096,7 @@ static void sm_draw(SDL_Renderer *r) {
                 hover = i;
         LauncherDraw_FooterButtons(r, btns, n, hover);
     }
+    LauncherDraw_ResetChromeColors();
 }
 
 static const uint32_t *sm_compose(int *w, int *h,
@@ -1118,25 +1179,33 @@ void SuspendMenu_Open(void) {
     if (s_open) return;
     if (!s_nav_ready) { LauncherNav_Init(&s_nav); s_nav_ready = 1; }
 
-    s_focus       = 0;
     s_intents     = 0;
     s_close_armed = 0;
     s_dock        = 0;
-    s_page        = -1;
+    s_page        = s_last_page;
+    s_focus       = 0;
     s_dd_row      = -1;
     s_cap_row     = -1;
     s_closing     = 0;
     s_row_scroll  = 0;
     s_wheel       = 0;
+    s_temp_window_boost = Display_WindowScaleApplies() &&
+                          Display_WindowScale() == 1;
+    if (s_temp_window_boost) Display_SetTemporaryWindowScale(2);
     s_open        = 1;
 
     Display_SetSuspendOverlay(sm_compose);
 }
 
 static void sm_finish_close(void) {
+    s_last_page = s_page;
     s_open    = 0;
     s_closing = 0;
     Display_SetSuspendOverlay(NULL);
+    if (s_temp_window_boost) {
+        s_temp_window_boost = 0;
+        Display_RefreshWindowScale();
+    }
     if (DisplayGL_IsActive() && s_saved_filter[0])
         DisplayGL_SetFilter(s_saved_filter);
 

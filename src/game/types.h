@@ -37,6 +37,22 @@ typedef struct PACKED {
 } party_mon_t;
 
 typedef struct PACKED {
+    uint8_t species;
+    uint8_t level;
+    uint8_t nickname[11];
+    uint8_t unused[3];
+} hall_of_fame_mon_t;
+
+typedef struct PACKED {
+    hall_of_fame_mon_t mons[6];
+} hall_of_fame_team_t;
+
+typedef char hall_of_fame_mon_is_16_bytes[
+    sizeof(hall_of_fame_mon_t) == 16 ? 1 : -1];
+typedef char hall_of_fame_team_is_96_bytes[
+    sizeof(hall_of_fame_team_t) == 96 ? 1 : -1];
+
+typedef struct PACKED {
     uint8_t  species;
     uint16_t hp;
     uint8_t  party_pos;

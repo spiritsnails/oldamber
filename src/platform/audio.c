@@ -98,6 +98,8 @@ static int   s_vol_master = AUDIO_VOL_MAX;
 static int   s_vol_music  = AUDIO_VOL_MAX;
 static int   s_vol_sfx    = AUDIO_VOL_MAX;
 static float s_user_master = 1.0f;
+static int   s_output_mono;
+static int   s_focus_muted;
 
 static uint8_t s_nr50 = 0x77;
 static uint8_t s_nr51 = 0xFF;
@@ -157,12 +159,20 @@ static void audio_callback(void *userdata, uint8_t *stream, int len) {
             int chunk = samples - done;
             if (chunk > AUDIO_BUFFER_SIZE * 4) chunk = AUDIO_BUFFER_SIZE * 4;
             GbApu_RenderSamples(fbuf, chunk);
-            for (int i = 0; i < chunk * AUDIO_CHANNELS; i++) {
-                float v = fbuf[i] * s_master_mix_current * s_user_master;
-                if (v >  1.0f) v =  1.0f;
-                if (v < -1.0f) v = -1.0f;
+            for (int i = 0; i < chunk; i++) {
+                float l = fbuf[i * AUDIO_CHANNELS + 0];
+                float r = fbuf[i * AUDIO_CHANNELS + 1];
+                if (s_output_mono) l = r = (l + r) * 0.5f;
+                if (s_focus_muted) l = r = 0.0f;
+                l *= s_master_mix_current * s_user_master;
+                r *= s_master_mix_current * s_user_master;
+                if (l >  1.0f) l =  1.0f;
+                if (l < -1.0f) l = -1.0f;
+                if (r >  1.0f) r =  1.0f;
+                if (r < -1.0f) r = -1.0f;
 
-                *out++ = (int16_t)(v * 16320.0f);
+                *out++ = (int16_t)(l * 16320.0f);
+                *out++ = (int16_t)(r * 16320.0f);
             }
             done += chunk;
         }
@@ -2227,6 +2237,22 @@ void Audio_SetSfxVolume(int level)    { vol_store(&s_vol_sfx,    level); }
 int Audio_GetMasterVolume(void) { return s_vol_master; }
 int Audio_GetMusicVolume(void)  { return s_vol_music; }
 int Audio_GetSfxVolume(void)    { return s_vol_sfx; }
+
+void Audio_SetOutputMono(int enabled) {
+    if (audio_mutex) SDL_LockMutex(audio_mutex);
+    s_output_mono = enabled ? 1 : 0;
+    if (audio_mutex) SDL_UnlockMutex(audio_mutex);
+}
+
+int Audio_GetOutputMono(void) { return s_output_mono; }
+
+void Audio_SetFocusMuted(int muted) {
+    if (audio_mutex) SDL_LockMutex(audio_mutex);
+    s_focus_muted = muted ? 1 : 0;
+    if (audio_mutex) SDL_UnlockMutex(audio_mutex);
+}
+
+int Audio_GetFocusMuted(void) { return s_focus_muted; }
 
 void Audio_ApplyChannelVolumes(void) {
     AudioEngineState st;

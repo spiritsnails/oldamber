@@ -49,6 +49,24 @@ void LauncherDraw_TextBold(SDL_Renderer *r, int x, int y, int scale,
 int g_ldraw_w = LDRAW_W_DECK;
 int g_ldraw_h = LDRAW_H_BASE;
 
+static Uint8 s_chrome_panel[3] = { 0xD4, 0xD4, 0xD4 };
+static Uint8 s_chrome_light[3] = { 0xFF, 0xFF, 0xFF };
+static Uint8 s_chrome_dark[3]  = { 0x40, 0x40, 0x40 };
+
+void LauncherDraw_SetChromeColors(Uint8 panel_r, Uint8 panel_g, Uint8 panel_b,
+                                  Uint8 light_r, Uint8 light_g, Uint8 light_b,
+                                  Uint8 dark_r, Uint8 dark_g, Uint8 dark_b) {
+    s_chrome_panel[0] = panel_r; s_chrome_panel[1] = panel_g; s_chrome_panel[2] = panel_b;
+    s_chrome_light[0] = light_r; s_chrome_light[1] = light_g; s_chrome_light[2] = light_b;
+    s_chrome_dark[0]  = dark_r;  s_chrome_dark[1]  = dark_g;  s_chrome_dark[2]  = dark_b;
+}
+
+void LauncherDraw_ResetChromeColors(void) {
+    LauncherDraw_SetChromeColors(0xD4, 0xD4, 0xD4,
+                                 0xFF, 0xFF, 0xFF,
+                                 0x40, 0x40, 0x40);
+}
+
 void LauncherDraw_SetWidth(int w) {
     if (w > 0) g_ldraw_w = w;
 }
@@ -103,18 +121,18 @@ void LauncherDraw_TextClippedBold(SDL_Renderer *r, int x, int y, int scale,
 }
 
 void LauncherDraw_Bevel(SDL_Renderer *r, SDL_Rect rect, int raised) {
-    Uint8 lo = raised ? 0xFF : 0x40;
-    Uint8 hi = raised ? 0x40 : 0xFF;
+    const Uint8 *lo = raised ? s_chrome_light : s_chrome_dark;
+    const Uint8 *hi = raised ? s_chrome_dark : s_chrome_light;
 
-    SDL_SetRenderDrawColor(r, LCOL_PANEL, 0xFF);
+    SDL_SetRenderDrawColor(r, s_chrome_panel[0], s_chrome_panel[1], s_chrome_panel[2], 0xFF);
     SDL_RenderFillRect(r, &rect);
 
-    SDL_SetRenderDrawColor(r, lo, lo, lo, 0xFF);
+    SDL_SetRenderDrawColor(r, lo[0], lo[1], lo[2], 0xFF);
     for (int i = 0; i < 2; i++) {
         SDL_RenderDrawLine(r, rect.x + i, rect.y, rect.x + i, rect.y + rect.h - 1 - i);
         SDL_RenderDrawLine(r, rect.x, rect.y + i, rect.x + rect.w - 1 - i, rect.y + i);
     }
-    SDL_SetRenderDrawColor(r, hi, hi, hi, 0xFF);
+    SDL_SetRenderDrawColor(r, hi[0], hi[1], hi[2], 0xFF);
     for (int i = 0; i < 2; i++) {
         SDL_RenderDrawLine(r, rect.x + rect.w - 1 - i, rect.y + i,
                            rect.x + rect.w - 1 - i, rect.y + rect.h - 1);
@@ -138,7 +156,7 @@ void LauncherDraw_PromptBar(SDL_Renderer *r, const char *a, const char *b,
                             const char *x, const char *y) {
     const int h = 26;
     SDL_Rect bar = { 0, LDRAW_H - h, LDRAW_W, h };
-    SDL_SetRenderDrawColor(r, LCOL_DARK, 0xFF);
+    SDL_SetRenderDrawColor(r, s_chrome_dark[0], s_chrome_dark[1], s_chrome_dark[2], 0xFF);
     SDL_RenderFillRect(r, &bar);
 
     struct { const char *key, *label; } slots[4] = {
@@ -177,7 +195,7 @@ void LauncherDraw_FooterLayout(ldraw_footer_btn_t *btns, int n) {
 void LauncherDraw_FooterButtons(SDL_Renderer *r, const ldraw_footer_btn_t *btns,
                                 int n, int hover) {
     SDL_Rect bar = { 0, LDRAW_H - FOOTER_H, LDRAW_W, FOOTER_H };
-    SDL_SetRenderDrawColor(r, LCOL_DARK, 0xFF);
+    SDL_SetRenderDrawColor(r, s_chrome_dark[0], s_chrome_dark[1], s_chrome_dark[2], 0xFF);
     SDL_RenderFillRect(r, &bar);
 
     for (int i = 0; i < n; i++) {

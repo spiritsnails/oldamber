@@ -85,6 +85,8 @@ uint8_t     wPartyCount             = 0;
 party_mon_t wPartyMons[PARTY_LENGTH];
 uint8_t     wPartyMonOT[PARTY_LENGTH][NAME_LENGTH];
 uint8_t     wPartyMonNicks[PARTY_LENGTH][NAME_LENGTH];
+uint8_t     wNumHoFTeams          = 0;
+hall_of_fame_team_t wHallOfFameTeams[HOF_TEAM_CAPACITY];
 uint8_t     wCurrentBoxNum          = 0;
 uint8_t     wBoxCount[NUM_BOXES]    = {0};
 uint8_t     wBoxSpecies[NUM_BOXES][BOX_CAPACITY + 1] = {{0xFF}};
@@ -367,6 +369,8 @@ void WRAMClear(void) {
     memset(wEventFlags, 0, sizeof(wEventFlags));
     memset(wPickedUpItems, 0, sizeof(wPickedUpItems));
     wPartyCount     = 0;
+    wNumHoFTeams    = 0;
+    memset(wHallOfFameTeams, 0, sizeof(wHallOfFameTeams));
     wCurrentBoxNum  = 0;
     memset(wBoxCount, 0, sizeof(wBoxCount));
     memset(wBoxSpecies, 0xFF, sizeof(wBoxSpecies));

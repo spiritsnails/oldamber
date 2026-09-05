@@ -15,6 +15,8 @@ void Display_PresentLatestIfDue(void);
 void Display_SetWindowScale(int scale);
 int  Display_WindowScale(void);
 
+void Display_SetTemporaryWindowScale(int scale);
+
 int  Display_WindowScaleApplies(void);
 
 void Display_RefreshWindowScale(void);
@@ -39,6 +41,24 @@ void Display_SetDebugRenderMode(int on);
 void Display_SetFrameWidth(int px);
 int  Display_FrameWidth(void);
 int  Display_ContentOriginX(void);
+
+enum {
+    DISPLAY_ASPECT_NATIVE = 0,
+    DISPLAY_ASPECT_16_9   = 1,
+    DISPLAY_ASPECT_16_10  = 2,
+    DISPLAY_ASPECT_4_3    = 3,
+    DISPLAY_ASPECT_3_2    = 4,
+    DISPLAY_ASPECT_5_4    = 5,
+    DISPLAY_ASPECT_18_9   = 6,
+    DISPLAY_ASPECT_18_5_9 = 7,
+    DISPLAY_ASPECT_19_9   = 8,
+    DISPLAY_ASPECT_19_5_9 = 9,
+    DISPLAY_ASPECT_20_9   = 10,
+    DISPLAY_ASPECT_21_9   = 11,
+};
+void Display_SetAspectMode(int mode);
+int  Display_AspectMode(void);
+int  Display_PreferredFrameWidth(void);
 
 void Display_SetWidescreen(int on);
 int  Display_Widescreen(void);
