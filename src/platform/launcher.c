@@ -562,7 +562,7 @@ static void draw_button(SDL_Renderer *r, SDL_Rect rect, const char *label,
     if (tile) {
         const char *big = GameVersion_Label(ver);
 
-        int vs = 3, ls = 2;
+        int vs = 4, ls = 3;
         int widest = LauncherDraw_TextWidthBold(vs, big);
         for (int vi = 0; ; vi++) {
             const char *lab = GameVersion_LabelAt(vi);
@@ -571,7 +571,7 @@ static void draw_button(SDL_Renderer *r, SDL_Rect rect, const char *label,
             w = LauncherDraw_TextWidthBold(vs, lab);
             if (w > widest) widest = w;
         }
-        if (widest > rect.w - 16) { vs = 2; ls = 1; }
+        if (widest > rect.w - 16) { vs = 3; ls = 2; }
         {
             int lw   = LauncherDraw_TextWidthBold(ls, "PLAY");
             int bwid = LauncherDraw_TextWidthBold(vs, big);

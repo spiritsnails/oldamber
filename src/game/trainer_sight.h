@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include "types.h"
 
 void Trainer_LoadMap(void);
@@ -10,6 +11,22 @@ void Trainer_CheckSight(void);
 int Trainer_SightTick(void);
 
 int Trainer_IsEngaging(void);
+
+void TrainerFly_Reset(void);
+void TrainerFly_LatchStartDuringStep(void);
+
+int  TrainerFly_AfterSightCheck(void);
+
+void TrainerFly_CommitEscape(void);
+
+void TrainerFly_CancelEscapeMenuIfClosed(void);
+int  TrainerFly_ShouldBlockButtons(void);
+
+void TrainerFly_OnBattleEnded(int was_trainer, uint8_t outcome);
+
+int  TrainerFly_ShouldOpenReturnMenu(void);
+int  TrainerFly_TakeEncounter(uint8_t *species, uint8_t *level);
+void TrainerFly_DebugDescribe(char *out, size_t out_size);
 
 void Trainer_MarkCurrentDefeated(void);
 

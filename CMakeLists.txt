@@ -643,6 +643,7 @@ target_compile_options(pokered PRIVATE
 # Test suite: no SDL2, platform calls come from tests/stubs.c.
 set(TEST_GAME_SOURCES
     src/game/wram.c
+    src/game/glitches.c
     src/game/debug_trace.c
     src/game/overworld.c
     src/game/gbc_color.c

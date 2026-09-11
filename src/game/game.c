@@ -342,6 +342,7 @@ void GameInit(void) {
 
     Map_HoldForBootScreen(1);
     WRAMClear();
+    TrainerFly_Reset();
 
     AmberScript_MapBank_ResetAll();
     wLastBlackoutMap = 0xFF;
@@ -1265,6 +1266,13 @@ void GameTick(void) {
         return;
     }
 
+    if (gScene == SCENE_OVERWORLD && gWarpPhase == WARP_NONE &&
+        TrainerFly_ShouldOpenReturnMenu()) {
+        Audio_PlaySFX_StartMenu();
+        Menu_Open();
+        return;
+    }
+
     if (Menu_IsOpen()) {
         Menu_Tick();
         return;
@@ -1575,6 +1583,8 @@ void GameTick(void) {
                                  gBattleLogTrainerNo,
                                  gBattleLogWildSpecies,
                                  gBattleLogEnemyLevel);
+            TrainerFly_OnBattleEnded(gBattleLogTrainerClass != 0,
+                                     resolved_battle_result);
 
             {
 
@@ -1924,6 +1934,21 @@ void GameTick(void) {
             }
         }
         return;
+    }
+
+    TrainerFly_CancelEscapeMenuIfClosed();
+    {
+        uint8_t glitch_species, glitch_level;
+        if (TrainerFly_TakeEncounter(&glitch_species, &glitch_level)) {
+            if (glitch_species != 0 && gSpeciesToDex[glitch_species] != 0 &&
+                glitch_level >= 1 && glitch_level <= 13) {
+                Game_StartWildBattleScripted(glitch_species, glitch_level);
+            } else {
+                printf("[trainer-fly] unsupported encounter value species=%u level=%u; no battle generated\n",
+                       (unsigned)glitch_species, (unsigned)glitch_level);
+            }
+            return;
+        }
     }
 
     if (Trainer_IsEngaging()) {
@@ -2452,6 +2477,14 @@ void GameTick(void) {
 
     const int turning = Player_IsTurning();
 
+    if ((hJoyPressed & PAD_START) && Player_IsMoving())
+        TrainerFly_LatchStartDuringStep();
+
+    if (TrainerFly_ShouldBlockButtons()) {
+        hJoyPressed &= (uint8_t)~PAD_BUTTONS;
+        hJoyHeld    &= (uint8_t)~PAD_BUTTONS;
+    }
+
     if ((hJoyPressed & PAD_START) && !turning && !Player_IsMoving() && gWarpPhase == WARP_NONE
         && !AmberScript_Scene_IsActive() && !Player_IsSimulatingMovement()) {
         Audio_PlaySFX_StartMenu();
@@ -2616,6 +2649,11 @@ void GameTick(void) {
         if (Text_IsOpen()) return;
 
         Trainer_CheckSight();
+        if (TrainerFly_AfterSightCheck()) {
+            Audio_PlaySFX_StartMenu();
+            Menu_Open();
+            return;
+        }
         if (!Trainer_IsEngaging())
             check_wild_encounter();
     }

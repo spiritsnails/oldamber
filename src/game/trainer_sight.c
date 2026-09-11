@@ -15,6 +15,8 @@
 #include "johto_music.h"
 #include "johto_trainers.h"
 #include "constants.h"
+#include "glitches.h"
+#include "battle/battle_loop.h"
 #include <stddef.h>
 #include <stdio.h>
 
@@ -55,6 +57,24 @@ uint8_t gEngagedTrainerNo    = 0;
 
 uint16_t gEngagedJohtoParty  = 0;
 const char *gTrainerAfterText = NULL;
+
+typedef enum {
+    TF_NONE = 0,
+    TF_ESCAPE_MENU,
+    TF_WAITING_FOR_TRAINER,
+    TF_SECOND_TRAINER,
+    TF_ARMED,
+    TF_RETURN_MENU
+} trainer_fly_phase_t;
+
+static struct {
+    trainer_fly_phase_t phase;
+    int source_real_map;
+    uint16_t source_flag;
+    uint8_t species;
+    uint8_t level;
+    int start_latched;
+} s_trainer_fly = { TF_NONE, -1, 0, 0, 0, 0 };
 
 static int ts_walk_map    = -1;
 static int ts_walk_npc    = -1;
@@ -184,6 +204,7 @@ static int trainer_can_see_player(int tx, int ty, int facing, int sight_dist) {
 }
 
 void Trainer_LoadMap(void) {
+    s_trainer_fly.start_latched = 0;
     ts_state           = TS_IDLE;
     ts_npc_idx         = -1;
     ts_map_trainer_idx = -1;
@@ -246,6 +267,197 @@ void Trainer_CheckSight(void) {
                (int)wXCoord, (int)wYCoord);
         return;
     }
+}
+
+void TrainerFly_Reset(void) {
+    s_trainer_fly.phase = TF_NONE;
+    s_trainer_fly.source_real_map = -1;
+    s_trainer_fly.source_flag = 0;
+    s_trainer_fly.species = 0;
+    s_trainer_fly.level = 0;
+    s_trainer_fly.start_latched = 0;
+}
+
+void TrainerFly_LatchStartDuringStep(void) {
+    if (!Glitches_TrainerFlyEnabled() || s_trainer_fly.phase != TF_NONE)
+        return;
+
+    s_trainer_fly.start_latched = 1;
+    printf("[trainer-fly] START latched during player step (map=%d player=%u,%u)\n",
+           Map_CurrentRealId(), (unsigned)wXCoord, (unsigned)wYCoord);
+    fflush(stdout);
+}
+
+int TrainerFly_AfterSightCheck(void) {
+    const map_events_t *ev;
+    const map_trainer_t *t;
+    int open_menu = 0;
+
+    if (!Glitches_TrainerFlyEnabled()) {
+        TrainerFly_Reset();
+        return 0;
+    }
+
+    if (ts_state != TS_SPOTTED || ts_map_trainer_idx < 0) {
+        s_trainer_fly.start_latched = 0;
+        return 0;
+    }
+
+    ev = AmberScript_GetMapEventsFor(wCurMap);
+    if (!ev->trainers || ts_map_trainer_idx >= ev->num_trainers) {
+        s_trainer_fly.start_latched = 0;
+        return 0;
+    }
+    t = &ev->trainers[ts_map_trainer_idx];
+
+    if (s_trainer_fly.phase == TF_WAITING_FOR_TRAINER) {
+        int real_map = Map_CurrentRealId();
+        if (real_map == s_trainer_fly.source_real_map &&
+            t->flag_bit == s_trainer_fly.source_flag) {
+            printf("[trainer-fly] source trainer was re-engaged before an intervening trainer; sequence cancelled\n");
+            TrainerFly_Reset();
+        } else {
+            s_trainer_fly.phase = TF_SECOND_TRAINER;
+            printf("[trainer-fly] intervening walk-up trainer engaged (map=%d flag=%u)\n",
+                   real_map, (unsigned)t->flag_bit);
+        }
+        return 0;
+    }
+
+    if (s_trainer_fly.phase == TF_NONE && s_trainer_fly.start_latched &&
+        t->sight_dist >= 4) {
+        s_trainer_fly.phase = TF_ESCAPE_MENU;
+        s_trainer_fly.source_real_map = Map_CurrentRealId();
+        s_trainer_fly.source_flag = t->flag_bit;
+        s_trainer_fly.start_latched = 0;
+
+        Emote_ShowOnNPC(ts_npc_idx);
+        play_trainer_encounter_music(t->trainer_class, t->johto_party);
+        if (ts_timer == 60) ts_timer = 59;
+
+        printf("[trainer-fly] START won trainer sight race (map=%d flag=%u)\n",
+               s_trainer_fly.source_real_map,
+               (unsigned)s_trainer_fly.source_flag);
+        fflush(stdout);
+        open_menu = 1;
+    } else {
+        if (s_trainer_fly.start_latched) {
+            printf("[trainer-fly] sight race rejected (flag=%u sight-distance=%u)\n",
+                   (unsigned)t->flag_bit, (unsigned)t->sight_dist);
+            fflush(stdout);
+        }
+        s_trainer_fly.start_latched = 0;
+    }
+    return open_menu;
+}
+
+void TrainerFly_CommitEscape(void) {
+    if (!Glitches_TrainerFlyEnabled() || s_trainer_fly.phase != TF_ESCAPE_MENU)
+        return;
+
+    s_trainer_fly.phase = TF_WAITING_FOR_TRAINER;
+    ts_state = TS_IDLE;
+    ts_npc_idx = -1;
+    ts_map_trainer_idx = -1;
+    ts_timer = 0;
+    printf("[trainer-fly] escaped trainer; waiting for an intervening walk-up battle\n");
+}
+
+void TrainerFly_CancelEscapeMenuIfClosed(void) {
+    if (s_trainer_fly.phase != TF_ESCAPE_MENU) return;
+    s_trainer_fly.phase = TF_NONE;
+    s_trainer_fly.source_real_map = -1;
+    s_trainer_fly.source_flag = 0;
+    printf("[trainer-fly] Start menu closed without escaping; normal trainer approach resumed\n");
+}
+
+int TrainerFly_ShouldBlockButtons(void) {
+    return Glitches_TrainerFlyEnabled() &&
+           s_trainer_fly.phase == TF_WAITING_FOR_TRAINER;
+}
+
+static void trainer_fly_capture_enemy(void) {
+    s_trainer_fly.species = (uint8_t)(wEnemyMonUnmodifiedSpecial & 0xff);
+    s_trainer_fly.level = wEnemyMonStatMods[MOD_ATTACK];
+    printf("[trainer-fly] captured enemy Special=%u Attack stage=%u\n",
+           (unsigned)s_trainer_fly.species,
+           (unsigned)s_trainer_fly.level);
+}
+
+void TrainerFly_OnBattleEnded(int was_trainer, uint8_t outcome) {
+    if (!Glitches_TrainerFlyEnabled()) {
+        TrainerFly_Reset();
+        return;
+    }
+
+    if (outcome == BATTLE_OUTCOME_BLACKOUT ||
+        outcome == BATTLE_OUTCOME_LOSS_NO_BLACKOUT) {
+        if (s_trainer_fly.phase != TF_NONE)
+            printf("[trainer-fly] sequence cancelled by battle loss\n");
+        TrainerFly_Reset();
+        return;
+    }
+
+    if (s_trainer_fly.phase == TF_SECOND_TRAINER) {
+        if (!was_trainer || outcome != BATTLE_OUTCOME_TRAINER_VICTORY) {
+            printf("[trainer-fly] intervening trainer battle did not finish normally; sequence cancelled\n");
+            TrainerFly_Reset();
+            return;
+        }
+        trainer_fly_capture_enemy();
+        s_trainer_fly.phase = TF_ARMED;
+        return;
+    }
+
+    if (s_trainer_fly.phase == TF_ARMED) {
+        trainer_fly_capture_enemy();
+    }
+}
+
+int TrainerFly_ShouldOpenReturnMenu(void) {
+    if (!Glitches_TrainerFlyEnabled() || s_trainer_fly.phase != TF_ARMED)
+        return 0;
+    if (Map_CurrentRealId() != s_trainer_fly.source_real_map)
+        return 0;
+
+    s_trainer_fly.phase = TF_RETURN_MENU;
+    printf("[trainer-fly] returned to source map; opening stored Start-menu text\n");
+    return 1;
+}
+
+int TrainerFly_TakeEncounter(uint8_t *species, uint8_t *level) {
+    if (!Glitches_TrainerFlyEnabled() || s_trainer_fly.phase != TF_RETURN_MENU)
+        return 0;
+
+    if (Map_CurrentRealId() != s_trainer_fly.source_real_map) {
+        printf("[trainer-fly] left source map from the automatic menu; sequence cancelled\n");
+        TrainerFly_Reset();
+        return 0;
+    }
+
+    if (species) *species = s_trainer_fly.species;
+    if (level) *level = s_trainer_fly.level;
+    printf("[trainer-fly] generating encounter species=%u level=%u\n",
+           (unsigned)s_trainer_fly.species,
+           (unsigned)s_trainer_fly.level);
+    TrainerFly_Reset();
+    return 1;
+}
+
+void TrainerFly_DebugDescribe(char *out, size_t out_size) {
+    static const char *const names[] = {
+        "idle", "escape-menu", "waiting-trainer", "second-trainer",
+        "armed", "return-menu"
+    };
+    int phase = (int)s_trainer_fly.phase;
+    if (!out || out_size == 0) return;
+    if (phase < 0 || phase >= (int)(sizeof names / sizeof names[0])) phase = 0;
+    snprintf(out, out_size, "%s source-map=%d source-flag=%u species=%u level=%u start=%d",
+             names[phase], s_trainer_fly.source_real_map,
+             (unsigned)s_trainer_fly.source_flag,
+             (unsigned)s_trainer_fly.species,
+             (unsigned)s_trainer_fly.level,
+             s_trainer_fly.start_latched);
 }
 
 int Trainer_SightTick(void) {
@@ -445,7 +657,9 @@ int Emote_BuildOAM(oam_entry_t out[4]) {
         actor_x = (int)wShadowOAM[0].x - OAM_X_OFS;
         actor_y = (int)wShadowOAM[0].y - OAM_Y_OFS;
     } else if (s_emote_npc_idx >= 0) {
-        if (!NPC_GetScreenTopLeft(s_emote_npc_idx, &actor_x, &actor_y)) return 0;
+        int anchor_x;
+        NPC_GetScreenPos(s_emote_npc_idx, &anchor_x, &actor_y);
+        actor_x = anchor_x - OAM_X_OFS;
     } else {
         return 0;
     }

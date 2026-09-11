@@ -8,6 +8,7 @@
 #include "player.h"
 #include "warp.h"
 #include "constants.h"
+#include "trainer_sight.h"
 #include "../data/sprite_data.h"
 #include <stddef.h>
 
@@ -202,6 +203,7 @@ static void fly_begin_arrival(void) {
 }
 
 void FlyAnim_Start(uint8_t dest_map, int dest_x, int dest_y) {
+    TrainerFly_CommitEscape();
     Player_SyncOAM();
     s_fly.phase = FLY_DEPART_FLAP;
     s_fly.dest_map = dest_map;

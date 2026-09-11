@@ -8,6 +8,7 @@
 #include "town_map.h"
 #include "constants.h"
 #include "amberscript_mapbank.h"
+#include "trainer_sight.h"
 #include "../data/map_data.h"
 #include <string.h>
 #include "../platform/audio.h"
@@ -60,6 +61,7 @@ static int        s_dest_x     = 0;
 static int        s_dest_y     = 0;
 
 void EscapeAnim_Start(uint8_t dest_map, int dest_x, int dest_y) {
+    TrainerFly_CommitEscape();
     s_dest_map = dest_map;
     s_dest_x   = dest_x;
     s_dest_y   = dest_y;

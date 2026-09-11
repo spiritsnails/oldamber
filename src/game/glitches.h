@@ -2,3 +2,6 @@
 
 int  Glitches_IsEnabled(void);
 void Glitches_SetEnabled(int on);
+
+int  Glitches_TrainerFlyEnabled(void);
+void Glitches_SetTrainerFlyEnabled(int on);

@@ -1876,7 +1876,9 @@ void Display_RenderScrolled(int px, int py, const uint8_t *tile_map, int stride)
     apply_zoom_to_fb();
     apply_tile_overlay();
     apply_block_id_overlay(px, py);
+    g_blit_ox = sprite_ox;
     draw_emotion_bubble_overlay();
+    g_blit_ox = 0;
     apply_speed_badge();
     present_fb();
 }

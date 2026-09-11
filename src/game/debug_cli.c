@@ -3712,9 +3712,12 @@ static void debug_cli_render_grid(FILE *fp) {
 }
 
 static void write_overworld_state(FILE *fp) {
+    char trainer_fly[128];
+    TrainerFly_DebugDescribe(trainer_fly, sizeof trainer_fly);
     fprintf(fp, "=== OVERWORLD ===\n");
     fprintf(fp, "Map: %d (%s)  Player: (%d, %d)  Facing: %s\n\n",
             wCurMap, debug_cli_map_name(wCurMap), wXCoord, wYCoord, facing_name(wPlayerDirection));
+    fprintf(fp, "Trainer-Fly: %s\n\n", trainer_fly);
 
     static const char *legend[] = {
         "@  = Player",
