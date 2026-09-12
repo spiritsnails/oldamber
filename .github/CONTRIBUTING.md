@@ -47,9 +47,9 @@ the right to submit everything included in their contribution.
 
 ## Pull requests
 
-Keep each pull request focused on one problem or closely related set of
-changes. Avoid unrelated cleanup, broad formatting changes, or additional
-features in the same pull request.
+Pull requests may be small fixes or substantial additions. Keep the purpose
+clear, separate unrelated or experimental work, and summarize the finished
+changes rather than using the description as a development diary.
 
 A pull request should include:
 

@@ -17,9 +17,9 @@ routine or reference. If the change intentionally differs, explain why.
 
 ## Checklist
 
-- [ ] This pull request contains one focused change.
+- [ ] I clearly summarized what this pull request changes and why.
 - [ ] I tested the affected behavior in game when applicable.
-- [ ] I stated any relevant platform or game version I could not test.
+- [ ] I listed what I tested and any relevant platform or game version I could not test.
 - [ ] I did not include ROM data, save data, extracted cartridge assets,
       generated packages, local logs, or personal configuration.
 - [ ] I have the right to submit everything included in this contribution.
