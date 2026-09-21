@@ -375,7 +375,7 @@ static void pc_draw_list_screen(void) {
         int name_end = pc_print_poke_name(6, row, nick);
         if (name_end == 6) {
 
-            const char *species_name = Pokemon_GetName(Species_Dex(pc_list_species(idx)));
+            const char *species_name = Pokemon_GetNameBySpecies(pc_list_species(idx));
             if (species_name && *species_name)
                 pc_str(6, row, species_name);
         }

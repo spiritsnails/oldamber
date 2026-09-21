@@ -1,6 +1,7 @@
 #include "launcher_save_editor_internal.h"
 #include "launcher_dropdown.h"
 #include "launcher_save_editor_location.h"
+#include "launcher_location_names.h"
 #include "hardware.h"
 #include "data_dir.h"
 #include "../data/base_stats.h"
@@ -328,9 +329,10 @@ static void player_tab(save_editor_t*e,unsigned in){
     snprintf(v,sizeof(v),"%u",e->data.money);field(e,212,"MONEY:",v,e->focus==3,0);r=(SDL_Rect){210,212,300,24};if(control(e,in,3,r))begin_inline_number(e,r,"MONEY",e->data.money,0,999999,commit_u32,&e->data.money,NULL,0);
     {
         const char *name=SE_LocationCurrentName(&e->data);
+        char display_name[64];
         int count=SE_LocationCount();
         int current=SE_LocationFind(name);
-        if(name)snprintf(v,sizeof(v),"%s",name);
+        if(name){LauncherLocation_DisplayName(name,display_name,sizeof(display_name));snprintf(v,sizeof(v),"%s",display_name);}
         else if(e->data.cur_map>=248)snprintf(v,sizeof(v),"UNBOUND VMAP SLOT %u",e->data.cur_map);
         else snprintf(v,sizeof(v),"LEGACY MAP %u",e->data.cur_map);
         field(e,244,"CURRENT LOCATION:",v,e->focus==4,count>0);
@@ -382,7 +384,7 @@ static void dex_tab(save_editor_t*e,unsigned in){
     if(e->focus<0)e->focus=0;
     if(e->focus>count+3)e->focus=count+3;
     button(e,all,"MARK ALL",e->focus==0);button(e,clear,"CLEAR ALL",e->focus==1);
-    if(control(e,in,0,all)){memset(e->data.pokedex_owned,0xFF,19);memset(e->data.pokedex_seen,0xFF,19);e->dirty=1;}
+    if(control(e,in,0,all)){memset(e->data.pokedex_owned,0xFF,19);memset(e->data.pokedex_seen,0xFF,19);e->data.pokedex_owned[18]&=0x7f;e->data.pokedex_seen[18]&=0x7f;e->dirty=1;}
     if(control(e,in,1,clear)){memset(e->data.pokedex_owned,0,19);memset(e->data.pokedex_seen,0,19);e->dirty=1;}
     char shown_search[72];Uint8 search_c=e->focus==2?255:0;snprintf(shown_search,sizeof shown_search,"%s%s",query,inline_owns_rect(search)?"_":"");LauncherDraw_TextBold(e->r,326,LDRAW_TEXT_Y(112,28,1),1,LCOL_TEXT,"SEARCH:");LauncherDraw_Bevel(e->r,search,0);if(e->focus==2){SDL_Rect f={search.x+3,search.y+3,search.w-6,search.h-6};LauncherDraw_FocusBar(e->r,f);}LauncherDraw_TextClippedBold(e->r,search.x+7,LDRAW_TEXT_Y(search.y,search.h,1),1,search_c,search_c,search_c,shown_search,search.w-14);
     if((e->nav->ptr_pressed&&hit(e,search))||(e->focus==2&&(in&LNAV_ACCEPT))){e->focus=2;begin_inline_ascii(search,search_text,commit_search);scroll=0;}

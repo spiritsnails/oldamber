@@ -274,6 +274,45 @@ def ghost_front_sprite(rom):
     tiles, w, h = gen1_pic.decompress(rom.data, rom.offset("GhostPic"))
     return gen1_pic.to_canvas(tiles, w, h)
 
+@asset("gMissingNoFrontSprite", stride=16, shape=(49, 16), bind=True, elem="[16]")
+def missingno_front_sprite(rom):
+    tiles, w, h = gen1_pic.decompress(rom.data, 0x1900)
+
+    def source_plane(which):
+        out = bytearray()
+        for tx in range(w):
+            for py in range(h * 8):
+                tile = (py // 8) * w + tx
+                out.append(tiles[tile * 16 + (py & 7) * 2 + which])
+        return out
+
+    def align_plane(src):
+        dst = bytearray(7 * 7 * 8)
+        src_pos = 0
+        for column in range(8):
+            dst_pos = 0xf8 + column * (7 * 8)
+            for row_byte in range(8 * 8):
+                if dst_pos + row_byte < len(dst):
+                    dst[dst_pos + row_byte] = src[src_pos]
+                src_pos += 1
+        return dst
+
+    planes = [align_plane(source_plane(i)) for i in range(2)]
+    out = bytearray()
+    for ty in range(7):
+        for tx in range(7):
+            base = tx * (7 * 8) + ty * 8
+            for row in range(8):
+                out.append(planes[0][base + row])
+                out.append(planes[1][base + row])
+    return bytes(out)
+
+@asset("gMissingNoHallOfFameCorruption", stride=1)
+def missingno_hall_of_fame_corruption(rom):
+    _, plane2, w, h = gen1_pic.decompress_planes(rom.data, 0x1900)
+    assert (w, h) == (13, 13)
+    return bytes(plane2[648:])
+
 def _mon_pic(rom, symbol):
     tiles, w, h = gen1_pic.decompress(rom.data, rom.offset(symbol))
     return gen1_pic.to_canvas(tiles, w, h)

@@ -253,7 +253,7 @@ static void bg_hof_nickname_or_species(int col, int row,
         }
         return;
     }
-    bg_ascii(col, row, Pokemon_GetName(Species_Dex(mon->species)));
+    bg_ascii(col, row, Pokemon_GetNameBySpecies(mon->species));
 }
 
 static void clear_bg_screen(void) {

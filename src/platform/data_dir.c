@@ -325,7 +325,7 @@ static int migrate_user_data_from(const char *source, const char *data) {
         "mod_runtime/pks_flag_registry.txt", NULL
     };
     static const char *kTrees[] = {
-        "packages", "states", "saves_backup",
+        "packages", "states", "saves", "saves_backup",
         "mod_runtime/custom_art", "mod_runtime/generatedmaps", NULL
     };
     char root[1024], sp[1200], dp[1200], parent[1200];

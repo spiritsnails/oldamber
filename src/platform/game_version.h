@@ -12,6 +12,8 @@ int GameVersion_ScanInstalled(const char *out[], int max);
 
 int GameVersion_SupportedCount(void);
 
+const char *GameVersion_IdAt(int index);
+
 const char *GameVersion_Label(const char *id);
 
 const char *GameVersion_LabelAt(int index);

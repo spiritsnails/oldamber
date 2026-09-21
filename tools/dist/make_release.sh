@@ -140,6 +140,12 @@ mkdir -p "$PAYLOAD/mod_runtime"
 }
 cp "$GAME_DIR/oldamber-bootstrap.exe" "$OUT/OldAmber.exe"
 cp "$GAME_DIR/$GAME_EXE" "$PAYLOAD/oldamber-game.exe"
+# Embedded Windows builds link against the exact Python runtime used by the
+# launcher. Ship that DLL beside the game so a clean Windows install can load
+# the executable before the launcher has had a chance to run.
+if [ -f "C:/Program Files/Python311/python311.dll" ]; then
+    cp "C:/Program Files/Python311/python311.dll" "$PAYLOAD/python311.dll"
+fi
 cp "$GAME_DIR/SDL2.dll" "$PAYLOAD/"
 printf '%s\n' "$VERSION" > "$OUT/bundled-version"
 # internal/, not the top level. Next to the game, setup.exe reads as the

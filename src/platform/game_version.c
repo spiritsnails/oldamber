@@ -37,6 +37,11 @@ const char *GameVersion_Current(void) { return s_current; }
 
 int GameVersion_SupportedCount(void) { return KVERSIONS_N; }
 
+const char *GameVersion_IdAt(int index) {
+    if (index < 0 || index >= KVERSIONS_N) return NULL;
+    return kVersions[index].id;
+}
+
 void GameVersion_Set(const char *id) {
     if (!find(id)) {
 

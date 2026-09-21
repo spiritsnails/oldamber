@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "gen2_species.h"
+#include "missingno.h"
 
 #define TYPEMOD_ALIAS_MAX 32
 #define TYPEMOD_EFFECT_MAX 256
@@ -162,6 +163,7 @@ void TypeMod_GetSpeciesTypes(uint8_t species, uint8_t *out_type1, uint8_t *out_t
             return;
         }
     }
+    if (MissingNo_GetTypes(species, out_type1, out_type2)) return;
     d = gSpeciesToDex[species];
     if (d >= 1 && d <= 151) {
         *out_type1 = gBaseStats[d].type1;

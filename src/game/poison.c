@@ -12,6 +12,7 @@
 #include "gbc_color.h"
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 
 extern int gScriptedMovement;
 extern void Map_Load(uint8_t map_id);
@@ -134,7 +135,8 @@ static const struct { const char *name; int16_t x, y; } kBlackoutTownSpot[] = {
 
 static int blackout_spot_for_town(const char *name, int16_t *x, int16_t *y) {
     for (int i = 0; i < BLACKOUT_TOWN_SPOT_COUNT; i++) {
-        if (strcmp(kBlackoutTownSpot[i].name, name) == 0) {
+
+        if (strcasecmp(kBlackoutTownSpot[i].name, name) == 0) {
             *x = kBlackoutTownSpot[i].x;
             *y = kBlackoutTownSpot[i].y;
             return 1;

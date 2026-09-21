@@ -1,5 +1,6 @@
 
 #include "pokedex.h"
+#include "missingno.h"
 #include "gbc_color.h"
 #include "assetpack_bind.h"
 #include "overworld.h"
@@ -69,10 +70,11 @@ static int dex_seen(int dex_num) {
     int bit = dex_num - 1;
     return (wPokedexSeen[bit >> 3] >> (bit & 7)) & 1;
 }
-static int count_bits(const uint8_t *arr, int len) {
+static int count_dex_bits(const uint8_t *arr) {
     int n = 0;
-    for (int i = 0; i < len; i++) {
+    for (int i = 0; i < 19; i++) {
         uint8_t b = arr[i];
+        if (i == 18) b &= 0x7f;
         while (b) { n += b & 1; b >>= 1; }
     }
     return n;
@@ -154,8 +156,8 @@ static void draw_list(void) {
 
     dex_str(1, 1, "CONTENTS");
 
-    int seen_cnt = count_bits(wPokedexSeen, 19);
-    int own_cnt  = count_bits(wPokedexOwned, 19);
+    int seen_cnt = count_dex_bits(wPokedexSeen);
+    int own_cnt  = count_dex_bits(wPokedexOwned);
     char buf[5];
     dex_str(16, 2, "SEEN");
     dex_fill(16, 3, 3, (uint8_t)BLANK_TILE_SLOT);
@@ -312,6 +314,10 @@ void Pokedex_Tick(void) {
 
 void Pokedex_SetSeen(int species) {
     if (species < 1 || species > 255) return;
+    if (MissingNo_IsEnabledSpecies((uint8_t)species)) {
+        MissingNo_ApplyItemDuplication();
+        return;
+    }
     int dex_num = (int)gSpeciesToDex[species];
     if (dex_num < 1 || dex_num > 151) return;
     int bit = dex_num - 1;
@@ -320,6 +326,10 @@ void Pokedex_SetSeen(int species) {
 
 void Pokedex_SetOwned(int species) {
     if (species < 1 || species > 255) return;
+    if (MissingNo_IsEnabledSpecies((uint8_t)species)) {
+        MissingNo_ApplyItemDuplication();
+        return;
+    }
     int dex_num = (int)gSpeciesToDex[species];
     if (dex_num < 1 || dex_num > 151) return;
     int bit = dex_num - 1;

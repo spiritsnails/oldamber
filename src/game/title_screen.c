@@ -41,6 +41,7 @@ typedef enum {
     TS_VERSION_SCROLL,
     TS_LOOP_WAIT,
     TS_SCROLL_OUT_MON,
+    TS_POST_SCROLL_CHECK,
     TS_WAIT_BALL,
     TS_SCROLL_IN_MON,
     TS_WAIT_CRY
@@ -1136,6 +1137,20 @@ static int ts_check_interruption(void) {
     return 0;
 }
 
+static int ts_checks_for_interruption(void) {
+    switch (gState) {
+    case TS_GAMEFREAK_STAR_FALL:
+    case TS_GAMEFREAK_FLASH:
+    case TS_GAMEFREAK_SMALL_STARS:
+    case TS_INTRO_CUTSCENE:
+    case TS_LOOP_WAIT:
+    case TS_POST_SCROLL_CHECK:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
 static void ts_begin_interrupt(void) {
     Audio_PlayCry(gTitleMonSpecies);
     gState = TS_WAIT_CRY;
@@ -1328,6 +1343,11 @@ void TitleScreen_Open(void) {
     ts_draw_splash();
 }
 
+void TitleScreen_Close(void) {
+    gOpen = 0;
+    Display_SetAuthoredBleedRows(0, 0);
+}
+
 void TitleScreen_OpenAtTitle(void) {
     TitleScreen_Open();
     ts_start_title_logo_bounce();
@@ -1349,7 +1369,7 @@ void TitleScreen_Tick(void) {
         Display_SetAuthoredBleedRows(row0, rows);
     }
 
-    if (gState != TS_WAIT_CRY && ts_check_interruption()) {
+    if (ts_checks_for_interruption() && ts_check_interruption()) {
         if (gState == TS_GAMEFREAK_STAR_FALL || gState == TS_GAMEFREAK_FLASH ||
             gState == TS_GAMEFREAK_SMALL_STARS) {
             ts_set_gf_obj_palettes(0xE4, 0xE4);
@@ -1357,7 +1377,7 @@ void TitleScreen_Tick(void) {
             ts_intro_begin();
         } else if (gState == TS_INTRO_CUTSCENE) {
             ts_begin_intro_fade_to_white();
-        } else if (gState >= TS_BOUNCE) {
+        } else {
             ts_begin_interrupt();
         }
     }
@@ -1549,29 +1569,36 @@ void TitleScreen_Tick(void) {
         int done = ts_tick_mon_scroll_script();
         ts_draw_title_base();
         if (done) {
-            ts_clear_mon_band_scroll();
 
-            gState = TS_WAIT_BALL;
+            gState = TS_POST_SCROLL_CHECK;
             gTimer = TITLE_WAIT_CHECK_1_FRAME;
-            if (ts_is_starter(gMonJustScrolledOut)) {
-                gTimer += TITLE_WAIT_BALL_STARTER;
-                ts_start_ball_toss_anim();
-            } else {
-                ts_reset_ball_pose();
-            }
-
-            ts_pick_new_mon();
-            ts_stage_mon_offscreen_right();
-
-            ts_draw_title_base();
         }
         break;
     }
+
+    case TS_POST_SCROLL_CHECK:
+        ts_draw_title_base();
+        if (--gTimer <= 0) {
+            if (ts_is_starter(gMonJustScrolledOut)) {
+                ts_start_ball_toss_anim();
+                gTimer = TITLE_WAIT_BALL_STARTER;
+                gState = TS_WAIT_BALL;
+            } else {
+                ts_reset_ball_pose();
+                ts_pick_new_mon();
+                ts_stage_mon_offscreen_right();
+                ts_start_mon_scroll_in();
+                gState = TS_SCROLL_IN_MON;
+            }
+        }
+        break;
 
     case TS_WAIT_BALL:
         ts_tick_ball_toss_anim();
         ts_draw_title_base();
         if (--gTimer <= 0) {
+            ts_pick_new_mon();
+            ts_stage_mon_offscreen_right();
             ts_start_mon_scroll_in();
             gState = TS_SCROLL_IN_MON;
         }

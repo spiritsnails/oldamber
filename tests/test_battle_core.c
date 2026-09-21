@@ -268,6 +268,31 @@ TEST(HandlePlayerMonFainted, no_enemy_faint_if_enemy_alive) {
     EXPECT_NE((int)wEnemyBattleStatus1, 0);
 }
 
+TEST(HandlePlayerMonFainted, transformed_mon_zeros_original_party_slot) {
+    battle_reset();
+    wPartyCount = 3;
+    wPlayerMonNumber = 1;
+    wPartyMons[0].base.hp = 25;
+    wPartyMons[1].base.species = 21;
+    wPartyMons[1].base.hp = 37;
+    wPartyMons[2].base.hp = 19;
+
+    wBattleMon.species = 21;
+    wEnemyMon.species = 110;
+    wPlayerMoveEffect = EFFECT_TRANSFORM;
+    hWhoseTurn = 0;
+    Battle_JumpMoveEffect();
+    EXPECT_EQ((int)wBattleMon.species, 110);
+    EXPECT_EQ((int)wPartyMons[1].base.species, 21);
+    EXPECT_EQ((int)wPlayerMonNumber, 1);
+
+    wBattleMon.hp = 0;
+    Battle_HandlePlayerMonFainted();
+    EXPECT_EQ((int)wPartyMons[1].base.hp, 0);
+    EXPECT_EQ((int)wPartyMons[0].base.hp, 25);
+    EXPECT_EQ((int)wPartyMons[2].base.hp, 19);
+}
+
 TEST(ExecutePlayerMove, cannot_move_skips_execution) {
     battle_reset();
     wPlayerSelectedMove = CANNOT_MOVE;

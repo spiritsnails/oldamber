@@ -182,6 +182,8 @@ set(SOURCES
     src/game/overworld.c
     src/game/player.c
     src/game/game.c
+    src/game/scenario.c
+    src/game/scenario_capture.c
     src/game/gbc_color.c
     src/game/presentation_menu.c
     src/game/suspend_menu.c
@@ -282,6 +284,7 @@ set(SOURCES
     src/game/battle/battle_ui.c
     src/game/battle_transition.c
     src/game/gen2_species.c
+    src/game/missingno.c
     src/game/johto_battle.c
     src/game/trainer_sight.c
     src/game/rival_starter.c
@@ -410,6 +413,9 @@ list(APPEND SOURCES
     src/platform/launcher_dropdown.c
     src/platform/launcher_nav.c
     src/platform/launcher_browse.c
+    src/platform/launcher_save_manager.c
+    src/platform/launcher_location_preview.c
+    src/platform/launcher_location_names.c
     src/platform/launcher_save_editor.c
     src/platform/launcher_save_editor_location.c
     src/platform/launcher_save_editor_workspace.c
@@ -777,6 +783,7 @@ set(TEST_GAME_SOURCES
     # list, call Species_GetBaseStats and Species_Dex unconditionally, so
     # leaving this out is a link error, not a harness missing Johto mon.
     src/game/gen2_species.c
+    src/game/missingno.c
     # The generated Crystal data, swapped for zeroed stubs under RED_ONLY
     # exactly as the main SOURCES list does.
     ${CRYSTAL_DATA_SOURCES}
@@ -989,6 +996,7 @@ add_executable(crt_renderer_tests
 add_executable(save_editor_location_tests
     tests/save_editor_location_tests.c
     src/platform/launcher_save_editor_location.c
+    src/platform/launcher_location_names.c
 )
 target_include_directories(save_editor_location_tests PRIVATE src)
 target_compile_definitions(save_editor_location_tests PRIVATE

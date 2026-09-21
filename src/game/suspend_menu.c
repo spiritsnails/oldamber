@@ -2,6 +2,14 @@
 #include <SDL.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 #include "suspend_menu.h"
 #include "../platform/display.h"
@@ -102,8 +110,74 @@ static const sm_row_t kRows[] = {
 };
 #define SM_ROWS ((int)(sizeof kRows / sizeof kRows[0]))
 
+static char s_bug_scenario_path[512];
+static int  s_bug_copied;
+
 static int sm_hub_rows_now(void) {
     return SM_ROWS - (s_debug_tooling_enabled ? 0 : 1);
+}
+
+static int sm_open_external(const char *target) {
+#ifdef _WIN32
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+    char command[2300];
+    memset(&si, 0, sizeof si);
+    memset(&pi, 0, sizeof pi);
+    si.cb = sizeof si;
+    snprintf(command, sizeof command, "explorer.exe \"%s\"", target);
+    if (!CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+        return 0;
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return 1;
+#else
+    pid_t pid = fork();
+    if (pid < 0) return 0;
+    if (pid == 0) {
+        pid_t opener = fork();
+        if (opener < 0) _exit(127);
+        if (opener > 0) _exit(0);
+#ifdef __APPLE__
+        execlp("open", "open", target, (char *)NULL);
+#else
+        execlp("xdg-open", "xdg-open", target, (char *)NULL);
+#endif
+        _exit(127);
+    }
+    {
+        int status = 0;
+        return waitpid(pid, &status, 0) == pid &&
+               WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    }
+#endif
+}
+
+static void sm_open_bug_report(void) {
+    if (!sm_open_external("https://github.com/spiritsnails/oldamber/issues/new?template=bug_report.yml"))
+        printf("[capture] could not open bug report URL\n");
+}
+
+static void sm_open_bug_folder(void) {
+    char folder[512], absolute[1024];
+    char *slash;
+    snprintf(folder, sizeof folder, "%s", s_bug_scenario_path);
+    slash = strrchr(folder, '/');
+#ifdef _WIN32
+    {
+        char *backslash = strrchr(folder, '\\');
+        if (!slash || (backslash && backslash > slash)) slash = backslash;
+    }
+#endif
+    if (slash) *slash = 0;
+    if (!folder[0]) return;
+#ifdef _WIN32
+    if (!_fullpath(absolute, folder, sizeof absolute)) return;
+#else
+    if (!realpath(folder, absolute)) return;
+#endif
+    if (!sm_open_external(absolute))
+        printf("[capture] could not open report folder\n");
 }
 
 static const sm_row_t *sm_hub_row(int visible_index) {
@@ -133,7 +207,7 @@ static int  s_cap_settle_pad;
 
 static const int kBindOrder[INPUT_BIND_COUNT] = { 6, 7, 5, 4, 0, 1, 3, 2 };
 
-enum { SM_ASK_OVERWRITE = 0, SM_ASK_EXIT, SM_ASK_DELETE, SM_ASK_WIDESCREEN };
+enum { SM_ASK_OVERWRITE = 0, SM_ASK_EXIT, SM_ASK_DELETE, SM_ASK_WIDESCREEN, SM_ASK_BUG_CAPTURE };
 static int  s_confirm_kind;
 static int  s_confirm_slot = -1;
 static int  s_confirm_yes;
@@ -284,7 +358,7 @@ static SDL_Rect sm_confirm_box(void) {
     b.w = SM_COMPACT ? LDRAW_W - SM_PAD * 2 : 260;
     b.h = SM_COMPACT ? SM_FLOOR(SM_SCALE(92), 56) : 92;
 
-    if (s_confirm_kind == SM_ASK_WIDESCREEN) {
+    if (s_confirm_kind == SM_ASK_WIDESCREEN || s_confirm_kind == SM_ASK_BUG_CAPTURE) {
         b.w = SM_COMPACT ? LDRAW_W - SM_PAD * 2 : 300;
         b.h = SM_COMPACT ? SM_FLOOR(SM_SCALE(146), 96) : 146;
     }
@@ -297,13 +371,28 @@ static SDL_Rect sm_confirm_box(void) {
 static void sm_confirm_buttons(const SDL_Rect *box, SDL_Rect *yes, SDL_Rect *no) {
     int bw = (box->w - 3 * 12) / 2;
 
-    int bh = (s_confirm_kind == SM_ASK_WIDESCREEN)
+    int bh = (s_confirm_kind == SM_ASK_WIDESCREEN || s_confirm_kind == SM_ASK_BUG_CAPTURE)
                 ? SM_FLOOR(SM_SCALE(34), 26)
                 : SM_FLOOR(SM_SCALE(24), 15);
     yes->x = box->x + 12;           yes->y = box->y + box->h - bh - 8;
     yes->w = bw;                    yes->h = bh;
     no->x  = box->x + box->w - bw - 12;  no->y = yes->y;
     no->w  = bw;                    no->h = bh;
+}
+
+static SDL_Rect sm_confirm_close_rect(const SDL_Rect *box) {
+    SDL_Rect close = { box->x + box->w - 24, box->y + 7, 16, 16 };
+    return close;
+}
+
+static void sm_confirm_dismiss(void) {
+    if (s_confirm_kind == SM_ASK_WIDESCREEN)
+        PresentationMenu_DismissWidescreenNotice(s_notice_tick);
+    if (s_confirm_kind == SM_ASK_BUG_CAPTURE) {
+        SuspendMenu_Close();
+        return;
+    }
+    s_confirm_slot = -1;
 }
 
 static int sm_footer_layout(ldraw_footer_btn_t *b, char store[SM_FOOT_MAX][16],
@@ -751,9 +840,11 @@ static void sm_draw(SDL_Renderer *r) {
     }
 
     const int dd_open = (s_page >= 0 && s_dd_row >= 0);
+    const int underlay_hover = s_confirm_slot < 0 && !dd_open;
 
     const int sticky = (s_page == SM_PAGE_STATES);
-    const int hover_follows = LauncherNav_HoverHighlight(&s_nav) && !dd_open && !sticky;
+    const int hover_follows = underlay_hover &&
+                              LauncherNav_HoverHighlight(&s_nav) && !sticky;
     const int nrows = sm_rows_now();
     sm_clamp_row_scroll(nrows);
 
@@ -782,7 +873,8 @@ static void sm_draw(SDL_Renderer *r) {
 
         if (focused) LauncherDraw_FocusBarRGB(r, rr, fr, fg, fb);
 
-        else if (sticky && LauncherNav_HoverHighlight(&s_nav) &&
+        else if (underlay_hover && sticky &&
+                 LauncherNav_HoverHighlight(&s_nav) &&
                  LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, rr)) {
             SDL_SetRenderDrawColor(r, fr, fg, fb, 0xFF);
             SDL_RenderDrawRect(r, &rr);
@@ -854,7 +946,8 @@ static void sm_draw(SDL_Renderer *r) {
             char     bl[2][24];
             int nb = sm_bind_buttons(i, br, bl);
             for (int k = 0; k < nb; k++) {
-                int hot = LauncherNav_HoverHighlight(&s_nav) &&
+                int hot = underlay_hover &&
+                          LauncherNav_HoverHighlight(&s_nav) &&
                           LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, br[k]);
                 int padsel = !LauncherNav_HoverHighlight(&s_nav) &&
                              i == s_focus && k == s_btn_focus;
@@ -902,7 +995,8 @@ static void sm_draw(SDL_Renderer *r) {
                 const char *bl[3];
                 int nb = sm_slot_buttons(i, br, bl);
                 for (int k = 0; k < nb; k++) {
-                    int hot = LauncherNav_HoverHighlight(&s_nav) &&
+                    int hot = underlay_hover &&
+                              LauncherNav_HoverHighlight(&s_nav) &&
                               LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, br[k]);
 
                     int padsel = !LauncherNav_HoverHighlight(&s_nav) &&
@@ -1007,6 +1101,7 @@ static void sm_draw(SDL_Renderer *r) {
     if (s_confirm_slot >= 0) {
         SDL_Rect box = sm_confirm_box();
         SDL_Rect yes, no;
+        SDL_Rect close = sm_confirm_close_rect(&box);
         sm_confirm_buttons(&box, &yes, &no);
         char q[48];
         if (s_confirm_kind == SM_ASK_EXIT)
@@ -1020,7 +1115,30 @@ static void sm_draw(SDL_Renderer *r) {
         SDL_RenderFillRect(r, &box);
         LauncherDraw_Bevel(r, box, 1);
 
-        if (s_confirm_kind == SM_ASK_WIDESCREEN) {
+        {
+            int hot = LauncherNav_HoverHighlight(&s_nav) &&
+                      LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, close);
+            sm_set_chrome_color(r, SM_CLR_PANEL);
+            SDL_RenderFillRect(r, &close);
+            LauncherDraw_Bevel(r, close, hot ? 0 : 1);
+            LauncherDraw_TextBold(r,
+                                  close.x + (close.w - LauncherDraw_TextWidthBold(1, "X")) / 2,
+                                  LDRAW_TEXT_Y(close.y, close.h, 1),
+                                  1, LCOL_TEXT, "X");
+        }
+
+        if (s_confirm_kind == SM_ASK_BUG_CAPTURE) {
+            const char *line1 = s_bug_copied ? "REPRODUCTION YAML COPIED." : "CLIPBOARD COPY FAILED.";
+            const char *line2 = s_bug_copied ? "PASTE IT INTO YOUR BUG REPORT." : "USE OPEN FOLDER TO FIND IT.";
+            LauncherDraw_Text(r, box.x + 16, box.y + 14, SM_TXT_LABEL,
+                              LCOL_TEXT, "BUG STATE CAPTURED");
+            LauncherDraw_Text(r, box.x + 16, box.y + 38, 1,
+                              0x60, 0x60, 0x60, line1);
+            LauncherDraw_Text(r, box.x + 16, box.y + 52, 1,
+                              0x60, 0x60, 0x60, line2);
+            LauncherDraw_Text(r, box.x + 16, box.y + 72, 1,
+                              0x60, 0x60, 0x60, "B / ESC: DONE");
+        } else if (s_confirm_kind == SM_ASK_WIDESCREEN) {
 
             static const char *kBody[] = {
                 "MODERN ASPECT RATIOS ARE",
@@ -1047,7 +1165,9 @@ static void sm_draw(SDL_Renderer *r) {
             SDL_Rect b = k ? no : yes;
 
             const int tick = (s_confirm_kind == SM_ASK_WIDESCREEN && k == 0);
-            const char *lbl = (s_confirm_kind == SM_ASK_WIDESCREEN)
+            const char *lbl = s_confirm_kind == SM_ASK_BUG_CAPTURE
+                                ? (k ? "OPEN FOLDER" : "REPORT A BUG")
+                                : s_confirm_kind == SM_ASK_WIDESCREEN
                                 ? "OK" : (k ? "NO" : "YES");
             int hot = LauncherNav_HoverHighlight(&s_nav)
                         ? LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, b)
@@ -1066,6 +1186,10 @@ static void sm_draw(SDL_Renderer *r) {
                                   1, LCOL_TEXT, l1);
                 LauncherDraw_Text(r, b.x + (b.w - w2) / 2, b.y + b.h / 2 + 1,
                                   1, LCOL_TEXT, l2);
+            } else if (s_confirm_kind == SM_ASK_BUG_CAPTURE) {
+            int tw = LauncherDraw_TextWidth(1, lbl);
+            LauncherDraw_Text(r, b.x + (b.w - tw) / 2,
+                              LDRAW_TEXT_Y(b.y, b.h, 1), 1, LCOL_TEXT, lbl);
             } else {
 
             int tw = LauncherDraw_TextWidth(SM_TXT_LABEL, lbl);
@@ -1091,9 +1215,11 @@ static void sm_draw(SDL_Renderer *r) {
         int  ids[SM_FOOT_MAX];
         int n = sm_footer_layout(btns, store, ids);
         int hover = -1;
-        for (int i = 0; i < n; i++)
-            if (LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, btns[i].rect))
-                hover = i;
+        if (underlay_hover) {
+            for (int i = 0; i < n; i++)
+                if (LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, btns[i].rect))
+                    hover = i;
+        }
         LauncherDraw_FooterButtons(r, btns, n, hover);
     }
     LauncherDraw_ResetChromeColors();
@@ -1116,11 +1242,23 @@ static const uint32_t *sm_compose(int *w, int *h,
     sm_draw(s_soft);
 
     if (s_slot.w > 0 && s_slot.h > 0) {
+        SDL_Rect popup = { 0, 0, 0, 0 };
+        int popup_open = 0;
+        if (s_confirm_slot >= 0) {
+            popup = sm_confirm_box();
+            popup_open = 1;
+        } else if (s_page >= 0 && s_dd_row >= 0) {
+            int id = PresentationMenu_RowId(s_page, s_dd_row);
+            popup = sm_dd_rect(s_dd_row, PresentationMenu_ChoiceCount(id));
+            popup_open = 1;
+        }
         uint32_t *px = (uint32_t *)s_surf->pixels;
         for (int yy = s_slot.y; yy < s_slot.y + s_slot.h; yy++) {
             if (yy < 0 || yy >= s_surf_h) continue;
             for (int xx = s_slot.x; xx < s_slot.x + s_slot.w; xx++) {
                 if (xx < 0 || xx >= s_surf_w) continue;
+                if (popup_open && LauncherDraw_PointInRect(xx, yy, popup))
+                    continue;
                 px[yy * s_surf_w + xx] &= 0xFFFFFF00u;
             }
         }
@@ -1225,6 +1363,16 @@ void SuspendMenu_Close(void) {
 
 void SuspendMenu_Toggle(void) { if (s_open) SuspendMenu_Close(); else SuspendMenu_Open(); }
 int  SuspendMenu_IsOpen(void) { return s_open; }
+void SuspendMenu_ShowBugCapture(const char *scenario_path, int copied) {
+    SuspendMenu_Open();
+    snprintf(s_bug_scenario_path, sizeof s_bug_scenario_path, "%s",
+             scenario_path ? scenario_path : "");
+    s_bug_copied = copied ? 1 : 0;
+    s_confirm_kind = SM_ASK_BUG_CAPTURE;
+    s_confirm_slot = 0;
+    s_confirm_yes = 1;
+    s_confirm_fresh = 1;
+}
 void SuspendMenu_SetDebugToolingEnabled(int enabled) {
     s_debug_tooling_enabled = enabled ? 1 : 0;
 }
@@ -1459,7 +1607,7 @@ static void sm_tick_inner(void) {
         }
     }
 
-    if (LauncherNav_HoverHighlight(&s_nav)) {
+    if (s_confirm_slot < 0 && LauncherNav_HoverHighlight(&s_nav)) {
         for (int i = 0; i < nrows; i++) {
             if (LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, sm_row_rect(i))) {
                 s_focus = i;
@@ -1467,7 +1615,7 @@ static void sm_tick_inner(void) {
             }
         }
     }
-    if (s_nav.ptr_pressed) {
+    if (s_confirm_slot < 0 && s_nav.ptr_pressed) {
         for (int i = 0; i < nrows; i++) {
             if (LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, sm_row_rect(i))) {
                 s_focus = i;
@@ -1480,13 +1628,37 @@ static void sm_tick_inner(void) {
     if (s_confirm_slot >= 0) {
         SDL_Rect box = sm_confirm_box();
         SDL_Rect yes, no;
+        SDL_Rect close = sm_confirm_close_rect(&box);
         sm_confirm_buttons(&box, &yes, &no);
         int slot = s_confirm_slot;
         int kind = s_confirm_kind;
 
         if (s_confirm_fresh) { s_confirm_fresh = 0; return; }
 
+        if (s_nav.ptr_pressed &&
+            LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, close)) {
+            sm_confirm_dismiss();
+            return;
+        }
+
         if (in & (LNAV_LEFT | LNAV_RIGHT)) s_confirm_yes = !s_confirm_yes;
+
+        if (kind == SM_ASK_BUG_CAPTURE) {
+            if (in & (LNAV_CANCEL | LNAV_BACK)) {
+                sm_confirm_dismiss();
+                return;
+            }
+            if (s_nav.ptr_pressed) {
+                if (LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, yes)) sm_open_bug_report();
+                else if (LauncherDraw_PointInRect(s_nav.ptr_x, s_nav.ptr_y, no)) sm_open_bug_folder();
+                return;
+            }
+            if (in & LNAV_ACCEPT) {
+                if (s_confirm_yes) sm_open_bug_report();
+                else sm_open_bug_folder();
+            }
+            return;
+        }
 
         if (kind == SM_ASK_WIDESCREEN) {
             int close = 0, toggle = 0;
@@ -1505,8 +1677,7 @@ static void sm_tick_inner(void) {
             }
             if (toggle) { s_notice_tick = !s_notice_tick; return; }
             if (close) {
-                PresentationMenu_DismissWidescreenNotice(s_notice_tick);
-                s_confirm_slot = -1;
+                sm_confirm_dismiss();
             }
             return;
         }

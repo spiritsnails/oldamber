@@ -60,6 +60,7 @@
 #include "game/presentation_menu.h"
 #include "game/suspend_menu.h"
 #include "game/intro.h"
+#include "game/scenario.h"
 #include "game/title_screen.h"
 #ifdef _WIN32
 #include <process.h>
@@ -70,6 +71,29 @@
 #include "data/map_data.h"
 
 extern int gNoWilds;
+
+static int copy_scenario_for_issue(const char *path) {
+    static const char prefix[] = "### OldAmber reproduction state\n\n```yaml\n";
+    static const char suffix[] = "\n```\n";
+    FILE *fp;
+    char *text;
+    long size;
+    int ok;
+    if (!path || !(fp = fopen(path, "rb"))) return 0;
+    if (fseek(fp, 0, SEEK_END) != 0 || (size = ftell(fp)) < 0 ||
+        fseek(fp, 0, SEEK_SET) != 0) { fclose(fp); return 0; }
+    text = (char *)malloc(sizeof(prefix) - 1 + (size_t)size + sizeof(suffix));
+    if (!text) { fclose(fp); return 0; }
+    memcpy(text, prefix, sizeof(prefix) - 1);
+    if (fread(text + sizeof(prefix) - 1, 1, (size_t)size, fp) != (size_t)size) {
+        free(text); fclose(fp); return 0;
+    }
+    fclose(fp);
+    memcpy(text + sizeof(prefix) - 1 + (size_t)size, suffix, sizeof(suffix));
+    ok = SDL_SetClipboardText(text) == 0;
+    free(text);
+    return ok;
+}
 
 #define REWIND_SLOTS          1800
 #define REWIND_SNAPSHOT_EVERY 1
@@ -328,6 +352,7 @@ int main(int argc, char *argv[]) {
     int render_fps_from_cli = 0;
 
     char force_version[16] = "";
+    char scenario_path[1200] = "";
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--skip") == 0 ||
             strcmp(argv[i], "--quickstart") == 0 ||
@@ -345,6 +370,9 @@ int main(int argc, char *argv[]) {
         } else if (strncmp(argv[i], "--version=", 10) == 0 && argv[i][10]) {
 
             snprintf(force_version, sizeof(force_version), "%s", argv[i] + 10);
+        } else if (strncmp(argv[i], "--scenario-state=", 17) == 0 && argv[i][17]) {
+            snprintf(scenario_path, sizeof(scenario_path), "%s", argv[i] + 17);
+            gSkipMenu = 1;
         } else if (strcmp(argv[i], "--widescreen") == 0) {
 
             Display_SetWidescreen(1);
@@ -499,6 +527,14 @@ int main(int argc, char *argv[]) {
     if (PresentationMenu_FastBoot()) gSkipMenu = 1;
 
     GameInit();
+    if (scenario_path[0]) {
+        char scenario_err[512];
+        if (!Scenario_LoadAndStart(scenario_path, scenario_err, sizeof scenario_err)) {
+            fprintf(stderr, "[scenario] %s\n", scenario_err);
+            SDL_Quit();
+            return 2;
+        }
+    }
     if (debug_render) {
         DebugCLI_ConsoleSetOverlayEnabled(0);
         DebugCLI_ConsoleSetAlwaysOpen(1);
@@ -577,6 +613,11 @@ int main(int argc, char *argv[]) {
                     ((km & KMOD_SHIFT) && kc == SDLK_BACKQUOTE);
             }
             if (ev.type == SDL_QUIT) running = 0;
+            if (ev.type == SDL_AUDIODEVICEREMOVED)
+                Audio_HandleDeviceRemoved((uint32_t)ev.adevice.which,
+                                          ev.adevice.iscapture != 0);
+            if (ev.type == SDL_RENDER_DEVICE_RESET)
+                Display_HandleRendererReset();
 
             if (ev.type == SDL_KEYDOWN &&
                 ev.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
@@ -662,7 +703,12 @@ int main(int argc, char *argv[]) {
 
             if (ev.type == SDL_KEYDOWN && ev.key.repeat == 0 &&
                 ev.key.keysym.scancode == SDL_SCANCODE_F2) {
-                DebugSuite_CaptureReport(NULL);
+                if (DebugSuite_CaptureReport(NULL) == 0) {
+                    const char *scenario = DebugSuite_LastScenarioPath();
+                    if (scenario)
+                        SuspendMenu_ShowBugCapture(scenario,
+                                                   copy_scenario_for_issue(scenario));
+                }
             }
 
             if (ev.type == SDL_KEYDOWN &&
@@ -768,6 +814,9 @@ int main(int argc, char *argv[]) {
                 else           printf("[speed] %d%%\n", next);
             }
         }
+
+        Display_SetPresentationSuspended(Display_ShouldSuspendPresentation());
+        Audio_MaintainDevice();
 
         {
             const uint8_t *keys = SDL_GetKeyboardState(NULL);

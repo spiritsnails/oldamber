@@ -5,6 +5,7 @@
 #define TITLE_SCREEN_CLEAR_SAVE  2
 
 void TitleScreen_Open(void);
+void TitleScreen_Close(void);
 
 void TitleScreen_OpenAtTitle(void);
 int  TitleScreen_IsOpen(void);

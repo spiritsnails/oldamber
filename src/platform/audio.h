@@ -10,6 +10,9 @@
 int  Audio_Init(void);
 void Audio_Quit(void);
 
+void Audio_HandleDeviceRemoved(uint32_t device_id, int is_capture);
+void Audio_MaintainDevice(void);
+
 void Audio_Update(void);
 void Audio_UpdateMusic(void);
 void Audio_UpdateSfx(void);

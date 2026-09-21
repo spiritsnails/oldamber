@@ -127,8 +127,11 @@ static void pstr(int col, int row, const uint8_t *s) {
 }
 
 static void pqty(int col, int row, uint8_t qty) {
+    uint8_t tens = (uint8_t)(0xF6u + qty / 10u);
     smset(col,   row, (uint8_t)Font_CharToTile(CHAR_TIMES));
-    smset(col+1, row, (uint8_t)Font_CharToTile(qty >= 10 ? 0xF6 + qty/10 : CHAR_SPACE));
+
+    smset(col+1, row, qty >= 100 ? tens :
+                       (uint8_t)Font_CharToTile(qty >= 10 ? tens : CHAR_SPACE));
     smset(col+2, row, (uint8_t)Font_CharToTile(0xF6 + qty % 10));
 }
 

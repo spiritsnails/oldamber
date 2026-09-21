@@ -171,6 +171,12 @@ static void pc_clear_yesno_box(void) {
     pc_restore_yesno_tiles();
 }
 
+static void pc_restore_after_yesno(void) {
+    Map_BuildScrollView();
+    NPC_BuildView(gScrollPxX, gScrollPxY);
+    Player_SyncOAM();
+}
+
 void Pokecenter_HealPartyFull(void) {
     for (int i = 0; i < wPartyCount && i < 6; i++) {
         party_mon_t *mon = &wPartyMons[i];
@@ -244,6 +250,8 @@ void Pokecenter_Tick(void) {
 
         if (hJoyPressed & PAD_A) {
             pc_clear_yesno_box();
+
+            pc_restore_after_yesno();
             if (g_cursor == 0) {
 
                 wLastBlackoutMap = wLastMap;
@@ -260,7 +268,6 @@ void Pokecenter_Tick(void) {
                         wLastHealTownName[0] = '\0';
                     }
                 }
-                Map_BuildScrollView();
                 Text_ShowASCII(RomText("_NeedYourPokemonText"));
                 g_state = PC_WAIT_NEED;
             } else {
@@ -272,6 +279,7 @@ void Pokecenter_Tick(void) {
         if (hJoyPressed & PAD_B) {
 
             pc_clear_yesno_box();
+            pc_restore_after_yesno();
             Text_ShowASCII(RomText("_PokemonCenterFarewellText"));
             g_state = PC_WAIT_DECLINE;
         }

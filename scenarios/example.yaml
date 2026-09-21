@@ -1,0 +1,117 @@
+schema: 1
+game: red
+base: fresh
+
+player:
+  name: ASH
+  rival_name: GARY
+  trainer_id: 12345
+  money: 12000
+  coins: 0
+  badges: [BOULDER, CASCADE, THUNDER]
+
+location:
+  vmap: VermilionCity
+  x: 18
+  y: 12
+  facing: down
+
+respawn:
+  last_healed_vmap: PewterCity
+
+party:
+  - species: WARTORTLE
+    level: 27
+    moves: [WATER_GUN, BITE, WITHDRAW, MEGA_PUNCH]
+    status: poisoned
+    current_hp: 31
+    dvs: {attack: 12, defense: 9, speed: 7, special: 15}
+    stat_exp: {hp: 1200, attack: 800, defense: 600, speed: 400, special: 1000}
+    ot_id: 12345
+    ot_name: ASH
+    pp:
+      - {current: 9, pp_ups: 1}
+      - 14
+      - 22
+      - 3
+  - species: PIKACHU
+    level: 22
+    moves: [THUNDER_SHOCK, GROWL, THUNDER_WAVE, QUICK_ATTACK]
+  - species: PIDGEOTTO
+    level: 24
+    moves: [GUST, SAND_ATTACK, QUICK_ATTACK, WHIRLWIND]
+
+boxes:
+  current: 2
+  pokemon:
+    - box: 1
+      species: BULBASAUR
+      level: 12
+      moves: [TACKLE, GROWL, LEECH_SEED]
+      nickname: LEAFY
+      ot_name: RED
+      status: sleep:3
+      current_hp: 8
+      dvs: {attack: 1, defense: 2, speed: 3, special: 4}
+      stat_exp: {hp: 10, attack: 20, defense: 30, speed: 40, special: 50}
+      ot_id: 54321
+      experience: 900
+    - box: 2
+      species: CHARIZARD
+      level: 5
+      moves: [FLAMETHROWER, FLY]
+
+daycare:
+  species: MAGIKARP
+  level: 18
+  nickname: SPLASHY
+  ot_name: ASH
+  experience: 6500
+  dvs: {attack: 4, defense: 3, speed: 2, special: 1}
+
+bag:
+  - item: POTION
+    quantity: 5
+  - item: POKE_BALL
+    quantity: 10
+
+pc_items:
+  - item: RARE_CANDY
+    quantity: 2
+
+pokedex:
+  seen: [BULBASAUR, CHARMANDER, SQUIRTLE, PIKACHU]
+  caught: [SQUIRTLE, PIKACHU]
+
+events:
+  set: [EVENT_GOT_POKEDEX, EVENT_BEAT_BROCK, EVENT_BEAT_MISTY]
+  clear: [EVENT_BEAT_LT_SURGE, EVENT_GOT_TM24]
+
+progress_flags:
+  completed_trades: [0, 3, 9]
+  visited_towns_mask: 37
+  picked_up_items:
+    - map_id: 202
+      slots: [3, 4]
+    - map_id: 46
+      slots: [0, 2, 7]
+
+rng:
+  add: 37
+  sub: 181
+
+options:
+  text_speed: fast
+  battle_animations: false
+  battle_style: set
+  sound: stereo
+
+play_time:
+  hours: 12
+  minutes: 34
+  seconds: 56
+  frames: 17
+
+movement: walking
+
+rival_starter: BULBASAUR

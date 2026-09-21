@@ -12,6 +12,7 @@
 #include "type_mod.h"
 #include "sprite_mod.h"
 #include "mon_pic.h"
+#include "missingno.h"
 #include "gbc_color.h"
 #include "crystal_stats_screen.h"
 #include "crystal_fade.h"
@@ -95,8 +96,7 @@ static void ss_nick(int col, int row, int slot) {
         }
     } else {
 
-        uint8_t dex = Species_Dex(wPartyMons[slot].base.species);
-        const char *name = Pokemon_GetName(dex);
+        const char *name = Pokemon_GetNameBySpecies(wPartyMons[slot].base.species);
         int len = (int)strlen(name);
         for (int i = 0; i < 10; i++) {
             ss_put(col + i, row,
@@ -228,16 +228,18 @@ static int ss_gen2(void);
 
 static void ss_load_sprite(uint8_t species, uint8_t dex) {
     int has_override = (SpriteMod_GetFrontTile(species, 0) != NULL);
+    int has_missingno = (MissingNo_GetFrontTile(species, 0) != NULL);
     ss_clear_sprite_oam();
 
     if (s_slot >= 0 && s_slot < (int)wPartyCount)
         GbcColor_SetPalStatusScreen((int)dex,
             ss_hp_bar_color(wPartyMons[s_slot].base.hp, wPartyMons[s_slot].max_hp));
 
-    if (!has_override && !MonPic_Exists(dex)) return;
+    if (!has_override && !has_missingno && !MonPic_Exists(dex)) return;
     for (int i = 0; i < POKEMON_FRONT_CANVAS_TILES; i++)
     {
         const uint8_t *tile = SpriteMod_GetFrontTile(species, i);
+        if (!tile) tile = MissingNo_GetFrontTile(species, i);
 
         if (!tile && ss_gen2() && MonPic_CrystalExists(dex))
             tile = MonPic_CrystalFrontTile(dex, i);
@@ -509,7 +511,7 @@ static void ss_gen2_upper_half(int slot) {
     ss_nick(8, 2, slot);
 
     ss_gb(9, 4, 0xF3);
-    ss_ascii(10, 4, Pokemon_GetName(dex));
+    ss_ascii(10, 4, Pokemon_GetNameBySpecies(mon->base.species));
 
     for (int c = 0; c < SCREEN_WIDTH; c++) ss_gb(c, 7, 0x62);
 

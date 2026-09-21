@@ -5,6 +5,7 @@
 #include "launcher_nav.h"
 #include "launcher_browse.h"
 #include "launcher_save_editor.h"
+#include "launcher_save_manager.h"
 #include "rom_import.h"
 #include "display.h"
 #include "save.h"
@@ -34,8 +35,6 @@ static int desktop_scale(void) {
     return s;
 }
 
-#define SAVES_BACKUP_DIR "saves_backup"
-
 typedef struct {
     int valid;
     char player_name[16];
@@ -59,6 +58,13 @@ static int count_bits(const uint8_t *buf, int n_bytes) {
     return n;
 }
 
+static int count_dex_bits(const uint8_t bits[19]) {
+    int n = count_bits(bits, 18);
+    uint8_t last = bits[18] & 0x7f;
+    for (; last; last >>= 1) n += last & 1;
+    return n;
+}
+
 static void load_save_preview(const char *path, save_preview_t *out) {
     save_peek_t peek;
     memset(out, 0, sizeof(*out));
@@ -72,7 +78,7 @@ static void load_save_preview(const char *path, save_preview_t *out) {
     }
     out->player_name[i] = '\0';
     out->badges    = count_bits(&peek.badges, 1);
-    out->dex_owned = count_bits(peek.pokedex_owned, sizeof(peek.pokedex_owned));
+    out->dex_owned = count_dex_bits(peek.pokedex_owned);
     out->valid     = 1;
 }
 
@@ -83,46 +89,12 @@ static void format_save_summary(const save_preview_t *p, char *out, size_t out_s
             p->badges, p->badges == 1 ? "" : "S", p->dex_owned);
 }
 
-static int copy_file(const char *src, const char *dst) {
-    FILE *in = fopen(src, "rb");
-    if (!in) return 0;
-    FILE *out = fopen(dst, "wb");
-    if (!out) { fclose(in); return 0; }
-    char buf[8192];
-    size_t n;
-    int ok = 1;
-    while ((n = fread(buf, 1, sizeof(buf), in)) > 0)
-        if (fwrite(buf, 1, n, out) != n) { ok = 0; break; }
-    fclose(in);
-    fclose(out);
-    return ok;
-}
-
-static int hotswap_save(const char *ver, const char *picked) {
-    const char *active = GameVersion_SavePath(ver);
-    char backup[1200], relative[128], backup_dir[1200];
-    snprintf(relative, sizeof(relative), SAVES_BACKUP_DIR "/%s_prev.sav", ver);
-    if (!UserDataPath(relative, backup, sizeof backup))
-        snprintf(backup, sizeof backup, "%s", relative);
-
-    FILE *cur = fopen(active, "rb");
-    if (cur) {
-        fclose(cur);
-        if (!UserDataPath(SAVES_BACKUP_DIR, backup_dir, sizeof backup_dir))
-            snprintf(backup_dir, sizeof backup_dir, SAVES_BACKUP_DIR);
-        LauncherDraw_EnsureDir(backup_dir);
-        copy_file(active, backup);
-    }
-    return copy_file(picked, active);
-}
-
 typedef enum { STATE_WAITING, STATE_BUILDING, STATE_ERROR, STATE_READY } ui_state_t;
 
 static const char *const kRomExts[] = { "gb", "gbc", NULL };
-static const char *const kSavExts[] = { "sav", NULL };
 
 typedef enum {
-    ACT_CHOOSE_ROM = 0, ACT_PLAY, ACT_DEBUG_TOOLING, ACT_SWITCH_SAVE, ACT_EDIT_SAVE,
+    ACT_CHOOSE_ROM = 0, ACT_PLAY, ACT_DEBUG_TOOLING, ACT_MANAGE_SAVES,
     ACT_UPDATE, ACT_ADD_TO_STEAM, ACT_QUIT
 } action_t;
 
@@ -271,8 +243,7 @@ static void menu_build(menu_t *m, ui_state_t state,
         menu_add(m, ACT_CHOOSE_ROM, "CHOOSE ROM FILE", "", ROW_H_SMALL, 2);
     }
 
-    menu_add(m, ACT_SWITCH_SAVE, "SWITCH SAVE FILE", "", ROW_H_SMALL, 2);
-    menu_add(m, ACT_EDIT_SAVE, "EDIT SAVE FILE", "", ROW_H_SMALL, 2);
+    menu_add(m, ACT_MANAGE_SAVES, "MANAGE SAVES", "", ROW_H_SMALL, 2);
 
     update_snapshot_t update;
     Update_GetSnapshot(&update);
@@ -308,8 +279,8 @@ static void menu_build(menu_t *m, ui_state_t state,
 
         if (play_w > LDRAW_W - PANEL_X * 2) play_w = LDRAW_W - PANEL_X * 2;
         if (util_w > play_w - 24) util_w = play_w - 24;
-        play_x = PANEL_X + PANEL_INSET;
-        util_x = play_x;
+        play_x = (LDRAW_W - play_w) / 2;
+        util_x = (LDRAW_W - util_w) / 2;
         util_cell_w = (util_w - gap) / 2;
 
         for (int i = 0; i < m->count; i++)
@@ -328,7 +299,7 @@ static void menu_build(menu_t *m, ui_state_t state,
         for (int i = 0; i < m->count; i++) {
             action_t a = m->rows[i].act;
             if (a == ACT_PLAY || a == ACT_DEBUG_TOOLING ||
-                a == ACT_SWITCH_SAVE || a == ACT_EDIT_SAVE ||
+                a == ACT_MANAGE_SAVES ||
                 i == primary_rom || i == featured_rom)
                 continue;
             n_tools++;
@@ -399,7 +370,7 @@ static void menu_build(menu_t *m, ui_state_t state,
             for (int i = 0; i < m->count; i++) {
                 action_t a = m->rows[i].act;
                 if (a == ACT_PLAY || a == ACT_DEBUG_TOOLING ||
-                    a == ACT_SWITCH_SAVE || a == ACT_EDIT_SAVE ||
+                    a == ACT_MANAGE_SAVES ||
                     i == primary_rom || i == featured_rom)
                     continue;
                 int col = k & 1, row = k >> 1;
@@ -421,16 +392,12 @@ static void menu_build(menu_t *m, ui_state_t state,
         y += 24 + gap;
 
         {
-            int k = 0;
             for (int i = 0; i < m->count; i++) {
-                if (m->rows[i].act != ACT_SWITCH_SAVE &&
-                    m->rows[i].act != ACT_EDIT_SAVE) continue;
+                if (m->rows[i].act != ACT_MANAGE_SAVES) continue;
                 m->rows[i].tile = 0;
                 m->rows[i].h = ROW_H_SMALL;
                 m->rows[i].scale = 1;
-                m->rect[i] = (SDL_Rect){ util_x + k * (util_cell_w + gap), y,
-                                         util_cell_w, ROW_H_SMALL };
-                k++;
+                m->rect[i] = (SDL_Rect){ util_x, y, util_w, ROW_H_SMALL };
             }
         }
 
@@ -725,6 +692,14 @@ static void draw_main(menu_t *m, ui_state_t state, const char *status,
             LauncherDraw_Text(r,
                               LDRAW_W - PANEL_X - LauncherDraw_TextWidth(1, ver),
                               DESKTOP_VERSION_Y, 1, LCOL_TEXT_DIM, ver);
+        } else {
+            snprintf(ver, sizeof(ver), "%s - V%s", OLDAMBER_NAME, OLDAMBER_VERSION);
+            int y = lowest + 4;
+            int max_y = LDRAW_H - LDRAW_LINE_H(1) - 2;
+            if (y > max_y) y = max_y;
+            LauncherDraw_Text(r,
+                              LDRAW_W - PANEL_X - LauncherDraw_TextWidth(1, ver),
+                              y, 1, LCOL_TEXT_DIM, ver);
         }
     }
     SDL_RenderPresent(r);
@@ -911,6 +886,13 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
 
         while (SDL_PollEvent(&ev)) {
             LauncherNav_HandleEvent(&nav, &ev, r);
+            if (ev.type == SDL_WINDOWEVENT &&
+                (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED ||
+                 ev.window.event == SDL_WINDOWEVENT_RESIZED)) {
+
+                SDL_RenderSetLogicalSize(r, LDRAW_W, LDRAW_H);
+                SDL_RenderSetIntegerScale(r, SDL_TRUE);
+            }
             if (ev.type == SDL_DROPFILE) {
                 snprintf(drop_path, sizeof(drop_path), "%s", ev.drop.file);
                 dropped = 1;
@@ -1019,31 +1001,12 @@ launcher_result_t Launcher_Run(const char *tools_dir, const char *out_pak_path,
                     status_err = 1;
                     snprintf(status, sizeof(status), "%s", err);
                 }
-            } else if (act == ACT_SWITCH_SAVE) {
-                char picked[1024];
-
-                if (LauncherBrowse_Run(r, win, &nav, "CHOOSE A SAVE FILE", kSavExts,
-                                       NULL, picked, sizeof(picked))) {
-                    if (hotswap_save(sel_ver, picked)) {
-                        preview_focus = -1;
-                    } else {
-                        state = STATE_ERROR;
-                        status_err = 1;
-                        snprintf(status, sizeof(status), "COULD NOT SWITCH SAVE FILE");
-                        fprintf(stderr, "launcher: could not switch to %s\n", picked);
-                    }
-                }
-            } else if (act == ACT_EDIT_SAVE) {
-                int edited = LauncherSaveEditor_Run(
-                    r, win, &nav, GameVersion_SavePath(sel_ver),
-                    GameVersion_Label(sel_ver));
+            } else if (act == ACT_MANAGE_SAVES) {
+                int edited = LauncherSaveManager_Run(r, win, &nav);
                 preview_focus = -1;
                 if (edited > 0) {
                     status_err = 0;
-                    snprintf(status, sizeof(status), "SAVE CHANGES WRITTEN");
-                } else if (edited < 0) {
-                    status_err = 1;
-                    snprintf(status, sizeof(status), "COULD NOT EDIT SAVE FILE");
+                    snprintf(status, sizeof(status), "SAVE LIBRARY UPDATED");
                 }
             } else if (act == ACT_UPDATE) {
                 Update_GetSnapshot(&update);

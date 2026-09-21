@@ -1,6 +1,7 @@
 #include "launcher_save_editor_location.h"
 
 #include "data_dir.h"
+#include "launcher_location_names.h"
 #include "../data/map_data.h"
 
 #include <ctype.h>
@@ -72,6 +73,9 @@ static int load_directory(const char *dir_path) {
         memset(location, 0, sizeof(*location));
         memcpy(location->name, entry->d_name, n);
         location->name[n] = '\0';
+        LauncherLocation_DisplayName(location->name,
+                                     location->display_name,
+                                     sizeof location->display_name);
         snprintf(path, sizeof(path), "%s/%s", dir_path, entry->d_name);
         parse_location_file(location, path);
         location_count++;
@@ -116,7 +120,7 @@ int SE_LocationCount(void) {
 const char *SE_LocationLabel(void *ctx, int index) {
     (void)ctx;
     if (index < 0 || index >= location_count) return "";
-    return locations[index].name;
+    return locations[index].display_name;
 }
 
 int SE_LocationFind(const char *name) {

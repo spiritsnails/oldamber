@@ -36,6 +36,11 @@ int  Display_IsSteamDeck(void);
 void Display_SuspendFullscreenForOverlay(int suspended);
 
 int  Display_HasInputFocus(void);
+
+int  Display_ShouldSuspendPresentation(void);
+void Display_SetPresentationSuspended(int suspended);
+
+void Display_HandleRendererReset(void);
 void Display_SetDebugRenderMode(int on);
 
 void Display_SetFrameWidth(int px);

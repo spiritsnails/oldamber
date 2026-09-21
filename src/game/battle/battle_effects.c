@@ -1092,8 +1092,6 @@ static void Effect_Transform(void) {
     battle_mon_t *attacker;
     battle_mon_t *target;
     uint8_t      *attacker_bstat3;
-    uint16_t     *attacker_unmod_atk;
-    uint16_t     *target_unmod_atk;
     uint8_t      *attacker_stat_mods;
     uint8_t      *target_stat_mods;
 
@@ -1101,16 +1099,12 @@ static void Effect_Transform(void) {
         attacker           = &wBattleMon;
         target             = &wEnemyMon;
         attacker_bstat3    = &wPlayerBattleStatus3;
-        attacker_unmod_atk = &wPlayerMonUnmodifiedAttack;
-        target_unmod_atk   = &wEnemyMonUnmodifiedAttack;
         attacker_stat_mods = wPlayerMonStatMods;
         target_stat_mods   = wEnemyMonStatMods;
     } else {
         attacker           = &wEnemyMon;
         target             = &wBattleMon;
         attacker_bstat3    = &wEnemyBattleStatus3;
-        attacker_unmod_atk = &wEnemyMonUnmodifiedAttack;
-        target_unmod_atk   = &wPlayerMonUnmodifiedAttack;
         attacker_stat_mods = wEnemyMonStatMods;
         target_stat_mods   = wPlayerMonStatMods;
     }
@@ -1136,14 +1130,29 @@ static void Effect_Transform(void) {
     for (int i = 0; i < 4; i++)
         attacker->pp[i] = attacker->moves[i] ? 5 : 0;
 
-    attacker_unmod_atk[0] = target_unmod_atk[0];
-    attacker_unmod_atk[1] = target_unmod_atk[1];
-    attacker_unmod_atk[2] = target_unmod_atk[2];
-    attacker_unmod_atk[3] = target_unmod_atk[3];
+    if (hWhoseTurn == 0) {
+        wPlayerMonUnmodifiedAttack  = wEnemyMonUnmodifiedAttack;
+        wPlayerMonUnmodifiedDefense = wEnemyMonUnmodifiedDefense;
+        wPlayerMonUnmodifiedSpeed   = wEnemyMonUnmodifiedSpeed;
+        wPlayerMonUnmodifiedSpecial = wEnemyMonUnmodifiedSpecial;
+    } else {
+        wEnemyMonUnmodifiedAttack  = wPlayerMonUnmodifiedAttack;
+        wEnemyMonUnmodifiedDefense = wPlayerMonUnmodifiedDefense;
+        wEnemyMonUnmodifiedSpeed   = wPlayerMonUnmodifiedSpeed;
+        wEnemyMonUnmodifiedSpecial = wPlayerMonUnmodifiedSpecial;
+    }
     for (int i = 0; i < NUM_STAT_MODS; i++)
         attacker_stat_mods[i] = target_stat_mods[i];
 
     SET_BIT(*attacker_bstat3, BSTAT3_TRANSFORMED);
+    if (hWhoseTurn == 0) {
+        BLOG("transform slot=%u party_species=%u copied_species=%u party_hp=%u battle_hp=%u",
+             (unsigned)wPlayerMonNumber,
+             (unsigned)wPartyMons[wPlayerMonNumber].base.species,
+             (unsigned)wBattleMon.species,
+             (unsigned)wPartyMons[wPlayerMonNumber].base.hp,
+             (unsigned)wBattleMon.hp);
+    }
     BattleEvent_PushEffectMsg(BATTLE_EFFECT_MSG_TRANSFORMED,
                               (uint8_t)(hWhoseTurn == 0 ? 0u : 1u), 0u);
 }

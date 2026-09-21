@@ -1263,6 +1263,9 @@ int Save_EditorWrite(const char *path, const save_editor_data_t *data) {
     memcpy(save.pokedex_owned, data->pokedex_owned, sizeof(save.pokedex_owned));
     for (int i = 0; i < 19; i++)
         save.pokedex_seen[i] |= save.pokedex_owned[i];
+
+    save.pokedex_seen[18] &= 0x7f;
+    save.pokedex_owned[18] &= 0x7f;
     save.num_bag_items = data->num_bag_items <= BAG_ITEM_CAPACITY
                        ? data->num_bag_items : BAG_ITEM_CAPACITY;
     memcpy(save.bag_items, data->bag_items, sizeof(save.bag_items));

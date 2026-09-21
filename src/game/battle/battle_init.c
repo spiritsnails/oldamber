@@ -13,6 +13,8 @@
 #include "../pokedex.h"
 #include "../rival_starter.h"
 #include "../safari_zone_scripts.h"
+#include "../gen2_species.h"
+#include "../missingno.h"
 #include <string.h>
 
 static int s_pending_old_man_type = 0;
@@ -97,9 +99,14 @@ void Battle_Start(void) {
     wPlayerMonUnmodifiedSpeed   = wBattleMon.spd;
     wPlayerMonUnmodifiedSpecial = wBattleMon.spc;
 
-    uint8_t dex = gSpeciesToDex[wCurPartySpecies];
-    const base_stats_t *b = &gBaseStats[dex];
+    base_stats_t enemy_bs;
+    const base_stats_t *b = &enemy_bs;
     uint8_t lv = wCurEnemyLevel;
+
+    if (!Species_GetBaseStats(wCurPartySpecies, &enemy_bs)) {
+        printf("[battle] unknown wild species id %u\n", (unsigned)wCurPartySpecies);
+        return;
+    }
 
     uint8_t dv_atk = BattleRandom() & 0x0F;
     uint8_t dv_def = BattleRandom() & 0x0F;
@@ -111,6 +118,7 @@ void Battle_Start(void) {
 
     wEnemyMon.species    = wCurPartySpecies;
     Pokedex_SetSeen(wCurPartySpecies);
+    MissingNo_ApplyHallOfFameCorruption(wCurPartySpecies);
     wEnemyMon.hp         = CalcStat(b->hp,  dv_hp,  0, lv, 1);
     wEnemyMon.party_pos  = 0;
     wEnemyMon.status     = 0;

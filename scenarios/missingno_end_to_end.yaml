@@ -1,0 +1,104 @@
+schema: 1
+game: red
+base: fresh
+
+player:
+  name: GLITCH
+  rival_name: GARY
+  trainer_id: 1337
+  money: 99999
+  coins: 0
+  badges: [BOULDER, CASCADE, THUNDER, RAINBOW, SOUL]
+
+location:
+  vmap: ViridianCity
+  x: 17
+  y: 6
+  facing: up
+
+respawn:
+  last_healed_vmap: ViridianCity
+
+party:
+  - species: CHARIZARD
+    level: 55
+    moves: [FLAMETHROWER, FLY, SLASH, SWORDS_DANCE]
+    nickname: CHARIZARD
+    ot_name: GLITCH
+  - species: BLASTOISE
+    level: 55
+    moves: [SURF, ICE_BEAM, BODY_SLAM, BITE]
+    nickname: SURFER
+    ot_name: GLITCH
+  - species: VENUSAUR
+    level: 55
+    moves: [RAZOR_LEAF, SLEEP_POWDER, BODY_SLAM, GROWTH]
+    ot_name: GLITCH
+  - species: ALAKAZAM
+    level: 54
+    moves: [PSYCHIC_M, RECOVER, THUNDER_WAVE, REFLECT]
+    ot_name: GLITCH
+  - species: JOLTEON
+    level: 52
+    moves: [THUNDERBOLT, THUNDER_WAVE, DOUBLE_KICK, PIN_MISSILE]
+    ot_name: GLITCH
+  - species: SNORLAX
+    level: 58
+    moves: [BODY_SLAM, REST, EARTHQUAKE, HYPER_BEAM]
+    ot_name: GLITCH
+
+boxes:
+  current: 1
+  pokemon: []
+
+daycare: null
+
+bag:
+  - item: POTION
+    quantity: 10
+  - item: POKE_BALL
+    quantity: 30
+  - item: SUPER_POTION
+    quantity: 10
+  - item: ANTIDOTE
+    quantity: 5
+  - item: ESCAPE_ROPE
+    quantity: 3
+  - item: RARE_CANDY
+    quantity: 1
+  - item: MASTER_BALL
+    quantity: 1
+
+pc_items: []
+
+pokedex:
+  seen: [CHARIZARD, BLASTOISE, VENUSAUR, ALAKAZAM, JOLTEON, SNORLAX]
+  caught: [CHARIZARD, BLASTOISE, VENUSAUR, ALAKAZAM, JOLTEON, SNORLAX]
+
+events:
+  set: [EVENT_GOT_POKEDEX]
+  clear: []
+
+progress_flags:
+  completed_trades: []
+  visited_towns_mask: 2047
+  picked_up_items: []
+
+rng:
+  add: 37
+  sub: 181
+
+options:
+  text_speed: fast
+  battle_animations: true
+  battle_style: shift
+  sound: stereo
+
+play_time:
+  hours: 20
+  minutes: 0
+  seconds: 0
+  frames: 0
+
+movement: walking
+rival_starter: BLASTOISE

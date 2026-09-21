@@ -2,6 +2,11 @@
 #include "test_runner.h"
 #include "../src/data/wild_data.h"
 #include "../src/data/map_data.h"
+#include "../src/game/missingno.h"
+#include "../src/game/glitches.h"
+#include "../src/game/gen2_species.h"
+#include "../src/platform/hardware.h"
+#include <string.h>
 
 #define MAP_ROUTE_1     0x0C
 #define MAP_PALLET_TOWN 0x00
@@ -69,4 +74,49 @@ TEST(Wild, EncounterRateInRange) {
         EXPECT_TRUE(rate == 0 || rate > 0);
         if (rate > 0) EXPECT_LT((int)rate, 256);
     }
+}
+
+TEST(Wild, CustomOddNameProducesLevel80M00) {
+    uint8_t species = 0;
+    uint8_t level = 0;
+    base_stats_t bs;
+
+    Glitches_SetEnabled(1);
+    Glitches_SetMissingNoEnabled(1);
+    memset(wPlayerName, 0, NAME_LENGTH);
+    wPlayerName[0] = 0x80;
+    wPlayerName[1] = 0x92;
+    wPlayerName[2] = 0x87;
+    wPlayerName[3] = 0x50;
+    MissingNo_CaptureOldManName();
+
+    EXPECT_TRUE(MissingNo_TryCinnabarEncounter(
+        0x08, 19, 8, 1, 0, 60, &species, &level));
+    EXPECT_EQ((int)species, SPECIES_M_00_INTERNAL);
+    EXPECT_EQ((int)level, 80);
+    EXPECT_TRUE(MissingNo_IsM00(species));
+    EXPECT_TRUE(Species_GetBaseStats(species, &bs));
+    EXPECT_EQ((int)bs.hp, 33);
+    EXPECT_EQ((int)bs.atk, 137);
+    EXPECT_EQ((int)bs.def, 0);
+    EXPECT_EQ((int)bs.spd, 6);
+    EXPECT_EQ((int)bs.spc, 29);
+    EXPECT_EQ((int)bs.catch_rate, 3);
+}
+
+TEST(Wild, LaterCustomNameSlotProducesLevel0M00) {
+    uint8_t species = 0;
+    uint8_t level = 0xff;
+
+    memset(wPlayerName, 0, NAME_LENGTH);
+    wPlayerName[0] = 0x80;
+    wPlayerName[1] = 0x92;
+    wPlayerName[2] = 0x87;
+    wPlayerName[3] = 0x50;
+    MissingNo_CaptureOldManName();
+
+    EXPECT_TRUE(MissingNo_TryCinnabarEncounter(
+        0x08, 19, 8, 1, 0, 110, &species, &level));
+    EXPECT_EQ((int)species, SPECIES_M_00_INTERNAL);
+    EXPECT_EQ((int)level, 0);
 }

@@ -2,6 +2,7 @@
 #include "launcher_save_editor_location.h"
 #include "assetpack.h"
 #include "assetpack_bind.h"
+#include "data_dir.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -449,12 +450,22 @@ int SE_Choose(save_editor_t *e, const char *title, int count, int selected,
 }
 
 static int mount_editor_assets(const char *ver) {
-    char dir[256], err[512];
+    char dir[256], base[1200], err[512];
     Pkg_UnmountAll();
+    if (DataDir_Get(base, sizeof(base))) {
+        size_t n = strlen(base);
+        if (n && base[n - 1] != '/' && base[n - 1] != '\\')
+            snprintf(base + n, sizeof(base) - n, "/");
+        snprintf(base + strlen(base), sizeof(base) - strlen(base), "assets.pak");
+        (void)Pkg_Mount(base, err, sizeof(err));
+    }
     snprintf(dir, sizeof(dir), "packages/%s", ver);
     if (!Pkg_MountList(dir, err, sizeof(err))) {
         snprintf(dir, sizeof(dir), "../packages/%s", ver);
-        if (!Pkg_MountList(dir, err, sizeof(err))) return 0;
+        if (!Pkg_MountList(dir, err, sizeof(err))) {
+            Pkg_UnmountAll();
+            return 0;
+        }
     }
     AssetPack_BindAll();
     return 1;

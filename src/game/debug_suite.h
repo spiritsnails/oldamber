@@ -29,5 +29,6 @@ void DebugSuite_RecordFrame(uint8_t joy_input, int slot);
 int  DebugSuite_ReplayActive(void);
 
 int  DebugSuite_CaptureReport(const char *message);
+const char *DebugSuite_LastScenarioPath(void);
 
 int  DebugSuite_TryCommand(const char *cmd);

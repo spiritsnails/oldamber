@@ -26,6 +26,7 @@
 #include "battle/battle_ui.h"
 #include "battle/battle_loop.h"
 #include "battle/battle_init.h"
+#include "missingno.h"
 #include "debug_cli.h"
 #include "py_ai_bridge.h"
 #include "type_mod.h"
@@ -5943,7 +5944,10 @@ void AmberScript_Scene_Tick(void) {
                         if (Text_IsOpen()) break;
                         s_scene_last_battle_result = -1;
 
-                        if (cmdp->c == 1) Battle_RequestOldManType();
+                        if (cmdp->c == 1) {
+                            MissingNo_CaptureOldManName();
+                            Battle_RequestOldManType();
+                        }
                         Game_StartWildBattleScripted((uint8_t)cmdp->a, (uint8_t)cmdp->b);
                         s_scene_wait_battle = 1;
                         s_scene_pc++;

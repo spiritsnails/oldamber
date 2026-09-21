@@ -562,6 +562,14 @@ const void *AssetPack_Require(const char *name, uint32_t *out_count)
 {
     AssetPack_Entry e;
     if (!AssetPack_Find(name, &e)) {
+        /* Older imported packages predate the MissingNo front sprite. Keep
+           them usable; the editor and vanilla gameplay can safely use a
+           blank placeholder until the package is regenerated. */
+        if (name && strcmp(name, "gMissingNoFrontSprite") == 0) {
+            static uint8_t missingno_fallback[49][16];
+            if (out_count) *out_count = 49;
+            return missingno_fallback;
+        }
         fprintf(stderr,
                 "FATAL: asset '%s' is missing from every mounted package.\n"
                 "The pack does not match this build. Rebuild it:\n"

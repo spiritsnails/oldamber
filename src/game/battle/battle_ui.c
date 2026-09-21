@@ -50,6 +50,7 @@
 #include <string.h>
 
 #include "../gen2_species.h"
+#include "../missingno.h"
 #include "crystal_mon_pics.h"
 #include "crystal_trainer_pics.h"
 #include "johto_trainers.h"
@@ -199,9 +200,9 @@ static const char *bui_party_slot_name(int slot) {
             s_name[out] = '\0';
             if (out > 0) return s_name;
         }
-        return Pokemon_GetName(Species_Dex(wPartyMons[slot].base.species));
+        return Pokemon_GetNameBySpecies(wPartyMons[slot].base.species);
     }
-    return Pokemon_GetName(Species_Dex(wBattleMon.species));
+    return Pokemon_GetNameBySpecies(wBattleMon.species);
 }
 
 static const char *bui_player_mon_name(void) {
@@ -217,7 +218,7 @@ static const char *bui_enemy_mon_name(void) {
     if (bui_enemy_drawn_as_ghost()) return "GHOST";
     if (!(wEnemyBattleStatus3 & (1u << BSTAT3_TRANSFORMED)))
         s_enemy_display_species = wEnemyMon.species;
-    return Pokemon_GetName(Species_Dex(s_enemy_display_species));
+    return Pokemon_GetNameBySpecies(s_enemy_display_species);
 }
 
 static uint8_t s_pending_item = 0;
@@ -698,7 +699,7 @@ static void bui_restore_battle_palette(void) {
 
 static void bui_caught_after_naming(void) {
     if (s_caught_sent_to_box) {
-        const char *ename = Pokemon_GetName(s_caught_dex);
+        const char *ename = Pokemon_GetNameBySpecies(s_caught_species);
         snprintf(s_msg_buf, sizeof(s_msg_buf),
                  CheckEvent(EVENT_MET_BILL)
                     ? "%s was\ntransferred to\nBILL's PC!"
@@ -1083,6 +1084,7 @@ static void bui_draw_levelup_stats(const levelup_stats_t *s) {
 #define ENEMY_SPR_TILE_BASE   0
 #define PLAYER_SPR_BG_BASE    53
 #define ENEMY_SPR_OAM_BASE    53
+#define M00_NAME_ENEMY_BG_BASE 102
 
 #define ENEMY_SPR_PX_X        96
 
@@ -1280,12 +1282,14 @@ static int bui_has_gen2_pic(uint8_t species) {
 }
 
 static int bui_has_front_sprite(uint8_t species, uint8_t dex) {
+    if (MissingNo_GetFrontTile(species, 0) != NULL) return 1;
     if (SpriteMod_GetFrontTile(species, 0) != NULL) return 1;
     if (dex > 0 && dex <= 151) return 1;
     return bui_has_gen2_pic(species);
 }
 
 static int bui_has_back_sprite(uint8_t species, uint8_t dex) {
+    if (MissingNo_GetBackTile(species, 0) != NULL) return 1;
     if (SpriteMod_GetBackTile(species, 0) != NULL) return 1;
     if (dex > 0 && dex <= 151) return 1;
     return bui_has_gen2_pic(species);
@@ -1297,6 +1301,13 @@ uint8_t BattleUI_EnemyPicSpecies(void) { return s_enemy_pic_species; }
 
 static void bui_load_enemy_front_tiles(uint8_t species, uint8_t dex) {
     s_enemy_pic_species = species;
+    if (MissingNo_GetFrontTile(species, 0) != NULL) {
+        for (int i = 0; i < POKEMON_FRONT_CANVAS_TILES; i++)
+            Display_LoadSpriteTile((uint8_t)(ENEMY_SPR_TILE_BASE + i),
+                                   MissingNo_GetFrontTile(species, i));
+        s_enemy_pic_kind = BUI_ENEMY_PIC_MON;
+        return;
+    }
 
     if (bui_enemy_drawn_as_ghost()) {
         for (int i = 0; i < POKEMON_FRONT_CANVAS_TILES; i++)
@@ -1329,6 +1340,12 @@ static void bui_load_enemy_front_tiles(uint8_t species, uint8_t dex) {
 }
 
 static void bui_load_player_back_tiles(uint8_t species, uint8_t dex) {
+    if (MissingNo_GetBackTile(species, 0) != NULL) {
+        for (int i = 0; i < POKEMON_BACK_TILES; i++)
+            Display_LoadTile((uint8_t)(PLAYER_SPR_BG_BASE + i),
+                             MissingNo_GetBackTile(species, i));
+        return;
+    }
 
     int gdex = Species_Dex(species);
     if (gdex >= 152 && gdex < CRYSTAL_MON_COUNT) {
@@ -1637,6 +1654,35 @@ int BattleUI_PlayerMonIsOut(void) {
     return !(wBattleType == 1 || wBattleType == 2);
 }
 
+void BattleUI_DrawEnemyName(void) {
+    const char *name = bui_enemy_mon_name();
+    if (MissingNo_IsM00(s_enemy_display_species)) {
+
+        static const uint8_t front_pic_indexes[3] = { 19, 32, 41 };
+        uint8_t name_tiles[10];
+
+        for (int i = 0; i < 3; i++)
+            Display_LoadTile((uint8_t)(M00_NAME_ENEMY_BG_BASE + i),
+                             Display_GetSpriteTile((uint8_t)(ENEMY_SPR_TILE_BASE + front_pic_indexes[i])));
+
+        name_tiles[0] = (uint8_t)Font_CharToTile(0xD7);
+        name_tiles[1] = (uint8_t)(PLAYER_SPR_BG_BASE + 12);
+        name_tiles[2] = (uint8_t)(PLAYER_SPR_BG_BASE + 13);
+        name_tiles[3] = M00_NAME_ENEMY_BG_BASE;
+        name_tiles[4] = (uint8_t)Font_CharToTile(0xE0);
+        name_tiles[5] = (uint8_t)Font_CharToTile(0x8C);
+        name_tiles[6] = (uint8_t)Font_CharToTile(0xCD);
+        name_tiles[7] = (uint8_t)(M00_NAME_ENEMY_BG_BASE + 1);
+        name_tiles[8] = (uint8_t)(M00_NAME_ENEMY_BG_BASE + 2);
+        name_tiles[9] = (uint8_t)Font_CharToTile(0xCD);
+
+        for (int i = 0; i < 10; i++)
+            bui_set_tile(1 + i, 0, name_tiles[i]);
+    } else {
+        bui_put_str(1 + BattleUI_CenterMonNameOffset(bui_name_len(name)), 0, name);
+    }
+}
+
 static void bui_draw_enemy_hud(void) {
     bui_clear_rect(0, 0, 11, 3);
 
@@ -1646,8 +1692,7 @@ static void bui_draw_enemy_hud(void) {
         bui_set_tile(c, 3, (uint8_t)Font_CharToTile(0x76));
     bui_set_tile(10, 3, (uint8_t)Font_CharToTile(0x78));
 
-    const char *name = bui_enemy_mon_name();
-    bui_put_str(1 + BattleUI_CenterMonNameOffset(bui_name_len(name)), 0, name);
+    BattleUI_DrawEnemyName();
 
     int printed_status = bui_put_status_condition(5, 1, wEnemyMon.status);
     if (!printed_status)
@@ -1913,7 +1958,7 @@ static const char *bui_party_mon_name(uint8_t slot) {
             s_name[out] = '\0';
             if (out > 0) return s_name;
         }
-        return Pokemon_GetName(Species_Dex(wPartyMons[slot].base.species));
+        return Pokemon_GetNameBySpecies(wPartyMons[slot].base.species);
     }
     return "";
 }
@@ -2451,8 +2496,8 @@ static void bui_show_after_move(int whose, const char *pfx, const char *name,
         case BATTLE_EFFECT_MSG_TRANSFORMED: {
 
             const char *tsp = (ev->side == 0u)
-                            ? Pokemon_GetName(Species_Dex(wEnemyMon.species))
-                            : Pokemon_GetName(Species_Dex(wBattleMon.species));
+                            ? Pokemon_GetNameBySpecies(wEnemyMon.species)
+                            : Pokemon_GetNameBySpecies(wBattleMon.species);
             bui_append_text_page(s_post_move_text, sizeof(s_post_move_text), &post_pos,
                                  "%s%s\ntransformed into\n%s!", pfx, name, tsp);
             break;
@@ -3924,6 +3969,8 @@ void BattleUI_Enter(void) {
     bui_state       = BUI_SLIDE_IN;
     s_rival1_loss   = 0;
 
+    s_enemy_display_species = wEnemyMon.species;
+
     memset(gScrollTileMap, BLANK_TILE_SLOT,
            (size_t)SCROLL_MAP_W * (size_t)SCROLL_MAP_H);
 
@@ -4502,7 +4549,7 @@ static void bui_tick_once(void) {
                     s_switch_slot       = s_shift_slot;
                     s_retreat_stage     = 0;  s_retreat_frame = 0;
                     s_grow_after_switch = 0;
-                    const char *old_name = Pokemon_GetName(Species_Dex(s_retreat_species));
+                    const char *old_name = Pokemon_GetNameBySpecies(s_retreat_species);
                     bui_retreat_text(old_name, s_wait_cry_text, sizeof(s_wait_cry_text));
                     s_wait_cry_text_keep  = 1;
                     s_wait_cry_next_state = BUI_RETREAT_ANIM;
@@ -5837,7 +5884,7 @@ static void bui_tick_once(void) {
         bui_draw_player_hud();
         bui_load_sprites();
 
-        const char *old_name = Pokemon_GetName(Species_Dex(s_retreat_species));
+        const char *old_name = Pokemon_GetNameBySpecies(s_retreat_species);
         bui_retreat_text(old_name, s_msg_buf, sizeof(s_msg_buf));
         bui_show_text_done(s_msg_buf);
 
@@ -6536,13 +6583,14 @@ static void bui_tick_once(void) {
         wCapturedMonSpecies = wEnemyMon.species;
         s_caught_species = wEnemyMon.species;
         s_caught_dex = gSpeciesToDex[s_caught_species];
-        s_caught_new_entry = !bui_pokedex_owned_num(s_caught_dex);
+        s_caught_new_entry = !MissingNo_IsEnabledSpecies(s_caught_species) &&
+                             !bui_pokedex_owned_num(s_caught_dex);
         s_caught_sent_to_box = 0;
         s_caught_dex_started = 0;
         s_caught_party_slot = -1;
         s_caught_box_slot = -1;
         s_caught_box_index = -1;
-        ename = Pokemon_GetName(s_caught_dex);
+        ename = Pokemon_GetNameBySpecies(s_caught_species);
 
         Pokedex_SetOwned(s_caught_species);
 
@@ -6563,10 +6611,9 @@ static void bui_tick_once(void) {
             p->base.dvs        = wEnemyMon.dvs;
             p->base.ot_id      = wPlayerID;
 
-            uint8_t caught_dex = gSpeciesToDex[s_caught_species];
-            uint8_t growth = (caught_dex > 0 && caught_dex <= NUM_POKEMON)
-                           ? gBaseStats[caught_dex].growth_rate
-                           : GROWTH_MEDIUM_FAST;
+            base_stats_t caught_bs;
+            uint8_t growth = Species_GetBaseStats(s_caught_species, &caught_bs)
+                           ? caught_bs.growth_rate : GROWTH_MEDIUM_FAST;
             uint32_t xp = CalcExpForLevel(growth, wEnemyMon.level);
             p->base.exp[0] = (uint8_t)((xp >> 16) & 0xFF);
             p->base.exp[1] = (uint8_t)((xp >>  8) & 0xFF);
@@ -6635,7 +6682,7 @@ static void bui_tick_once(void) {
         break;
 
     case BUI_CAUGHT_NICK_PROMPT: {
-        const char *ename = Pokemon_GetName(s_caught_dex);
+        const char *ename = Pokemon_GetNameBySpecies(s_caught_species);
         snprintf(s_msg_buf, sizeof(s_msg_buf),
                  "Do you want to\ngive a nickname\nto %s?", ename ? ename : "");
         YesNo_Show(s_msg_buf);

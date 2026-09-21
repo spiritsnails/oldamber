@@ -481,7 +481,8 @@ enum {
     ROW_PAUSE_UNFOCUSED,
     ROW_MUTE_UNFOCUSED,
     ROW_AUDIO_OUTPUT,
-    ROW_TRAINER_FLY_GLITCH
+    ROW_TRAINER_FLY_GLITCH,
+    ROW_MISSINGNO_GLITCH
 };
 
 typedef enum { RK_VALUE, RK_SUBMENU, RK_BACK } rowkind_t;
@@ -654,17 +655,18 @@ static const menu_row_t kPaletteRows[] = {
 static const menu_row_t kGameplayRows[] = {
     { RK_VALUE, ROW_EXPSHARE, "GEN 6 EXP SHARE", kExpShareChoices, 1, 0, 0, 10 },
     { RK_VALUE, ROW_TRAINER_FLY_GLITCH, "TRAINER-FLY GLITCH", kDebugToggleChoices, 4, 0, 1, 0 },
-    { RK_VALUE, ROW_FASTBOOT, "FAST BOOT", kFastBootChoices, 8, 0, 0, 10 },
-    { RK_VALUE, ROW_PAUSE_UNFOCUSED, "PAUSE UNFOCUSED", kDebugToggleChoices, 11, 0, 0, 10 },
-    { RK_VALUE, ROW_MUTE_UNFOCUSED, "MUTE UNFOCUSED", kDebugToggleChoices, 12, 0, 0, 10 },
-    { RK_BACK,  0,            "BACK",      NULL,             15, 0, 0, 0 },
+    { RK_VALUE, ROW_MISSINGNO_GLITCH, "MISSINGNO. GLITCH", kDebugToggleChoices, 6, 0, 1, 0 },
+    { RK_VALUE, ROW_FASTBOOT, "FAST BOOT", kFastBootChoices, 10, 0, 0, 10 },
+    { RK_VALUE, ROW_PAUSE_UNFOCUSED, "PAUSE UNFOCUSED", kDebugToggleChoices, 13, 0, 0, 10 },
+    { RK_VALUE, ROW_MUTE_UNFOCUSED, "MUTE UNFOCUSED", kDebugToggleChoices, 14, 0, 0, 10 },
+    { RK_BACK,  0,            "BACK",      NULL,             17, 0, 0, 0 },
 };
-#define GAMEPLAY_BOX_BOTTOM 13
+#define GAMEPLAY_BOX_BOTTOM 15
 static const menu_header_t kGameplayHeaders[] = {
     { 0, "RULES" },
     { 3, "BUGS" },
-    { 7, "STARTUP" },
-    { 10, "BACKGROUND" },
+    { 9, "STARTUP" },
+    { 12, "BACKGROUND" },
 };
 
 static const menu_row_t kDebugRows[] = {
@@ -774,6 +776,7 @@ static int current_index(int row) {
     case ROW_HPBAR:   v = SpeedSettings_HpBar();       tbl = kHpBarChoices;     n = N_HPBAR;   break;
     case ROW_EXPSHARE: v = BattleExp_ModernShare();    tbl = kExpShareChoices;       n = N_EXPSHARE; break;
     case ROW_TRAINER_FLY_GLITCH: v = Glitches_TrainerFlyEnabled(); tbl = kDebugToggleChoices; n = N_DEBUG_TOGGLE; break;
+    case ROW_MISSINGNO_GLITCH: v = Glitches_MissingNoEnabled(); tbl = kDebugToggleChoices; n = N_DEBUG_TOGGLE; break;
     case ROW_FASTBOOT: v = s_fast_boot;                tbl = kFastBootChoices;       n = N_FASTBOOT; break;
     case ROW_GLOBALSPD: v = DebugSuite_SpeedPct();      tbl = kGlobalSpeedChoices;    n = N_GLOBALSPD; break;
     case ROW_PAUSE_UNFOCUSED: v = s_pause_unfocused;   tbl = kDebugToggleChoices;    n = N_DEBUG_TOGGLE; break;
@@ -917,6 +920,9 @@ static void apply(int row, int index) {
         Glitches_SetTrainerFlyEnabled(kDebugToggleChoices[index].value);
         if (!kDebugToggleChoices[index].value)
             TrainerFly_Reset();
+        break;
+    case ROW_MISSINGNO_GLITCH:
+        Glitches_SetMissingNoEnabled(kDebugToggleChoices[index].value);
         break;
     case ROW_FASTBOOT:
         s_fast_boot = kFastBootChoices[index].value;
@@ -1069,6 +1075,7 @@ static const choice_t *row_table(int row) {
     case ROW_UI:        return kUiChoices;
     case ROW_EXPSHARE:  return kExpShareChoices;
     case ROW_TRAINER_FLY_GLITCH: return kDebugToggleChoices;
+    case ROW_MISSINGNO_GLITCH: return kDebugToggleChoices;
     case ROW_FASTBOOT:  return kFastBootChoices;
     case ROW_GLOBALSPD: return kGlobalSpeedChoices;
     case ROW_PAUSE_UNFOCUSED:
@@ -1120,6 +1127,7 @@ static int row_count(int row) {
     case ROW_UI:      return N_UI;
     case ROW_EXPSHARE: return N_EXPSHARE;
     case ROW_TRAINER_FLY_GLITCH: return N_DEBUG_TOGGLE;
+    case ROW_MISSINGNO_GLITCH: return N_DEBUG_TOGGLE;
     case ROW_FASTBOOT: return N_FASTBOOT;
     case ROW_GLOBALSPD: return N_GLOBALSPD;
     case ROW_PAUSE_UNFOCUSED:
@@ -1184,6 +1192,7 @@ static const struct { int row; const char *key; } kPersistRows[] = {
     { ROW_OWSPD,    "ow_speed"    },
     { ROW_EXPSHARE, "exp_share"   },
     { ROW_TRAINER_FLY_GLITCH, "trainer_fly_glitch" },
+    { ROW_MISSINGNO_GLITCH, "missingno_glitch" },
     { ROW_FASTBOOT, "fast_boot"   },
     { ROW_GLOBALSPD, "global_speed" },
     { ROW_PAUSE_UNFOCUSED, "pause_unfocused" },

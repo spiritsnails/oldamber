@@ -17,6 +17,7 @@
 #include "crystal_fade.h"
 #include "inventory.h"
 #include "pokemon.h"
+#include "missingno.h"
 #include "constants.h"
 #include "../data/font_data.h"
 #include "../data/event_data.h"
@@ -32,8 +33,6 @@
 #include "johto_battle.h"
 #include "party_menu.h"
 #include "pokecenter.h"
-
-static int g_pcnpcdbg_dumped = 0;
 #include "pc_menu.h"
 #include "players_pc.h"
 #include "fly_anim.h"
@@ -322,6 +321,24 @@ static void enter_overworld(void) {
     gScene = SCENE_OVERWORLD;
 }
 
+int Game_EnterScenarioOverworld(const char *map_name, int x, int y, int facing) {
+    int rid;
+    if (!map_name || !*map_name || x < 0 || x > 255 || y < 0 || y > 255)
+        return 0;
+
+    TitleScreen_Close();
+    AmberScript_SetEnabled(1);
+    rid = AmberScript_MapBank_GetOrAssignRealId(map_name);
+    if (rid < 0) return 0;
+    wCurMap = (uint8_t)rid;
+    wLastMap = wCurMap;
+    wXCoord = (uint8_t)x;
+    wYCoord = (uint8_t)y;
+    gPlayerFacing = facing & 3;
+    enter_overworld();
+    return 1;
+}
+
 int Game_WarpToRealMap(uint8_t real_id, int x, int y) {
     extern int AmberScript_MapWarp(const char *name, int x, int y);
     if (real_id >= NUM_MAPS) {
@@ -601,6 +618,23 @@ static void check_wild_encounter(void) {
     uint8_t cur_tile = Map_GetGameTile((int)wXCoord, (int)wYCoord);
     int is_water = (cur_tile == 0x14);
     int is_vmap = AmberScript_IsEnabled() && wCurMap >= PKS_VIRTUAL_MAP_FIRST && wCurMap <= PKS_VIRTUAL_MAP_LAST;
+    const wild_mons_t *kanto_wild = AmberScript_GetWildMonsFor(wCurMap, is_water);
+
+    MissingNo_ObserveWildTable((uint8_t)Map_CurrentRealId(), kanto_wild);
+
+    {
+        uint8_t species = 0, level = 0;
+        if (MissingNo_TryCinnabarEncounter((uint8_t)Map_CurrentRealId(),
+                                           (int)wXCoord,
+                                           (int)wYCoord,
+                                           wWalkBikeSurfState == 2,
+                                           hRandomAdd, hRandomSub,
+                                           &species, &level)) {
+            wCurPartySpecies = species;
+            wCurEnemyLevel = level;
+            goto wild_encounter_selected;
+        }
+    }
 
     if (!is_water) {
 
@@ -627,7 +661,7 @@ static void check_wild_encounter(void) {
         wCurEnemyLevel   = level;
         wCurPartySpecies = species;
     } else {
-        const wild_mons_t *w = AmberScript_GetWildMonsFor(wCurMap, is_water);
+        const wild_mons_t *w = kanto_wild;
         if (!w->rate) return;
 
         uint8_t rate_roll = hRandomAdd;
@@ -644,6 +678,8 @@ static void check_wild_encounter(void) {
         wCurEnemyLevel   = w->slots[slot_idx].level;
         wCurPartySpecies = w->slots[slot_idx].species;
     }
+
+wild_encounter_selected:
 
     if (wRepelRemainingSteps > 0 && wCurEnemyLevel < wPartyMons[0].level)
         return;
@@ -796,18 +832,22 @@ static void check_npc_interact(void) {
         if (is_trainer) return;
     }
 
-    if (best_i >= ev->num_npcs) return;
-
-    const npc_event_t *self = &ev->npcs[best_i];
-    {
+    const npc_event_t *self = NULL;
+    if (AmberScript_IsEnabled() &&
+        wCurMap >= PKS_VIRTUAL_MAP_FIRST && wCurMap <= PKS_VIRTUAL_MAP_LAST) {
         int decl = NPC_GetDeclIdx(best_i);
-        if (decl >= 0 && AmberScript_IsEnabled() &&
-            wCurMap >= PKS_VIRTUAL_MAP_FIRST && wCurMap <= PKS_VIRTUAL_MAP_LAST) {
+        if (decl >= 0) {
             for (int k = 0; k < ev->num_npcs; k++) {
-                if ((int)ev->npcs[k].src_idx == decl) { self = &ev->npcs[k]; break; }
+                if ((int)ev->npcs[k].src_idx == decl) {
+                    self = &ev->npcs[k];
+                    break;
+                }
             }
         }
+    } else if (best_i < ev->num_npcs) {
+        self = &ev->npcs[best_i];
     }
+    if (!self) return;
 
     if (self->script) {
         self->script();
@@ -1176,27 +1216,6 @@ void GameTick(void) {
 
     if (Text_IsOpen()) {
         int text_was_open = Text_IsOpen();
-
-        if (Pokecenter_IsActive()) {
-            if (!g_pcnpcdbg_dumped) {
-                int n = NPC_GetCount();
-                g_pcnpcdbg_dumped = 1;
-                DBG_PRINTF("[PCNPCDBG] pokecenter text open: %d npcs, hWY=%d\n",
-                       n, (int)hWY);
-                for (int i = 0; i < n; i++) {
-                    int o = 4 + i * 4;
-                    DBG_PRINTF("[PCNPCDBG]   npc%-2d sprite=%-3d hidden=%d "
-                           "oam.y=%3d,%3d,%3d,%3d oam.x=%3d\n",
-                           i, NPC_GetSpriteId(i), NPC_IsHidden(i),
-                           wShadowOAM[o + 0].y, wShadowOAM[o + 1].y,
-                           wShadowOAM[o + 2].y, wShadowOAM[o + 3].y,
-                           wShadowOAM[o + 0].x);
-                }
-                fflush(stdout);
-            }
-        } else {
-            g_pcnpcdbg_dumped = 0;
-        }
         Text_Update();
 
         MoneyBox_Refresh();
@@ -1940,7 +1959,9 @@ void GameTick(void) {
     {
         uint8_t glitch_species, glitch_level;
         if (TrainerFly_TakeEncounter(&glitch_species, &glitch_level)) {
-            if (glitch_species != 0 && gSpeciesToDex[glitch_species] != 0 &&
+            if (glitch_species != 0 &&
+                (gSpeciesToDex[glitch_species] != 0 ||
+                 MissingNo_IsEnabledSpecies(glitch_species)) &&
                 glitch_level >= 1 && glitch_level <= 13) {
                 Game_StartWildBattleScripted(glitch_species, glitch_level);
             } else {

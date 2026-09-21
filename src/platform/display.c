@@ -17,6 +17,7 @@
 
 static SDL_Window   *window   = NULL;
 static SDL_Renderer *renderer = NULL;
+static int s_presentation_suspended;
 
 static const uint32_t *(*s_suspend_overlay)(int *, int *, int *, int *, int *, int *) = NULL;
 
@@ -808,6 +809,30 @@ int Display_HasInputFocus(void) {
     return window && (SDL_GetWindowFlags(window) & SDL_WINDOW_INPUT_FOCUS) != 0;
 }
 
+int Display_ShouldSuspendPresentation(void) {
+    uint32_t flags;
+    const char *driver;
+
+    if (!window) return 1;
+    flags = SDL_GetWindowFlags(window);
+    if (flags & (SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED)) return 1;
+
+    driver = SDL_GetCurrentVideoDriver();
+    return driver && strcmp(driver, "wayland") == 0 &&
+           !(flags & SDL_WINDOW_INPUT_FOCUS);
+}
+
+void Display_SetPresentationSuspended(int suspended) {
+    suspended = suspended ? 1 : 0;
+    if (suspended == s_presentation_suspended) return;
+    s_presentation_suspended = suspended;
+
+    s_present_deadline_ctr = 0;
+    printf("[display] background presentation %s\n",
+           suspended ? "suspended" : "resumed");
+    fflush(stdout);
+}
+
 void Display_SuspendFullscreenForOverlay(int suspended) {
     static int held;
     if (!window || !s_fullscreen) return;
@@ -858,6 +883,10 @@ int Display_Init(void) {
             (g_debug_render_mode ? 0u : DisplayGL_WantedWindowFlags())
     );
     if (!window) return -1;
+
+    printf("[display] SDL video driver=%s\n",
+           SDL_GetCurrentVideoDriver() ? SDL_GetCurrentVideoDriver() : "unknown");
+    fflush(stdout);
 
 #if !defined(_WIN32) && !defined(__APPLE__)
 
@@ -1278,7 +1307,8 @@ static void present_fb(void) {
     const uint32_t *presented;
     int advances_source;
 
-    if (!present_is_due() || s_source_serial == 0) return;
+    if (s_presentation_suspended || !present_is_due() || s_source_serial == 0)
+        return;
 
     advances_source = s_source_serial != s_last_presented_source_serial;
     s_present_advances_source = advances_source;
@@ -1346,6 +1376,7 @@ static void present_fb(void) {
             return;
         }
     }
+    if (!fb_tex) return;
     SDL_UpdateTexture(fb_tex, NULL, presented, g_fb_w * sizeof(uint32_t));
     SDL_RenderClear(renderer);
     if (!g_debug_render_mode) {
@@ -2253,6 +2284,31 @@ void Display_ApplyBackendRestart(void) {
     printf("[display] backend now: %s\n",
            DisplayGL_IsActive() ? "OpenGL" : "SDL");
     fflush(stdout);
+}
+
+void Display_HandleRendererReset(void) {
+    if (!renderer) return;
+
+    if (s_ov_tex) { SDL_DestroyTexture(s_ov_tex); s_ov_tex = NULL; }
+    s_ov_tex_w = s_ov_tex_h = 0;
+    if (sgb_tex) { SDL_DestroyTexture(sgb_tex); sgb_tex = NULL; }
+    if (fb_tex) { SDL_DestroyTexture(fb_tex); fb_tex = NULL; }
+
+    fb_tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
+                               SDL_TEXTUREACCESS_STREAMING,
+                               g_fb_w, SCREEN_HEIGHT_PX);
+    g_lcd_previous_valid = 0;
+    s_present_previous_valid = 0;
+    s_present_deadline_ctr = 0;
+    Display_RestoreLogicalSize();
+    Display_ApplyScalingMode();
+
+    if (!fb_tex)
+        fprintf(stderr, "[display] renderer reset recovery failed: %s\n",
+                SDL_GetError());
+    else
+        printf("[display] renderer reset recovered\n");
+    fflush(fb_tex ? stdout : stderr);
 }
 
 void Display_Quit(void) {

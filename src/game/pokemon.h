@@ -16,6 +16,8 @@ void Pokemon_WriteMovesForLevel(uint8_t *moves, uint8_t *pp,
                                 uint8_t species_id, uint8_t level);
 
 void Pokemon_AddToParty(uint8_t species, uint8_t level);
+int Pokemon_RecalculatePartyData(party_mon_t *mon);
+int Pokemon_RecalculatePartyMon(int slot);
 
 int Pokemon_AddToBox(uint8_t species, uint8_t level);
 

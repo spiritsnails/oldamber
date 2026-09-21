@@ -123,6 +123,10 @@ void Battle_SwitchPlayerMon(uint8_t new_slot) {
 }
 
 void Battle_ChooseNextMon(uint8_t new_slot) {
+    BLOG("forced switch old_slot=%u new_slot=%u new_species=%u new_hp=%u",
+         (unsigned)wPlayerMonNumber, (unsigned)new_slot,
+         (unsigned)wPartyMons[new_slot].base.species,
+         (unsigned)wPartyMons[new_slot].base.hp);
     wPlayerMonNumber = new_slot;
 
     wPartyGainExpFlags |= (uint8_t)(1u << new_slot);

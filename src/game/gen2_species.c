@@ -5,6 +5,7 @@
 #include "../data/base_stats.h"
 #include "gen2_pokedex.h"
 #include "gen2_evos_moves.h"
+#include "missingno.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -17,25 +18,11 @@ static uint8_t s_internal_to_dex[256];
 static int s_ready = 0;
 
 void Gen2Species_Init(void) {
-    int next = 0;
     if (s_ready) return;
     memset(s_dex_to_internal, 0, sizeof(s_dex_to_internal));
     memset(s_internal_to_dex, 0, sizeof(s_internal_to_dex));
-
-    for (int id = 1; id < 256 && next < GEN2_COUNT; id++) {
-        if (gSpeciesToDex[id] != 0) continue;
-        s_dex_to_internal[next] = (uint8_t)id;
-        s_internal_to_dex[id] = (uint8_t)(GEN2_FIRST_DEX + next);
-        next++;
-    }
     s_ready = 1;
 
-    if (next < GEN2_COUNT) {
-
-        printf("[gen2] only %d of %d Gen 2 species could be assigned an internal "
-               "id -- dex %d and up are unavailable\n",
-               next, GEN2_COUNT, GEN2_FIRST_DEX + next);
-    }
 }
 
 uint8_t Gen2Species_DexToInternal(uint8_t dex) {
@@ -109,6 +96,7 @@ int Species_GetBaseStats(uint8_t species, base_stats_t *out_bs) {
     if (!out_bs) return 0;
 
     if (SpeciesMod_GetBaseStats(species, out_bs)) return 1;
+    if (MissingNo_GetBaseStats(species, out_bs)) return 1;
     if (Gen2Species_GetBaseStats(species, out_bs)) return 1;
     dex = gSpeciesToDex[species];
     if (dex >= 1 && dex <= NUM_POKEMON) {

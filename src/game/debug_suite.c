@@ -44,6 +44,7 @@ static void suite_replace(const char *tmp, const char *dst) {
 #include "amberscript_mapbank.h"
 #include "overworld.h"
 #include "pokemon.h"
+#include "scenario.h"
 #include "../data/moves_data.h"
 #include "../data/base_stats.h"
 #include "../data/item_names_gen.h"
@@ -103,6 +104,7 @@ static int      s_replay_active = 0;
 
 static uint8_t *s_scratch = NULL;
 static FILE    *s_hash_fp = NULL;
+static char     s_last_scenario_path[512] = {0};
 static unsigned s_ack_seq = 0;
 static char     s_last_report_id[64] = {0};
 
@@ -828,6 +830,7 @@ int DebugSuite_CaptureReport(const char *message) {
     time_t now;
     struct tm *tmv;
 
+    s_last_scenario_path[0] = 0;
     if (!s_rw_data || !s_rw_seq || !s_rw_len) return -1;
 
     {
@@ -894,6 +897,14 @@ int DebugSuite_CaptureReport(const char *message) {
     snprintf(path, sizeof(path), "%s/log_tail.txt", dir);
     suite_write_log_tail(path);
     Trace_DumpAll(dir);
+    snprintf(path, sizeof(path), "%s/scenario.yaml", dir);
+    {
+        char scenario_error[160] = {0};
+        if (Scenario_CaptureCurrent(path, scenario_error, sizeof scenario_error) != 0)
+            printf("[suite] capture: scenario export failed: %s\n", scenario_error);
+        else
+            snprintf(s_last_scenario_path, sizeof s_last_scenario_path, "%s", path);
+    }
 
     snprintf(path, sizeof(path), "%s/report.json", dir);
     {
@@ -923,7 +934,8 @@ int DebugSuite_CaptureReport(const char *message) {
             "    \"replay\": \"capture.rpl\",\n"
             "    \"state_now\": \"state_now.rpl\",\n"
             "    \"screenshot\": \"screen.bmp\",\n"
-            "    \"log\": \"log_tail.txt\"\n"
+            "    \"log\": \"log_tail.txt\",\n"
+            "    \"scenario\": \"scenario.yaml\"\n"
             "  }\n"
             "}\n",
             id, created, msg_esc,
@@ -946,6 +958,10 @@ int DebugSuite_CaptureReport(const char *message) {
     printf("[suite] %s\n", toast);
     fflush(stdout);
     return 0;
+}
+
+const char *DebugSuite_LastScenarioPath(void) {
+    return s_last_scenario_path[0] ? s_last_scenario_path : NULL;
 }
 
 static void suite_probe_player(void) {

@@ -93,7 +93,7 @@ scene_npc Museum1F kanto/museum1f/old_amber 15 2
 scene_npc Museum1F kanto/museum1f/ticket_gate 12 4
 scene_tile NameRatersHouse kanto/blueshouse/townmap 3 0
 scene_trigger OaksLab -1 6 kanto/oakslab/dont_go_away when event_set EVENT_OAK_ASKED_TO_CHOOSE_MON and event_clear EVENT_GOT_STARTER
-scene_trigger OaksLab -1 6 kanto/oakslab/rival_challenge when event_set EVENT_GOT_STARTER
+scene_trigger OaksLab -1 6 kanto/oakslab/rival_challenge when event_set EVENT_GOT_STARTER and event_clear EVENT_BATTLED_RIVAL_IN_OAKS_LAB
 scene_trigger OaksLab 5 11 kanto/oakslab/oakslab_entry when event_set EVENT_OAK_APPEARED_IN_PALLET and event_clear EVENT_OAK_ASKED_TO_CHOOSE_MON
 scene_npc OaksLab kanto/oakslab/oakslab_oak_talk 5 2
 scene_tile OaksLab kanto/oakslab/right_poster 5 0

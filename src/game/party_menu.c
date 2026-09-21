@@ -498,8 +498,7 @@ static void pm_draw_nick(int col, int row, int slot) {
         }
     } else {
 
-        uint8_t     dex  = gSpeciesToDex[wPartyMons[slot].base.species];
-        const char *name = Pokemon_GetName(dex);
+        const char *name = Pokemon_GetNameBySpecies(wPartyMons[slot].base.species);
         int         len  = (int)strlen(name);
         for (int i = 0; i < 10; i++) {
             if (i < len) pm_put(col + i, row, pm_ascii_tile((unsigned char)name[i]));
@@ -721,7 +720,7 @@ static const char *pm_party_mon_name(int slot) {
         name[out] = '\0';
         if (out > 0) return name;
     }
-    return Pokemon_GetName(Species_Dex(wPartyMons[slot].base.species));
+    return Pokemon_GetNameBySpecies(wPartyMons[slot].base.species);
 }
 
 static void pm_draw_item_use_result(int slot, uint16_t healed, int success) {

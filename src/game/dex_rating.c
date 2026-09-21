@@ -12,6 +12,10 @@ void DexRating_Counts(int *seen, int *owned) {
     int s = 0, o = 0;
     for (int i = 0; i < DEX_FLAG_BYTES; i++) {
         uint8_t sb = wPokedexSeen[i], ob = wPokedexOwned[i];
+        if (i == DEX_FLAG_BYTES - 1) {
+            sb &= 0x7f;
+            ob &= 0x7f;
+        }
         while (sb) { s += sb & 1; sb >>= 1; }
         while (ob) { o += ob & 1; ob >>= 1; }
     }

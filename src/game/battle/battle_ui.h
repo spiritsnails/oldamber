@@ -27,6 +27,7 @@ int BattleUI_SnapshotHUD(char *out, size_t outsz);
 int BattleUI_BeginPendingEvolution(void);
 
 int  BattleUI_CenterMonNameOffset(int len);
+void BattleUI_DrawEnemyName(void);
 
 void BattleUI_SetPlayerNameCentered(int on);
 

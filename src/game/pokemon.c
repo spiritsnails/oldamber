@@ -3,6 +3,7 @@
 #include "type_mod.h"
 #include "species_mod.h"
 #include "gen2_species.h"
+#include "missingno.h"
 #include "gen2_pokedex.h"
 #include "constants.h"
 #include "../data/base_stats.h"
@@ -43,15 +44,13 @@ static uint32_t exp_bytes_to_u32(const uint8_t exp[3]) {
 }
 
 static uint8_t infer_level_from_exp(uint8_t species, const uint8_t exp[3]) {
-    uint8_t dex = gSpeciesToDex[species];
     base_stats_t bs = {0};
     uint8_t growth_rate;
     uint32_t cur_exp;
     uint8_t best = 1;
 
-    if (SpeciesMod_GetBaseStats(species, &bs)) growth_rate = bs.growth_rate;
-    else if (dex >= 1 && dex <= NUM_POKEMON) growth_rate = gBaseStats[dex].growth_rate;
-    else return 1;
+    if (!Species_GetBaseStats(species, &bs)) return 1;
+    growth_rate = bs.growth_rate;
     cur_exp = exp_bytes_to_u32(exp);
 
     for (uint8_t lv = 1; lv <= 100; lv++) {
@@ -71,7 +70,6 @@ static uint8_t hp_dv_from_dvs(uint16_t dvs) {
 }
 
 static void fill_party_from_box(party_mon_t *dst, const box_mon_t *src) {
-    uint8_t dex;
     base_stats_t bs = {0};
     const base_stats_t *bs_ptr;
     uint8_t level;
@@ -80,11 +78,7 @@ static void fill_party_from_box(party_mon_t *dst, const box_mon_t *src) {
     memset(dst, 0, sizeof(*dst));
     memcpy(&dst->base, src, sizeof(*src));
 
-    dex = gSpeciesToDex[src->species];
-    if (!SpeciesMod_GetBaseStats(src->species, &bs)) {
-        if (dex == 0 || dex > NUM_POKEMON) return;
-        bs = gBaseStats[dex];
-    }
+    if (!Species_GetBaseStats(src->species, &bs)) return;
     bs_ptr = &bs;
     level = src->box_level;
     if (level == 0) {
@@ -197,8 +191,11 @@ const char *Pokemon_GetName(uint8_t dex) {
 
 const char *Pokemon_GetNameBySpecies(uint8_t species) {
     const char *mod = SpeciesMod_GetName(species);
+    const char *missingno;
     uint8_t dex;
     if (mod && *mod) return mod;
+    missingno = MissingNo_GetName(species);
+    if (missingno) return missingno;
 
     dex = Species_Dex(species);
     return Pokemon_GetName(dex);
@@ -226,6 +223,17 @@ void Pokemon_WriteMovesForLevel(uint8_t *moves, uint8_t *pp,
                 moves[3] = move_id;
                 pp[3] = (move_id < NUM_MOVE_DEFS) ? gMoves[move_id].pp : 0;
             }
+        }
+        return;
+    }
+    if (MissingNo_IsM00(species_id)) {
+
+        if (level >= 136) {
+            moves[0] = moves[1]; pp[0] = pp[1];
+            moves[1] = moves[2]; pp[1] = pp[2];
+            moves[2] = moves[3]; pp[2] = pp[3];
+            moves[3] = 1u;
+            pp[3] = gMoves[1].pp;
         }
         return;
     }
@@ -322,8 +330,31 @@ void Pokemon_AddToParty(uint8_t species, uint8_t level) {
     wPartyCount++;
 }
 
+int Pokemon_RecalculatePartyData(party_mon_t *m) {
+    base_stats_t bs;
+    uint16_t dvs;
+    uint8_t hp_dv, atk_dv, def_dv, spd_dv, spc_dv;
+    if (!m) return 0;
+    if (!Species_GetBaseStats(m->base.species, &bs)) return 0;
+    dvs = m->base.dvs;
+    atk_dv=(uint8_t)(dvs>>12); def_dv=(uint8_t)((dvs>>8)&15);
+    spd_dv=(uint8_t)((dvs>>4)&15); spc_dv=(uint8_t)(dvs&15);
+    hp_dv=(uint8_t)(((atk_dv&1)<<3)|((def_dv&1)<<2)|((spd_dv&1)<<1)|(spc_dv&1));
+    m->max_hp=CalcStat(bs.hp,hp_dv,m->base.stat_exp_hp,m->level,1);
+    m->atk=CalcStat(bs.atk,atk_dv,m->base.stat_exp_atk,m->level,0);
+    m->def=CalcStat(bs.def,def_dv,m->base.stat_exp_def,m->level,0);
+    m->spd=CalcStat(bs.spd,spd_dv,m->base.stat_exp_spd,m->level,0);
+    m->spc=CalcStat(bs.spc,spc_dv,m->base.stat_exp_spc,m->level,0);
+    return 1;
+}
+
+int Pokemon_RecalculatePartyMon(int slot) {
+    if (slot < 0 || slot >= wPartyCount) return 0;
+    return Pokemon_RecalculatePartyData(&wPartyMons[slot]);
+}
+
 int Pokemon_AddToBox(uint8_t species, uint8_t level) {
-    uint8_t box, slot, dex;
+    uint8_t box, slot;
     base_stats_t bs = {0};
     const base_stats_t *bs_ptr;
     const char *name;
@@ -336,11 +367,7 @@ int Pokemon_AddToBox(uint8_t species, uint8_t level) {
     if (box >= NUM_BOXES) return 0;
     if (wBoxCount[box] >= BOX_CAPACITY) return 0;
 
-    dex = gSpeciesToDex[species];
-    if (!SpeciesMod_GetBaseStats(species, &bs)) {
-        if (dex == 0 || dex > NUM_POKEMON) return 0;
-        bs = gBaseStats[dex];
-    }
+    if (!Species_GetBaseStats(species, &bs)) return 0;
     bs_ptr = &bs;
 
     dv1 = BattleRandom();
@@ -387,7 +414,6 @@ int Pokemon_AddToBox(uint8_t species, uint8_t level) {
 int Pokemon_SendBattleMonToBox(const battle_mon_t *mon) {
     uint8_t box;
     uint8_t slot;
-    uint8_t dex;
     base_stats_t bs = {0};
     const base_stats_t *bs_ptr;
     const char *name;
@@ -400,11 +426,7 @@ int Pokemon_SendBattleMonToBox(const battle_mon_t *mon) {
     if (box >= NUM_BOXES) return 0;
     if (wBoxCount[box] >= BOX_CAPACITY) return 0;
 
-    dex = gSpeciesToDex[mon->species];
-    if (!SpeciesMod_GetBaseStats(mon->species, &bs)) {
-        if (dex == 0 || dex > NUM_POKEMON) return 0;
-        bs = gBaseStats[dex];
-    }
+    if (!Species_GetBaseStats(mon->species, &bs)) return 0;
     bs_ptr = &bs;
 
     slot = wBoxCount[box];
@@ -529,15 +551,12 @@ uint8_t Pokemon_LevelFromExp(uint8_t species, const uint8_t exp[3]) {
 }
 
 uint8_t Pokemon_DaycareCheckedLevel(uint8_t species, uint8_t exp[3]) {
-    uint8_t dex;
     base_stats_t bs = {0};
     uint8_t growth_rate = GROWTH_MEDIUM_FAST;
     uint8_t level = infer_level_from_exp(species, exp);
     if (level < MAX_LEVEL) return level;
 
-    dex = gSpeciesToDex[species];
-    if (SpeciesMod_GetBaseStats(species, &bs)) growth_rate = bs.growth_rate;
-    else if (dex >= 1 && dex <= NUM_POKEMON) growth_rate = gBaseStats[dex].growth_rate;
+    if (Species_GetBaseStats(species, &bs)) growth_rate = bs.growth_rate;
     u32_to_exp(CalcExpForLevel(growth_rate, MAX_LEVEL), exp);
     return MAX_LEVEL;
 }

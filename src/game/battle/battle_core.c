@@ -1653,6 +1653,13 @@ static void faint_enemy_pokemon_state(void) {
 }
 
 static void remove_fainted_player_mon_state(void) {
+    BLOG("faint sync slot=%u party_species=%u battle_species=%u party_hp=%u battle_hp=%u transformed=%u",
+         (unsigned)wPlayerMonNumber,
+         (unsigned)wPartyMons[wPlayerMonNumber].base.species,
+         (unsigned)wBattleMon.species,
+         (unsigned)wPartyMons[wPlayerMonNumber].base.hp,
+         (unsigned)wBattleMon.hp,
+         (unsigned)((wPlayerBattleStatus3 >> BSTAT3_TRANSFORMED) & 1u));
 
     wPartyMons[wPlayerMonNumber].base.hp     = wBattleMon.hp;
     wPartyMons[wPlayerMonNumber].base.status = wBattleMon.status;

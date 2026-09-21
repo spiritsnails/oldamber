@@ -98,7 +98,7 @@ def _xor_chunks(dst, src):
         dst[i] ^= src[i]
     return dst
 
-def decompress(data, offset):
+def decompress_planes(data, offset):
     br = _BitReader(data, offset * 8)
 
     size = br.bits(8)
@@ -135,6 +135,11 @@ def decompress(data, offset):
         buf1, buf2 = second, first
     else:
         buf1, buf2 = first, second
+
+    return buf1, buf2, w_tiles, h_tiles
+
+def decompress(data, offset):
+    buf1, buf2, w_tiles, h_tiles = decompress_planes(data, offset)
 
     out = bytearray()
     for i in range(len(buf1)):

@@ -6,6 +6,7 @@
 
 typedef struct {
     char name[32];
+    char display_name[64];
     uint8_t spawn_x;
     uint8_t spawn_y;
     uint8_t max_x;

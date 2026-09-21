@@ -1,0 +1,86 @@
+schema: 1
+game: red
+base: fresh
+
+player:
+  name: RED
+  rival_name: BLUE
+  trainer_id: 20001
+  money: 3000
+  coins: 0
+  badges: []
+
+location:
+  vmap: OaksLab
+  x: 6
+  y: 8
+  facing: up
+
+respawn:
+  last_healed_vmap: PalletTown
+
+party:
+  - species: BULBASAUR
+    level: 10
+    moves: [TACKLE, GROWL, LEECH_SEED]
+    nickname: BULBASAUR
+    ot_name: RED
+    ot_id: 20001
+
+boxes:
+  current: 1
+  pokemon: []
+
+daycare: null
+
+bag:
+  - item: OAKS_PARCEL
+    quantity: 1
+  - item: POTION
+    quantity: 1
+
+pc_items: []
+
+pokedex:
+  seen: [BULBASAUR, CHARMANDER]
+  caught: [BULBASAUR]
+
+events:
+  set:
+    - EVENT_FOLLOWED_OAK_INTO_LAB
+    - EVENT_FOLLOWED_OAK_INTO_LAB_2
+    - EVENT_OAK_ASKED_TO_CHOOSE_MON
+    - EVENT_GOT_STARTER
+    - EVENT_BATTLED_RIVAL_IN_OAKS_LAB
+    - EVENT_OAK_APPEARED_IN_PALLET
+    - EVENT_GOT_OAKS_PARCEL
+    - EVENT_HIDE_STARTER_BALL_1
+    - EVENT_HIDE_STARTER_BALL_3
+  clear:
+    - EVENT_OAK_GOT_PARCEL
+    - EVENT_GOT_POKEDEX
+    - EVENT_GOT_POKEBALLS_FROM_OAK
+
+progress_flags:
+  completed_trades: []
+  visited_towns_mask: 1
+  picked_up_items: []
+
+rng:
+  add: 37
+  sub: 181
+
+options:
+  text_speed: fast
+  battle_animations: true
+  battle_style: shift
+  sound: stereo
+
+play_time:
+  hours: 1
+  minutes: 0
+  seconds: 0
+  frames: 0
+
+movement: walking
+rival_starter: CHARMANDER

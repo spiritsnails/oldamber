@@ -164,10 +164,7 @@ static void g1c_draw_enemy_hud(void) {
     }
     g1c_place_hud_tiles(1, 2, +1, 0x72, 0x74, 0x78);
 
-    {
-        const char *nm = Pokemon_GetName(Species_Dex(wEnemyMon.species));
-        g1c_put_str(1 + g1c_center_offset(g1c_strlen(nm, 10)), 0, nm, 10);
-    }
+    BattleUI_DrawEnemyName();
     {
         const char *st = g1c_status_name(wEnemyMon.status);
         if (st) g1c_put_str(7, 1, st, 3);
@@ -207,10 +204,7 @@ static void g1c_draw_enemy_hud_gen1(void) {
     g1c_clear(0, 0, 12, 4);
     g1c_place_hud_tiles(1, 2, +1, 0x73, 0x74, 0x78);
 
-    {
-        const char *nm = Pokemon_GetName(Species_Dex(wEnemyMon.species));
-        g1c_put_str(1 + g1c_center_offset(g1c_strlen(nm, 10)), 0, nm, 10);
-    }
+    BattleUI_DrawEnemyName();
     {
         const char *st = g1c_status_name(wEnemyMon.status);
         if (st) g1c_put_str(5, 1, st, 3);

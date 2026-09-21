@@ -47,6 +47,8 @@ static inline uint8_t apu_reg_addr(int channel, int reg) {
 #include "../game/music.h"
 #include "../game/johto_music.h"
 #include "../game/gen2_species.h"
+#include "../game/missingno.h"
+#include "../game/constants.h"
 #include "../game/map_music.h"
 #include "../data/cry_data.h"
 #include "../data/move_sfx_structs.h"
@@ -89,6 +91,7 @@ typedef struct {
 static gb_channel_t ch[4];
 static SDL_AudioDeviceID audio_dev  = 0;
 static SDL_mutex        *audio_mutex = NULL;
+static uint32_t          s_audio_retry_after;
 static int               s_cry_mix_boost = 0;
 static int               s_pc_sfx_mix_boost = 0;
 static float             s_master_mix_current = 1.0f;
@@ -254,25 +257,7 @@ float Audio_GetMixLevel(void) {
     return current;
 }
 
-int Audio_Init(void) {
-
-    GbApu_Reset();
-    GbApu_SetOutputRate(AUDIO_SAMPLE_RATE);
-    GbApu_WriteReg(0x26, 0x80);
-    GbApu_WriteReg(0x24, 0x77);
-    GbApu_WriteReg(0x25, 0xFF);
-    AudioEngine_SetWriteHook(engine_write);
-
-    memset(ch, 0, sizeof(ch));
-    s_master_mix_current = 1.0f;
-
-    ch[3].lfsr = 0x7FFF;
-
-    Audio_SetWaveInstrument(0);
-
-    audio_mutex = SDL_CreateMutex();
-    if (!audio_mutex) return -1;
-
+static int open_audio_device(void) {
     SDL_AudioSpec want = {0}, have;
     want.freq     = AUDIO_SAMPLE_RATE;
     want.format   = AUDIO_S16SYS;
@@ -306,6 +291,66 @@ int Audio_Init(void) {
 
     SDL_PauseAudioDevice(audio_dev, 0);
     return 0;
+}
+
+int Audio_Init(void) {
+
+    GbApu_Reset();
+    GbApu_SetOutputRate(AUDIO_SAMPLE_RATE);
+    GbApu_WriteReg(0x26, 0x80);
+    GbApu_WriteReg(0x24, 0x77);
+    GbApu_WriteReg(0x25, 0xFF);
+    AudioEngine_SetWriteHook(engine_write);
+
+    memset(ch, 0, sizeof(ch));
+    s_master_mix_current = 1.0f;
+
+    ch[3].lfsr = 0x7FFF;
+
+    Audio_SetWaveInstrument(0);
+
+    audio_mutex = SDL_CreateMutex();
+    if (!audio_mutex) return -1;
+
+    s_audio_retry_after = 0;
+    return open_audio_device();
+}
+
+void Audio_HandleDeviceRemoved(uint32_t device_id, int is_capture) {
+    if (is_capture || !audio_dev || device_id != (uint32_t)audio_dev) return;
+    printf("[audio] playback device removed; waiting for replacement\n");
+    fflush(stdout);
+    SDL_CloseAudioDevice(audio_dev);
+    audio_dev = 0;
+    s_audio_retry_after = 0;
+}
+
+void Audio_MaintainDevice(void) {
+    uint32_t now;
+
+    if (!audio_mutex) return;
+    if (audio_dev && SDL_GetAudioDeviceStatus(audio_dev) != SDL_AUDIO_STOPPED)
+        return;
+
+    now = SDL_GetTicks();
+    if (s_audio_retry_after && (int32_t)(now - s_audio_retry_after) < 0)
+        return;
+
+    if (audio_dev) {
+        printf("[audio] playback device stopped; reopening default output\n");
+        fflush(stdout);
+        SDL_CloseAudioDevice(audio_dev);
+        audio_dev = 0;
+    }
+
+    if (open_audio_device() == 0) {
+        printf("[audio] playback output restored\n");
+        fflush(stdout);
+        s_audio_retry_after = 0;
+    } else {
+
+        s_audio_retry_after = now + 2000u;
+    }
 }
 
 void Audio_WriteReg(int channel, int reg, uint8_t value) {
@@ -2070,6 +2115,11 @@ static int use_crystal_cry(uint8_t species) {
 
 void Audio_PlayCryModified(uint8_t species, int8_t pitch_add, uint8_t tempo_add) {
 
+    if (MissingNo_IsM00(species)) {
+        species = SPECIES_ZAPDOS;
+        pitch_add = (int8_t)(pitch_add - 8);
+        tempo_add = (uint8_t)(tempo_add - 2);
+    }
     if (use_crystal_cry(species)) {
         JohtoAudio_PlayCryModified(crystal_cry_index(species), pitch_add, tempo_add);
         return;
@@ -2976,6 +3026,8 @@ void Audio_UpdateSfx(void) {
 }
 
 void Audio_Quit(void) {
-    if (audio_dev)   SDL_CloseAudioDevice(audio_dev);
+    if (audio_dev) SDL_CloseAudioDevice(audio_dev);
+    audio_dev = 0;
     if (audio_mutex) SDL_DestroyMutex(audio_mutex);
+    audio_mutex = NULL;
 }

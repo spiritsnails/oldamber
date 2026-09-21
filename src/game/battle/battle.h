@@ -15,8 +15,8 @@ extern void (*gCombatLogSink)(const char *line);
     fprintf(stderr, "%s\n", _b); \
     if (gCombatLogSink) gCombatLogSink(_b); \
 } while(0)
-#define BMON_P()  Pokemon_GetName(Species_Dex(wBattleMon.species))
-#define BMON_E()  Pokemon_GetName(Species_Dex(wEnemyMon.species))
+#define BMON_P()  Pokemon_GetNameBySpecies(wBattleMon.species)
+#define BMON_E()  Pokemon_GetNameBySpecies(wEnemyMon.species)
 #define BMOVE(id) ((unsigned)(id) < NUM_MOVE_DEFS && gMoveNames[(id)] ? gMoveNames[(id)] : "???")
 
 extern const uint8_t kBattleStatModRatios[13][2];

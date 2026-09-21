@@ -23,6 +23,7 @@ extern int Game_StartCreditsDebugPreview(void);
 #include "trainer_sight.h"
 #include "pokecenter.h"
 #include "pokemon.h"
+#include "missingno.h"
 #include "battle/battle_ui.h"
 #include "trade.h"
 #include "battle/battle_init.h"
@@ -3608,13 +3609,13 @@ static void write_battle_state(FILE *fp) {
     }
 
     fprintf(fp, "ENEMY:  %s Lv%d  HP: %d/%d  [%s]\n",
-            Pokemon_GetName(Species_Dex(wEnemyMon.species)),
+            Pokemon_GetNameBySpecies(wEnemyMon.species),
             wEnemyMon.level,
             wEnemyMon.hp, wEnemyMon.max_hp,
             status_str(wEnemyMon.status));
 
     fprintf(fp, "PLAYER: %s Lv%d  HP: %d/%d  [%s]\n\n",
-            Pokemon_GetName(Species_Dex(wBattleMon.species)),
+            Pokemon_GetNameBySpecies(wBattleMon.species),
             wBattleMon.level,
             wBattleMon.hp, wBattleMon.max_hp,
             status_str(wBattleMon.status));
@@ -6161,6 +6162,23 @@ static void process_cmd(const char *cmd) {
             if (wPartyCount < 6) wPartyCount++;
             printf("[cli] givemon: slot %d → %s Lv%d (species 0x%02X)\n",
                    slot + 1, Pokemon_GetName(dex), level, species);
+        }
+        write_state();
+        return;
+    }
+    else if (strcmp(verb, "wildid") == 0) {
+        int sid = 0x1f, level = 80;
+        sscanf(cmd, "%*s %i %d", &sid, &level);
+        if (sid < 1 || sid > 255 || level < 1 || level > 255 ||
+            (gSpeciesToDex[sid] == 0 &&
+             !MissingNo_IsEnabledSpecies((uint8_t)sid))) {
+            printf("[cli] wildid: usage wildid <internal id> [level 1-255]\n");
+        } else if (wPartyCount == 0) {
+            printf("[cli] wildid: party is empty -- givemon first\n");
+        } else {
+            Game_StartWildBattleScripted((uint8_t)sid, (uint8_t)level);
+            printf("[cli] wildid: %s Lv%d (species 0x%02X)\n",
+                   Pokemon_GetNameBySpecies((uint8_t)sid), level, sid);
         }
         write_state();
         return;

@@ -302,6 +302,10 @@ static void init_player_data(void) {
     printf("[intro] Player data initialized: ASH / GARY, \xA5""3000, 1 POTION\n");
 }
 
+void Intro_InitPlayerDataForScenario(void) {
+    init_player_data();
+}
+
 static void begin_fade_out_white(IntroState resume) {
     gFadeStep = 0;
     gFadeTimer = 8;

@@ -320,3 +320,4 @@ mod_runtime/map_edits/vmap_WildTestRoom.txt
 # The vmap streamer searches this root FIRST (kPksGenRoots in amberscript_mapbank.c).
 mod_runtime/generatedmaps/
 build-audiotrace/
+.scenario-*/

@@ -6,6 +6,7 @@ void SuspendMenu_Open(void);
 void SuspendMenu_Close(void);
 void SuspendMenu_Toggle(void);
 int  SuspendMenu_IsOpen(void);
+void SuspendMenu_ShowBugCapture(const char *scenario_path, int copied);
 void SuspendMenu_SetDebugToolingEnabled(int enabled);
 int  SuspendMenu_DebugToolingEnabled(void);
 

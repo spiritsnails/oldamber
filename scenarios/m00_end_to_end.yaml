@@ -1,0 +1,102 @@
+schema: 1
+game: red
+base: fresh
+
+player:
+  # Entered as a custom name. ASH has odd length, so its $50 terminator is
+  # paired with the following zero byte as a level-80 species-$00 encounter.
+  name: ASH
+  rival_name: GARY
+  trainer_id: 1337
+  money: 99999
+  coins: 0
+  badges: [BOULDER, CASCADE, THUNDER, RAINBOW, SOUL]
+
+location:
+  vmap: ViridianCity
+  x: 17
+  y: 6
+  facing: up
+
+respawn:
+  last_healed_vmap: ViridianCity
+
+party:
+  - species: CHARIZARD
+    level: 55
+    moves: [FLAMETHROWER, FLY, SLASH, SWORDS_DANCE]
+    nickname: CHARIZARD
+    ot_name: ASH
+  - species: BLASTOISE
+    level: 55
+    moves: [SURF, ICE_BEAM, BODY_SLAM, BITE]
+    nickname: SURFER
+    ot_name: ASH
+  - species: VENUSAUR
+    level: 55
+    moves: [RAZOR_LEAF, SLEEP_POWDER, BODY_SLAM, GROWTH]
+    ot_name: ASH
+  - species: ALAKAZAM
+    level: 54
+    moves: [PSYCHIC_M, RECOVER, THUNDER_WAVE, REFLECT]
+    ot_name: ASH
+  - species: JOLTEON
+    level: 52
+    moves: [THUNDERBOLT, THUNDER_WAVE, DOUBLE_KICK, PIN_MISSILE]
+    ot_name: ASH
+
+boxes:
+  current: 1
+  pokemon: []
+
+daycare: null
+
+bag:
+  - item: POTION
+    quantity: 10
+  - item: POKE_BALL
+    quantity: 30
+  - item: SUPER_POTION
+    quantity: 10
+  - item: ANTIDOTE
+    quantity: 5
+  - item: ESCAPE_ROPE
+    quantity: 3
+  - item: RARE_CANDY
+    quantity: 1
+  - item: MASTER_BALL
+    quantity: 1
+
+pc_items: []
+
+pokedex:
+  seen: [CHARIZARD, BLASTOISE, VENUSAUR, ALAKAZAM, JOLTEON]
+  caught: [CHARIZARD, BLASTOISE, VENUSAUR, ALAKAZAM, JOLTEON]
+
+events:
+  set: [EVENT_GOT_POKEDEX]
+  clear: []
+
+progress_flags:
+  completed_trades: []
+  visited_towns_mask: 2047
+  picked_up_items: []
+
+rng:
+  add: 37
+  sub: 181
+
+options:
+  text_speed: fast
+  battle_animations: true
+  battle_style: shift
+  sound: stereo
+
+play_time:
+  hours: 20
+  minutes: 0
+  seconds: 0
+  frames: 0
+
+movement: walking
+rival_starter: BLASTOISE
