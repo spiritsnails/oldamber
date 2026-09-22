@@ -237,7 +237,8 @@ static int install_download(void) {
     if (stat(archive,&st)!=0 || (uint64_t)st.st_size!=u.size) { set_state(UPDATE_ERROR,"UPDATE DOWNLOAD WAS INCOMPLETE"); return 0; }
     if (!Sha256_FileHex(archive,digest) || strcmp(digest,u.sha256)!=0) { set_state(UPDATE_ERROR,"UPDATE VERIFICATION FAILED"); return 0; }
     snprintf(final,sizeof final,"%s/%s",versions,version_dir);
-    if (!exists(final)) {
+    {
+        char backup[1200];
         snprintf(staging,sizeof staging,"%s/.%s-%u",versions,version_dir,(unsigned)SDL_GetTicks());
         if (!make_tree(staging)) { set_state(UPDATE_ERROR,"COULD NOT STAGE UPDATE"); return 0; }
 #ifdef _WIN32
@@ -252,7 +253,17 @@ static int install_download(void) {
 #else
         snprintf(child,sizeof child,"%s/oldamber-game",staging);
 #endif
-        if (!exists(child) || rename(staging,final)!=0) { set_state(UPDATE_ERROR,"UPDATE PAYLOAD IS INVALID"); return 0; }
+        if (!exists(child)) { set_state(UPDATE_ERROR,"UPDATE PAYLOAD IS INVALID"); return 0; }
+        if (exists(final)) {
+            snprintf(backup,sizeof backup,"%s.previous-%u",final,(unsigned)SDL_GetTicks());
+            if (rename(final,backup)!=0) { set_state(UPDATE_ERROR,"COULD NOT REPLACE OLD UPDATE"); return 0; }
+        } else {
+            backup[0] = '\0';
+        }
+        if (rename(staging,final)!=0) {
+            if (backup[0]) rename(backup,final);
+            set_state(UPDATE_ERROR,"COULD NOT INSTALL UPDATE"); return 0;
+        }
     }
 #ifdef _WIN32
     snprintf(child,sizeof child,"%s/oldamber-game.exe",final);
